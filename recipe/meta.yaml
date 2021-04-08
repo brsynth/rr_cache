@@ -1,4 +1,4 @@
-{% set name = "retropath2_wrapper" %}
+{% set name = "rr_cache" %}
 {% set data = load_setup_py_data() %}
 
 package:

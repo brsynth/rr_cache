@@ -10,6 +10,10 @@ from logging import (
 )
 from colored import fg, bg, attr
 from logging import StreamHandler
+from argparse import (
+    ArgumentParser,
+    Namespace
+)
 
 
 def init(

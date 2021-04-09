@@ -37,6 +37,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='generate the cache and exits'
     )
     parser.add_argument(
+        '--db',
+        type=str,
+        default='file',
+        help='Name of the server which stores the cache. If \'file\' is given (default), then cache is loaded from file into memory.'
+    )
+    parser.add_argument(
+        '--attrs',
+        type=str,
+        nargs = '+',
+        help='Name(s) of attributes to load, all if not given (default).'
+    )
+    parser.add_argument(
         '--log', '-l',
         metavar='ARG',
         type=str,

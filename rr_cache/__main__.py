@@ -30,7 +30,7 @@ def init(
     logger = create_logger(parser.prog, args.log)
 
     logger.info(
-        '{color}{typo}rr_cache {version}{rst}{color} ({prog}){rst}\n'.format(
+        '{color}{typo}rr_cache {version}{rst}{color}{rst}\n'.format(
             prog = logger.name,
             version = __version__,
             color=fg('white'),
@@ -55,6 +55,12 @@ def entry_point():
     if args.cache_dir:
         print("rrCache is going to be generated into " + args.cache_dir)
         gen_cache(args.cache_dir, logger)
+    else:
+        cache = rrCache(
+            db=args.db,
+            attrs=args.attrs,
+            logger=logger
+        )
 
 
 def gen_cache(outdir, logger):

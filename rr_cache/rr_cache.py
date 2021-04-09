@@ -26,11 +26,13 @@ from hashlib    import sha512
 from pathlib    import Path
 from colored    import (
     attr as c_attr,
-    fg,
-    bg
+    fg as c_fg,
+    bg as c_bg
 )
 from logging import (
-    getLogger
+    Logger,
+    getLogger,
+    StreamHandler
 )
 from brs_utils  import print_OK, print_FAILED, download
 from credisdict import CRedisDict, wait_for_redis
@@ -169,9 +171,14 @@ class rrCache:
         try:
             self._check_or_load_cache()
         except FileNotFoundError:
-            print_FAILED()
             try:
-                rrCache._check_or_download_cache_to_disk(self._cache_dir, self._attributes)
+                StreamHandler.terminator = "\r"
+                logger.info('')
+                rrCache._check_or_download_cache_to_disk(
+                    self._cache_dir,
+                    self._attributes,
+                    self.logger
+                )
                 self._check_or_load_cache()
             except (r_exceptions.RequestException,
                     r_exceptions.InvalidSchema,
@@ -471,7 +478,9 @@ class rrCache:
 
 
     @staticmethod
-    def _check_or_download_cache_to_disk(cache_dir, attributes):
+    def _check_or_download_cache_to_disk(cache_dir, attributes, logger=Logger(__name__)):
+        logger.debug('cache_dir: '+str(cache_dir))
+        logger.debug('attributes: '+str(attributes))
         for attr in attributes:
             filename = attr+rrCache._ext
             if os_path.isfile(cache_dir+filename) and sha512(Path(cache_dir+filename).read_bytes()).hexdigest()==rrCache._cache_files[filename]:
@@ -491,7 +500,7 @@ class rrCache:
 
     def _load_from_file(self, attribute):
         filename = attribute+rrCache._ext
-        self.logger.info('{color}.'.format(color=fg('white')))
+        self.logger.info('{color}.'.format(color=c_fg('white')))
         self.logger.debug("Loading "+filename+"...")
         # print("Loading "+filename+"...", end = '', flush=True)
         data = self._load_cache_from_file(self._cache_dir+filename)
@@ -500,6 +509,7 @@ class rrCache:
 
 
     def _check_or_load_cache(self):
+        self.logger.debug('store_mode: '+self.store_mode)
         if self.store_mode=='file':
             self._check_or_load_cache_in_memory()
         else:
@@ -507,12 +517,28 @@ class rrCache:
 
 
     def _check_or_load_cache_in_memory(self):
+        StreamHandler.terminator = ""
+        self.logger.info(
+            '{color}{typo}Loading cache{rst}'.format(
+                color=c_fg('white'),
+                typo=c_attr('bold'),
+                rst=c_attr('reset')
+            )
+        )
         for attribute in self._attributes:
             if not getattr(self, attribute):
                 setattr(self, attribute, self._load_from_file(attribute))
             else:
-                print(attribute+" already loaded in memory...", end = '', flush=True)
+                # print(attribute+" already loaded in memory...", end = '', flush=True)
                 print_OK()
+        StreamHandler.terminator = "\n"
+        self.logger.info(
+            '{color}{typo} OK{rst}'.format(
+                color=c_fg('green'),
+                typo=c_attr('bold'),
+                rst=c_attr('reset')
+            )
+        )
 
 
     def _check_or_load_cache_in_db(self):

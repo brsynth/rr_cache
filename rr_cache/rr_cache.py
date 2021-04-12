@@ -174,13 +174,15 @@ class rrCache:
         self.store_mode = db
         rrCache._db_timeout = 10
 
-
-        if attrs != []:
-            if not isinstance(attrs, list):
-                self.logger.warning('\'attrs\' argument is not of type list, trying to convert...')
-                self._attributes = [attrs]
-            else:
-                self._attributes = attrs
+        if attrs is not None:
+            if attrs != []:
+                if not isinstance(attrs, list):
+                    self.logger.warning('\'attrs\' argument is not of type list, trying to convert...')
+                    self._attributes = [attrs]
+                else:
+                    self._attributes = attrs
+        else: # the user doesn't want to load anything for now
+            self._attributes = None
 
         self.dirname = os_path.dirname(os_path.abspath( __file__ ))#+"/.."
         # input_cache
@@ -188,6 +190,11 @@ class rrCache:
         # cache
         self._cache_dir = os_path.join(self.dirname, 'cache')
 
+        if self._attributes is not None:
+            self.load()
+
+
+    def load(self):
         if self.store_mode!='file':
             self.redis = StrictRedis(host=self.store_mode, port=6379, db=0, decode_responses=True)
             if not wait_for_redis(self.redis, self._db_timeout):

@@ -261,7 +261,10 @@ class rrCache:
                 start_time = time_time()
                 if not os_path.isdir(cache_dir):
                     os_mkdir(cache_dir)
-                download(rrCache._cache_url+filename, cache_dir+filename)
+                download(
+                    rrCache._cache_url+filename,
+                    os_path.join(cache_dir, filename)
+                )
                 rrCache._cache_files[attr] = True
                 end_time = time_time()
                 # print_OK(end_time-start_time)

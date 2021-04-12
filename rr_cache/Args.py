@@ -30,7 +30,7 @@ def build_args_parser(
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
-        '--gen_cache',
+        '--gen-cache',
         default=None,
         type=str,
         dest='cache_dir',
@@ -45,7 +45,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--attrs',
         type=str,
-        nargs = '+',
+        choices=[
+            'deprecatedCID_cid', 'deprecatedRID_rid', 'deprecatedCompID_compid',
+            'cid_strc', 'cid_name', 'cid_xref', 'chebi_cid', 'inchikey_cid',
+            'rr_reactions', 'rr_full_reactions',
+            'comp_xref',
+            'all'
+        ],
+        default=[],
+        nargs='+',
         help='Name(s) of attributes to load, all if not given (default).'
     )
     parser.add_argument(

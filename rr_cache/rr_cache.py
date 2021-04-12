@@ -1,13 +1,14 @@
 from os import (
     path as os_path,
-    mkdir as os_mkdir
+    mkdir as os_mkdir,
+    makedirs
 )
 from rdkit.Chem import (
     MolFromSmiles,
     MolFromInchi,
     MolToSmiles,
     MolToInchi,
-    MolToInchiKey
+    MolToInchiKey,
 )
 from csv import (
     DictReader as csv_DictReader,
@@ -34,8 +35,24 @@ from logging import (
     getLogger,
     StreamHandler
 )
-from brs_utils  import print_OK, print_FAILED, download
-from credisdict import CRedisDict, wait_for_redis
+from brs_utils  import (
+    print_OK,
+    print_FAILED,
+    print_start,
+    print_progress,
+    print_end,
+    download,
+)
+from credisdict import (
+    CRedisDict,
+    wait_for_redis
+)
+from typing import (
+    List,
+    Tuple,
+    Dict
+)
+
 
 
 #######################################################
@@ -114,18 +131,31 @@ class rrCache:
 
     # name: sha512sum
     _cache_files = {
-            _attributes[0]+'.json.gz': '698a3e83cf4f9206ea2644c9c35a9af53957838baaae6efb245d02b6b8d0ea8b25c75008e562b99ba3e0189e50ee47655376f2d0635f6206e0015f91f0e4bad8',
-            _attributes[1]+'.json.gz': '51554c6f6ae99c6755da7496208b3feec30547bc4cf3007d9fd30f46fa4c0cc73bad5aeb743dca07e32711c4346504296bee776d135fb18e96c891a0086fc87e',
-            _attributes[2]+'.json.gz': '0021ef63165d75ee6b8c209ccf14b8a1b8b7b263b4077f544729c47b5525f66511c3fa578fd2089201abb61693085b9912639e62f7b7481d06ad1f38bfc2dd8e',
-            _attributes[3]+'.json.gz': '7d559cc7389c0cb2bd10f92e6e845bb5724be64d1624adc4e447111fc63599bb69396cd0cc3066a6bb19910c00e266c97e21b1254d9a6dc9da3a8b033603fcff',
-            _attributes[4]+'.json.gz': '587d6c5206ee94e63af6d9eaf49fd5e2ca417308b3ece8a7f47e916c42376e2c8635a031ce26dc815cd7330f2323054a44d23951e416a9a29c5a9a2ab51e8953',
-            _attributes[5]+'.json.gz': '8783aaa65a281c4a7ab3a82a6dc99620418ed2be4a739f46db8ee304fcb3536a78fed5a955e1c373a20c3e7d3673793157c792b4429ecb5c68ddaddb1a0f7de7',
-            _attributes[6]+'.json.gz': '8007480fc607caf41f0f9a93beb66c7caa66c37a3d01a809f6b94bc0df469cec72091e8cc0fbabb3bd8775e9776b928ecda2779fc545c7e4b9e71c504f9510ce',
-            _attributes[7]+'.json.gz': 'afc2ad3d31366a8f7fe1604fa49c190ade6d46bc8915f30bd20fdfdfc663c979bb10ca55ad10cadec6002a17add46639c70e7adf89cb66c57ed004fd3e4f0051',
-            _attributes[8]+'.json.gz': '81c673fe1940e25a6a9722fd74b16bc30e1590db0c40810f541ad4ffba7ae04c01268b929d4bf944e84095a0c2a1d0079d1861bc1df3e8308fbb6b35e0aaf107',
-            _attributes[9]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985',
-            _attributes[10]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985'
+            _attributes[0]+'.json.gz': '1012d85b4720cf9706340e2d3bbef264dd95b67d510d8c1532c612a0f4aa6e1bdb2b77f36e135907070edb35038f31606f291ddd487df025e9999a4c543c739e',
+            _attributes[1]+'.json.gz': '2cb1cc54c5a11962ef90a0da1d77e684b16b453214052541b473cf1b182491af9242d25e73f3d9b137e2c939eaf1ebf4adcee5b732ffab6cbb430d238f493b91',
+            _attributes[2]+'.json.gz': '0139e8779c298fb089940ee3a57de0e4d13dcca40b954db1ca728dba0132fae43b7bf1adb128e6989433dae11c5c24a32f729aa7154c86e1e9236ac1b9dd5311',
+            _attributes[3]+'.json.gz': 'fef4540c117f5ff75fe7106e55596b74729c8551d6713d454846a98509bc872114db92946389d57e24dcf6f588d85462e0d71606207c52676175fb5e5a81bf81',
+            _attributes[4]+'.json.gz': '3c483178ea3d10a8b0ba9a5982cd70540af15fe4b95dd27844cad5c221554f253b75729dbd2ddd20b01dbe7f3b427e3adf13238c3fb1f3ae853feab9e4c36d9d',
+            _attributes[5]+'.json.gz': '9579714acf9d25d6c207b94af5be9977a0d438910a5ef9c3cd22f10b3c3292097e2246dd7c3d387e61701d66d7fb25092f39639b12803cdd72494d04d5434158',
+            _attributes[6]+'.json.gz': '70b20aa9cdf331c8407d86761596b851879d6878ecb7c8f89945c93d67569973845096c902c8b056064d16347fac380dfa17cd1918954a502d0fee70eca037aa',
+            _attributes[7]+'.json.gz': 'd7d422e497af88bf8ea820857d4cca9846b2ccea7a9993beea479f270ba5852b901f3280a7c408d09ad8bd941cb2552940d281068c579592f41bbb659777a7b2',
+            _attributes[8]+'.json.gz': '249a5bbd2b06c6326b3da8c759818c78bc13eed13b077c9f0ab1a2c912d01806e0e29d439fe3c09f5c5c6f87f7e02cd0bf0d7c5d01b81240aedb47b1bc5a664e',
+            _attributes[9]+'.json.gz': '7e7e6a4805d74f680c31a48304abd4f221d394788604c935b91e977b78275cdf3266839d8bc1097637c2fd633b3583f082b60f0d5a54985bba931f0f945c9802',
+            _attributes[10]+'.json.gz': '33e6f15a61352686169d86c8c444717eb6ea315b4683ca1d60a8b0d542a1fea2411fc9327d2604df1e47defa836616e60beb1b139a43249cb44bb9b0e91a1c70'
             }
+    # _cache_files = {
+    #         _attributes[0]+'.json.gz': '698a3e83cf4f9206ea2644c9c35a9af53957838baaae6efb245d02b6b8d0ea8b25c75008e562b99ba3e0189e50ee47655376f2d0635f6206e0015f91f0e4bad8',
+    #         _attributes[1]+'.json.gz': '51554c6f6ae99c6755da7496208b3feec30547bc4cf3007d9fd30f46fa4c0cc73bad5aeb743dca07e32711c4346504296bee776d135fb18e96c891a0086fc87e',
+    #         _attributes[2]+'.json.gz': '0021ef63165d75ee6b8c209ccf14b8a1b8b7b263b4077f544729c47b5525f66511c3fa578fd2089201abb61693085b9912639e62f7b7481d06ad1f38bfc2dd8e',
+    #         _attributes[3]+'.json.gz': '7d559cc7389c0cb2bd10f92e6e845bb5724be64d1624adc4e447111fc63599bb69396cd0cc3066a6bb19910c00e266c97e21b1254d9a6dc9da3a8b033603fcff',
+    #         _attributes[4]+'.json.gz': '587d6c5206ee94e63af6d9eaf49fd5e2ca417308b3ece8a7f47e916c42376e2c8635a031ce26dc815cd7330f2323054a44d23951e416a9a29c5a9a2ab51e8953',
+    #         _attributes[5]+'.json.gz': '8783aaa65a281c4a7ab3a82a6dc99620418ed2be4a739f46db8ee304fcb3536a78fed5a955e1c373a20c3e7d3673793157c792b4429ecb5c68ddaddb1a0f7de7',
+    #         _attributes[6]+'.json.gz': '8007480fc607caf41f0f9a93beb66c7caa66c37a3d01a809f6b94bc0df469cec72091e8cc0fbabb3bd8775e9776b928ecda2779fc545c7e4b9e71c504f9510ce',
+    #         _attributes[7]+'.json.gz': 'afc2ad3d31366a8f7fe1604fa49c190ade6d46bc8915f30bd20fdfdfc663c979bb10ca55ad10cadec6002a17add46639c70e7adf89cb66c57ed004fd3e4f0051',
+    #         _attributes[8]+'.json.gz': '81c673fe1940e25a6a9722fd74b16bc30e1590db0c40810f541ad4ffba7ae04c01268b929d4bf944e84095a0c2a1d0079d1861bc1df3e8308fbb6b35e0aaf107',
+    #         _attributes[9]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985',
+    #         _attributes[10]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985'
+    #         }
 
     _ext = '.json.gz'
 
@@ -135,7 +165,7 @@ class rrCache:
     #
     # @param self The object pointer
     # @param db Mode of storing objects ('file' or 'redis')
-    def __init__(self, db='file', attrs='', logger=getLogger(__name__)):
+    def __init__(self, db='file', attrs=[], logger=getLogger(__name__)):
 
         self.logger = logger
 
@@ -144,7 +174,8 @@ class rrCache:
         self.store_mode = db
         rrCache._db_timeout = 10
 
-        if attrs:
+
+        if attrs != []:
             if not isinstance(attrs, list):
                 self.logger.warning('\'attrs\' argument is not of type list, trying to convert...')
                 self._attributes = [attrs]
@@ -153,9 +184,9 @@ class rrCache:
 
         self.dirname = os_path.dirname(os_path.abspath( __file__ ))#+"/.."
         # input_cache
-        self._input_cache_dir = self.dirname+'/input_cache/'
+        self._input_cache_dir = os_path.join(self.dirname, 'input_cache')
         # cache
-        self._cache_dir = self.dirname+'/cache/'
+        self._cache_dir = os_path.join(self.dirname, 'cache')
 
         if self.store_mode!='file':
             self.redis = StrictRedis(host=self.store_mode, port=6379, db=0, decode_responses=True)
@@ -168,24 +199,74 @@ class rrCache:
             for attr in self._attributes:
                 setattr(self, attr, None)
 
+        rrCache._check_or_download_cache_to_disk(
+            self._cache_dir,
+            self._attributes,
+            self.logger
+        )
+        # rrCache.generate_cache(self._cache_dir)
         try:
             self._check_or_load_cache()
-        except FileNotFoundError:
-            try:
-                StreamHandler.terminator = "\r"
-                logger.info('')
-                rrCache._check_or_download_cache_to_disk(
-                    self._cache_dir,
-                    self._attributes,
-                    self.logger
-                )
-                self._check_or_load_cache()
-            except (r_exceptions.RequestException,
-                    r_exceptions.InvalidSchema,
-                    r_exceptions.ConnectionError):
-                print_FAILED()
-                rrCache.generate_cache(self._cache_dir)
-                self._check_or_load_cache()
+        except (r_exceptions.RequestException,
+                r_exceptions.InvalidSchema,
+                r_exceptions.ConnectionError):
+            rrCache.generate_cache(self._cache_dir)
+            self._check_or_load_cache()
+        # exit()
+        # try:
+        #     self._check_or_load_cache()
+        # except FileNotFoundError:
+        #     try:
+        #         StreamHandler.terminator = "\r"
+        #         logger.info('')
+        #         rrCache._check_or_download_cache_to_disk(
+        #             self._cache_dir,
+        #             self._attributes,
+        #             self.logger
+        #         )
+        #         self._check_or_load_cache()
+        #     except (r_exceptions.RequestException,
+        #             r_exceptions.InvalidSchema,
+        #             r_exceptions.ConnectionError):
+        #         print_FAILED()
+        #         rrCache.generate_cache(self._cache_dir)
+        #         self._check_or_load_cache()
+
+
+    @staticmethod
+    def _check_or_download_cache_to_disk(
+        cache_dir: str,
+        attributes: List,
+        logger: Logger=getLogger(__name__)):
+        logger.debug('cache_dir: '+str(cache_dir))
+        logger.debug('attributes: '+str(attributes))
+
+        print_start(logger, 'Downloading cache')
+
+        for attr in attributes:
+            print_progress()
+            filename = attr+rrCache._ext
+            if os_path.isfile(
+                os_path.join(cache_dir, filename)
+            ) and sha512(
+                Path(
+                    os_path.join(cache_dir, filename)
+                ).read_bytes()
+            ).hexdigest() == rrCache._cache_files[filename]:
+                logger.debug(filename+" already downloaded")
+                # print_OK()
+            else:
+                filename = attr+rrCache._ext
+                logger.debug("Downloading "+filename+"...")
+                start_time = time_time()
+                if not os_path.isdir(cache_dir):
+                    os_mkdir(cache_dir)
+                download(rrCache._cache_url+filename, cache_dir+filename)
+                rrCache._cache_files[attr] = True
+                end_time = time_time()
+                # print_OK(end_time-start_time)
+
+        print_end(logger)
 
 
     def get(self, attr):
@@ -225,43 +306,75 @@ class rrCache:
 
         if outdir == '':
             outdir = 'cache'
-
+            input_dir = 'input-'+outdir
+        else:
+            input_dir = os_path.join(
+                outdir,
+                'input-cache'
+            )
+            outdir = os_path.join(
+                outdir,
+                'cache'
+            )
         if not os_path.isdir(outdir):
-            os_mkdir(outdir)
-        outdir += '/'
-
-        url = rrCache._cache_url
+            makedirs(outdir)
+        if not os_path.isdir(input_dir):
+            makedirs(input_dir)
 
         # FETCH INPUT_CACHE FILES
-        input_dir = 'input-'+os_path.basename(os_path.normpath(outdir))+'/'
+        url = rrCache._cache_url
+        # input_dir = os_path.join(
+        #     os_path.normpath(outdir),
+        # )'input-'+os_path.basename(os_path.normpath(outdir))
+        print_start(logger, 'Downloading input cache')
         for file in rrCache._input_cache_files.keys():
             rrCache._download_input_cache(url, file, input_dir)
+            print_progress(logger)
+        print_end(logger)
 
         # GENERATE CACHE FILES AND STORE THEM TO DISK
+        print_start(logger, 'Generating cache')
         deprecatedCID_cid  = rrCache._gen_deprecatedCID_cid(input_dir, outdir, logger)
-        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_dir, outdir, deprecatedCID_cid)
-        rrCache._gen_inchikey_cid(input_dir, outdir, cid_strc)
+        print_progress(logger)
+        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_dir, outdir, deprecatedCID_cid, logger)
+        print_progress(logger)
+        rrCache._gen_inchikey_cid(input_dir, outdir, cid_strc, logger)
+        print_progress(logger)
         del cid_strc, cid_name
-        cid_xref           = rrCache._gen_cid_xref(input_dir, outdir, deprecatedCID_cid)
+        cid_xref           = rrCache._gen_cid_xref(input_dir, outdir, deprecatedCID_cid, logger)
+        print_progress(logger)
         rrCache._gen_chebi_cid(input_dir, outdir, cid_xref)
+        print_progress(logger)
         del cid_xref
-        deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_dir, outdir)
-        rrCache._gen_rr_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid)
-        rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir)
-        rrCache._gen_rr_full_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid)
+        deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_dir, outdir, logger)
+        print_progress(logger)
+        rrCache._gen_rr_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid, logger)
+        print_progress(logger)
+        rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir, logger)
+        print_progress(logger)
+        rrCache._gen_rr_full_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid, logger)
+        print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
+        print_progress(logger)
+        print_end(logger)
 
 
     @staticmethod
-    def _gen_deprecatedCID_cid(input_dir, outdir, logger=getLogger(__name__)):
+    def _gen_deprecatedCID_cid(
+        input_dir: str,
+        outdir: str,
+        logger=getLogger(__name__)
+    ) -> Dict:
         attribute = 'deprecatedCID_cid'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedCID_cid = None
-        f_deprecatedCID_cid = outdir+attribute+rrCache._ext
+        f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache._ext
 
         if not os_path.isfile(f_deprecatedCID_cid):
-            print("   Generating data...", end = '', flush=True)
-            deprecatedCID_cid = rrCache._m_deprecatedMNXM(input_dir+'chem_xref.tsv.gz')
+            logger.debug("   Generating data...")
+            deprecatedCID_cid = rrCache._m_deprecatedMNXM(
+                os_path.join(input_dir, 'chem_xref.tsv.gz')
+            )
             # overwrite (or not if it dosn't exist) entries that are defined by Thomas
             try:
                 user_mnx_replace = json_load(open('data/mnx_replace.json', 'r'))
@@ -269,15 +382,15 @@ class rrCache:
                     deprecatedCID_cid[user_deprecated_mnxm] = user_mnx_replace[user_deprecated_mnxm]['mnx']
             except FileNotFoundError:
                 logger.debug("   Error data/mnx_replace.json file not found")
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid)
-            print_OK()
+            # print_OK()
 
         else:
             deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
+            logger.debug("   Cache file already exists")
+            # print_OK()
 
         return {
             'attr': deprecatedCID_cid,
@@ -286,224 +399,275 @@ class rrCache:
 
 
     @staticmethod
-    def _gen_cid_strc_cid_name(input_dir, outdir, deprecatedCID_cid):
+    def _gen_cid_strc_cid_name(
+        input_dir: str,
+        outdir: str,
+        deprecatedCID_cid: Dict,
+        logger=getLogger(__name__)
+    ) -> Dict:
         attribute = 'cid_strc, cid_name'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_strc = None
         cid_name = None
-        f_cid_strc = outdir+'cid_strc'+rrCache._ext
-        f_cid_name = outdir+'cid_name'+rrCache._ext
+        f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache._ext
+        f_cid_name = os_path.join(outdir, 'cid_name')+rrCache._ext
         if not os_path.isfile(f_cid_strc):
             if not deprecatedCID_cid['attr']:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
                 print_OK()
-            print("   Generating data...", end = '', flush=True)
-            cid_strc, cid_name = rrCache._m_mnxm_strc(input_dir+'/compounds.tsv.gz', input_dir+'chem_prop.tsv.gz', deprecatedCID_cid['attr'])
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+            logger.debug("   Generating data...")
+            cid_strc, cid_name = rrCache._m_mnxm_strc(
+                os_path.join(input_dir, 'compounds.tsv.gz'),
+                os_path.join(input_dir, 'chem_prop.tsv.gz'),
+                deprecatedCID_cid['attr']
+            )
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_strc, f_cid_strc)
             rrCache._store_cache_to_file(cid_name, f_cid_name)
-            print_OK()
+            # print_OK()
         else:
             cid_strc = rrCache._load_cache_from_file(f_cid_strc)
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
-        return {'attr': cid_strc, 'file': f_cid_strc}, {'attr': cid_name, 'file': f_cid_name}
+            logger.debug("   Cache file already exists")
+            # print_OK()
+        return {
+            'attr': cid_strc,
+            'file': f_cid_strc
+        }, {
+            'attr': cid_name,
+            'file': f_cid_name
+        }
 
 
     @staticmethod
-    def _gen_inchikey_cid(input_dir, outdir, cid_strc):
+    def _gen_inchikey_cid(
+        input_dir: str,
+        outdir: str,
+        cid_strc: Dict,
+        logger=getLogger(__name__)
+    ) -> None:
         attribute = 'inchikey_cid'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         inchikey_cid = None
-        f_inchikey_cid = outdir+attribute+rrCache._ext
+        f_inchikey_cid = os_path.join(outdir, attribute)+rrCache._ext
         if not os_path.isfile(f_inchikey_cid):
             if not cid_strc['attr']:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 cid_strc['attr'] = rrCache._load_cache_from_file(cid_strc['file'])
-                print_OK()
-            print("   Generating data...", end = '', flush=True)
+                # print_OK()
+            logger.debug("   Generating data...")
             inchikey_cid = rrCache._m_inchikey_cid(cid_strc['attr'])
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(inchikey_cid, f_inchikey_cid)
-            print_OK()
+            # print_OK()
         else:
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
+            logger.debug("   Cache file already exists")
+            # print_OK()
 
 
     @staticmethod
-    def _gen_cid_xref(input_dir, outdir, deprecatedCID_cid):
+    def _gen_cid_xref(
+        input_dir: str,
+        outdir: str,
+        deprecatedCID_cid: Dict,
+        logger=getLogger(__name__)
+    ) -> Dict:
         attribute = 'cid_xref'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_xref = None
-        f_cid_xref = outdir+attribute+rrCache._ext
+        f_cid_xref = os_path.join(outdir, attribute)+rrCache._ext
         if not os_path.isfile(f_cid_xref):
             if not deprecatedCID_cid['attr']:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                print_OK()
-            print("   Generating data...", end = '', flush=True)
-            cid_xref = rrCache._m_mnxm_xref(input_dir+'chem_xref.tsv.gz', deprecatedCID_cid['attr'])
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+                # print_OK()
+            logger.debug("   Generating data...")
+            cid_xref = rrCache._m_mnxm_xref(
+                os_path.join(input_dir, 'chem_xref.tsv.gz'),
+                deprecatedCID_cid['attr']
+            )
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_xref, f_cid_xref)
-            print_OK()
+            # print_OK()
         else:
             cid_xref = rrCache._load_cache_from_file(f_cid_xref)
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
-        return {'attr': cid_xref, 'file': f_cid_xref}
+            logger.debug("   Cache file already exists")
+            # print_OK()
+        return {
+            'attr': cid_xref,
+            'file': f_cid_xref
+        }
 
 
     @staticmethod
-    def _gen_chebi_cid(input_dir, outdir, cid_xref):
+    def _gen_chebi_cid(
+        input_dir: str,
+        outdir: str,
+        cid_xref: Dict,
+        logger=getLogger(__name__)
+    ) -> Dict:
         attribute = 'chebi_cid'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         chebi_cid = None
-        f_chebi_cid = outdir+attribute+rrCache._ext
+        f_chebi_cid = os_path.join(outdir, attribute)+rrCache._ext
         if not os_path.isfile(f_chebi_cid):
-            print("   Generating data...", end = '', flush=True)
+            logger.debug("   Generating data...")
             chebi_cid = rrCache._m_chebi_cid(cid_xref['attr'])
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(chebi_cid, f_chebi_cid)
             del chebi_cid
-            print_OK()
+            # print_OK()
         else:
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
+            logger.debug("   Cache file already exists")
+            # print_OK()
 
 
     @staticmethod
-    def _gen_deprecatedRID_rid(input_dir, outdir):
+    def _gen_deprecatedRID_rid(
+        input_dir: str,
+        outdir: str,
+        logger=getLogger(__name__)
+    ) -> Dict:
         attribute = 'deprecatedRID_rid'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedRID_rid = None
-        f_deprecatedRID_rid = outdir+attribute+rrCache._ext
+        f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache._ext
         if not os_path.isfile(f_deprecatedRID_rid):
-            print("   Generating data...", end = '', flush=True)
-            deprecatedRID_rid = rrCache._m_deprecatedMNXR(input_dir+'reac_xref.tsv.gz')
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+            logger.debug("   Generating data...")
+            deprecatedRID_rid = rrCache._m_deprecatedMNXR(
+                os_path.join(input_dir, 'reac_xref.tsv.gz')
+            )
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedRID_rid, f_deprecatedRID_rid)
-            print_OK()
+            # print_OK()
         else:
             deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
-        return {'attr': deprecatedRID_rid, 'file': f_deprecatedRID_rid}
+            logger.debug("   Cache file already exists")
+            # print_OK()
+        return {
+            'attr': deprecatedRID_rid,
+            'file': f_deprecatedRID_rid
+        }
 
 
     @staticmethod
-    def _gen_rr_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid):
+    def _gen_rr_reactions(
+        input_dir: str,
+        outdir: str,
+        deprecatedCID_cid: Dict,
+        deprecatedRID_rid: Dict,
+        logger=getLogger(__name__)
+    ) -> None:
         attribute = 'rr_reactions'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_reactions = None
-        f_rr_reactions = outdir+attribute+rrCache._ext
+        f_rr_reactions = os_path.join(outdir, attribute)+rrCache._ext
         if not os_path.isfile(f_rr_reactions):
             if not deprecatedCID_cid['attr']:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                print_OK()
+                # print_OK()
             if not deprecatedRID_rid['attr']:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 deprecatedRID_rid['attr'] = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
                 print_OK()
-            print("   Generating data...", end = '', flush=True)
-            rr_reactions = rrCache._m_rr_reactions(input_dir+'retrorules_rr02_flat_all.tsv.gz', deprecatedCID_cid, deprecatedRID_rid)
-            print_OK()
+            logger.debug("   Generating data...")
+            rr_reactions = rrCache._m_rr_reactions(
+                os_path.join(input_dir, 'retrorules_rr02_flat_all.tsv.gz'),
+                deprecatedCID_cid,
+                deprecatedRID_rid
+            )
+            # print_OK()
             del deprecatedRID_rid
-            print("   Writing data to file...", end = '', flush=True)
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_reactions, f_rr_reactions)
-            print_OK()
+            # print_OK()
             del rr_reactions
         else:
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
+            logger.debug("   Cache file already exists")
+            # print_OK()
         # return deprecatedCID_cid
 
 
     @staticmethod
-    def _gen_comp_xref_deprecatedCompID_compid(input_dir, outdir):
+    def _gen_comp_xref_deprecatedCompID_compid(
+        input_dir: str,
+        outdir: str,
+        logger=getLogger(__name__)
+    ) -> None:
         attribute = 'comp_xref, deprecatedCompID_compid'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         comp_xref = deprecatedCompID_compid = None
-        f_comp_xref = outdir+'comp_xref'+rrCache._ext
+        f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache._ext
         f_deprecatedCompID_compid = outdir+'deprecatedCompID_compid'+rrCache._ext
         if not os_path.isfile(f_comp_xref) or not os_path.isfile(f_deprecatedCompID_compid):
-            print("   Generating data...", end = '', flush=True)
-            comp_xref,deprecatedCompID_compid = rrCache._m_mnxc_xref(input_dir+'comp_xref.tsv.gz')
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+            logger.debug("   Generating data...")
+            comp_xref,deprecatedCompID_compid = rrCache._m_mnxc_xref(
+                os_path.join(input_dir, 'comp_xref.tsv.gz')
+            )
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(comp_xref, f_comp_xref)
-            print_OK()
+            # print_OK()
             del comp_xref
-            print("   Writing data to file...", end = '', flush=True)
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedCompID_compid, f_deprecatedCompID_compid)
-            print_OK()
+            # print_OK()
             del deprecatedCompID_compid
         else:
-            print("   Cache files already exist", end = '', flush=True)
-            print_OK()
+            logger.debug("   Cache files already exist")
+            # print_OK()
 
 
     @staticmethod
-    def _gen_rr_full_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid):
+    def _gen_rr_full_reactions(
+        input_dir: str,
+        outdir: str,
+        deprecatedCID_cid: Dict,
+        deprecatedRID_rid: Dict,
+        logger=getLogger(__name__)
+    ) -> None:
         attribute = 'rr_full_reactions'
-        print(c_attr('bold')+attribute+c_attr('reset'))
+        logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_full_reactions = None
-        f_rr_full_reactions = outdir+attribute+rrCache._ext
+        f_rr_full_reactions = os_path.join(outdir, attribute)+rrCache._ext
         if not os_path.isfile(f_rr_full_reactions):
-            print("   Generating data...", end = '', flush=True)
+            logger.debug("   Generating data...")
             if not deprecatedCID_cid['attr']:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                print_OK()
+                # print_OK()
             if not deprecatedRID_rid:
-                print("   Loading input data from file...", end = '', flush=True)
+                logger.debug("   Loading input data from file...")
                 deprecatedRID_rid = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
-                print_OK()
-            rr_full_reactions = rrCache._m_rr_full_reactions(input_dir+'rxn_recipes.tsv.gz', deprecatedCID_cid['attr'], deprecatedRID_rid['attr'])
-            print_OK()
-            print("   Writing data to file...", end = '', flush=True)
+                # print_OK()
+            rr_full_reactions = rrCache._m_rr_full_reactions(
+                os_path.join(input_dir, 'rxn_recipes.tsv.gz'),
+                deprecatedCID_cid['attr'],
+                deprecatedRID_rid['attr']
+            )
+            # print_OK()
+            logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_full_reactions, f_rr_full_reactions)
-            print_OK()
+            # print_OK()
             del rr_full_reactions
         else:
-            print("   Cache file already exists", end = '', flush=True)
-            print_OK()
-
-
-    @staticmethod
-    def _check_or_download_cache_to_disk(cache_dir, attributes, logger=Logger(__name__)):
-        logger.debug('cache_dir: '+str(cache_dir))
-        logger.debug('attributes: '+str(attributes))
-        for attr in attributes:
-            filename = attr+rrCache._ext
-            if os_path.isfile(cache_dir+filename) and sha512(Path(cache_dir+filename).read_bytes()).hexdigest()==rrCache._cache_files[filename]:
-                print(filename+" already downloaded ", end = '', flush=True)
-                print_OK()
-            else:
-                filename = attr+rrCache._ext
-                print("Downloading "+filename+"...", end = '', flush=True)
-                start_time = time_time()
-                if not os_path.isdir(cache_dir):
-                    os_mkdir(cache_dir)
-                download(rrCache._cache_url+filename, cache_dir+filename)
-                rrCache._cache_files[attr] = True
-                end_time = time_time()
-                print_OK(end_time-start_time)
+            logger.debug("   Cache file already exists")
+            # print_OK()
 
 
     def _load_from_file(self, attribute):
         filename = attribute+rrCache._ext
-        self.logger.info('{color}.'.format(color=c_fg('white')))
         self.logger.debug("Loading "+filename+"...")
         # print("Loading "+filename+"...", end = '', flush=True)
-        data = self._load_cache_from_file(self._cache_dir+filename)
+        data = self._load_cache_from_file(
+            os_path.join(self._cache_dir, filename)
+        )
         # print_OK()
         return data
 
@@ -517,53 +681,46 @@ class rrCache:
 
 
     def _check_or_load_cache_in_memory(self):
-        StreamHandler.terminator = ""
-        self.logger.info(
-            '{color}{typo}Loading cache{rst}'.format(
-                color=c_fg('white'),
-                typo=c_attr('bold'),
-                rst=c_attr('reset')
-            )
-        )
+        print_start(self.logger, 'Loading cache in memory')
         for attribute in self._attributes:
             if not getattr(self, attribute):
-                setattr(self, attribute, self._load_from_file(attribute))
+                setattr(
+                    self,
+                    attribute,
+                    self._load_from_file(attribute)
+                )
+                print_progress(self.logger)
             else:
-                # print(attribute+" already loaded in memory...", end = '', flush=True)
-                print_OK()
-        StreamHandler.terminator = "\n"
-        self.logger.info(
-            '{color}{typo} OK{rst}'.format(
-                color=c_fg('green'),
-                typo=c_attr('bold'),
-                rst=c_attr('reset')
-            )
-        )
-
+                self.logger.debug(attribute+" already loaded in memory")
+                # print_OK()
+        print_end(self.logger)
 
     def _check_or_load_cache_in_db(self):
+        print_start(self.logger, 'Loading cache in db')
         for attribute in self._attributes:
             if not CRedisDict.exists(self.redis, attribute):
                 self._store_cache_to_db(attribute, self._load_from_file(attribute))
             else:
-                print(attribute+" already loaded in db...", end = '', flush=True)
-                print_OK()
+                self.logger.debug(attribute+" already loaded in db")
+                # print_OK()
+            print_progress(self.logger)
+        print_end(self.logger)
 
 
     @staticmethod
     def _download_input_cache(url, file, outdir):
         if not os_path.isdir(outdir):
             os_mkdir(outdir)
-        filename = outdir+file
+        filename = os_path.join(outdir, file)
         if not os_path.isfile(filename):
-            print("Downloading "+file+"...", end = '', flush=True)
+            # print("Downloading "+file+"...", end = '', flush=True)
             start_time = time_time()
             rrCache.__download_input_cache(url, file, outdir)
             end_time = time_time()
-            print_OK(end_time-start_time)
-        else:
-            print(filename+" already downloaded ", end = '', flush=True)
-            print_OK()
+            # print_OK(end_time-start_time)
+        # else:
+        #     print(filename+" already downloaded ", end = '', flush=True)
+            # print_OK()
 
 
     @staticmethod
@@ -572,36 +729,30 @@ class rrCache:
         if not os_path.isdir(outdir):
             os_mkdir(outdir)
 
+        if file in [
+            'reac_xref.tsv.gz',
+            'chem_xref.tsv.gz',
+            'chem_prop.tsv.gz',
+            'comp_xref.tsv.gz'
+        ]: download(
+            url+'metanetx/'+file,
+            os_path.join(outdir, file)
+        )
 
-        # 3xCommon + rpReader
-        if file in ['reac_xref.tsv.gz', 'chem_xref.tsv.gz', 'chem_prop.tsv.gz', 'comp_xref.tsv.gz']:
-            download(url+'metanetx/'+file, outdir+file)
+        if file in [
+            'compounds.tsv.gz',
+            'rxn_recipes.tsv.gz'
+        ]: download(
+            url+'rr02_more_data/'+file,
+            os_path.join(outdir, file)
+        )
 
-        #TODO: need to add this file to the git or another location
-        if file in ['compounds.tsv.gz', 'rxn_recipes.tsv.gz']:
-            download(url+'rr02_more_data/'+file,
-                     outdir+file)
-            # tar = tarfile_open(outdir+'/rr02_more_data.tar.gz', 'r:gz')
-            # tar.extractall(outdir)
-            # tar.close()
-            # shutil_move(outdir+'/rr02_more_data/compounds.tsv',
-            #             outdir+'/rr_compounds.tsv')
-            # shutil_move(outdir+'/rr02_more_data/rxn_recipes.tsv',
-            #             outdir)
-            # os_rm(outdir+'/rr02_more_data.tar.gz')
-            # shutil_rmtree(outdir+'/rr02_more_data')
+        if file == 'retrorules_rr02_flat_all.tsv.gz':
+            download(
+                url+'retrorules_rr02_rp3_hs/'+file,
+                os_path.join(outdir, file)
+            )
 
-        if file=='retrorules_rr02_flat_all.tsv.gz':
-            download(url+'retrorules_rr02_rp3_hs/'+file,
-                     outdir+file)
-            # download('https://retrorules.org/dl/preparsed/rr02/rp3/hs',
-            #          outdir+'/retrorules_rr02_rp3_hs.tar.gz')
-            # tar = tarfile_open(outdir+'/retrorules_rr02_rp3_hs.tar.gz', 'r:gz')
-            # tar.extractall(outdir)
-            # tar.close()
-            # shutil_move(outdir+'/retrorules_rr02_rp3_hs/retrorules_rr02_flat_all.tsv', outdir+'/rules_rall.tsv')
-            # os_rm(outdir+'/retrorules_rr02_rp3_hs.tar.gz')
-            # shutil_rmtree(outdir+'/retrorules_rr02_rp3_hs')
 
     ##########################################################
     ################## Private Functions #####################

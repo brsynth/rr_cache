@@ -26,6 +26,13 @@ def init(
     if args.log.lower() in ['silent', 'quiet'] or args.silent:
         args.log = 'CRITICAL'
 
+    if args.log.lower() in ['silent', 'quiet', 'def_info'] or args.silent:
+        disable_rdkit_logging()
+        # # Disable RDKIT logging
+        # from rdkit import RDLogger
+        # RDLogger.DisableLog('rdApp.*')
+
+
     # Create logger
     logger = create_logger(parser.prog, args.log)
 
@@ -43,6 +50,17 @@ def init(
     return logger
 
 
+def disable_rdkit_logging():
+    """
+    Disables RDKit whiny logging.
+    """
+    import rdkit.rdBase as rkrb
+    import rdkit.RDLogger as rkl
+    logger = rkl.logger()
+    logger.setLevel(rkl.ERROR)
+    rkrb.DisableLog('rdApp.error')
+
+
 def entry_point():
     parser = build_args_parser(
         prog = 'rr_cache',
@@ -53,7 +71,7 @@ def entry_point():
     logger = init(parser, args)
 
     if args.cache_dir:
-        print("rrCache is going to be generated into " + args.cache_dir)
+        # print("rrCache is going to be generated into " + args.cache_dir)
         gen_cache(args.cache_dir, logger)
     else:
         cache = rrCache(

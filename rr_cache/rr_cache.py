@@ -93,38 +93,50 @@ class rrCache:
 
     # Attributes with dependencies (other attributes + input_cache files)
     __attributes = {
-            'deprecatedCID_cid': {'attr_deps': [],
-                                  'file_deps': ['chem_xref.tsv.gz']},
-
-            'deprecatedRID_rid': {'attr_deps': [],
-                                  'file_deps': []},
-
-            'cid_strc': {'attr_deps': ['deprecatedCID_cid'],
-                         'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']},
-
-            'cid_name': {'attr_deps': ['deprecatedCID_cid'],
-                         'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']},
-
-            'cid_xref': {'attr_deps': ['deprecatedCID_cid'],
-                         'file_deps': []},
-
-            'chebi_cid': {'attr_deps': ['cid_xref'],
-                          'file_deps': []},
-
-            'rr_reactions': {'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
-                             'file_deps': ['retrorules_rr02_flat_all.tsv.gz']},
-
-            'inchikey_cid': {'attr_deps': ['cid_strc'],
-                             'file_deps': []},
-
-            'comp_xref': {'attr_deps': [],
-                          'file_deps': ['comp_xref.tsv.gz']},
-
-            'deprecatedCompID_compid': {'attr_deps': [],
-                                        'file_deps': ['comp_xref.tsv.gz']},
-
-            'rr_full_reactions': {'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
-                                  'file_deps': ['rxn_recipes.tsv.gz']},
+            'deprecatedCID_cid': {
+                'attr_deps': [],
+                'file_deps': ['chem_xref.tsv.gz']
+            },
+            'deprecatedRID_rid': {
+                'attr_deps': [],
+                'file_deps': []
+            },
+            'cid_strc': {
+                'attr_deps': ['deprecatedCID_cid'],
+                'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
+            },
+            'cid_name': {
+                'attr_deps': ['deprecatedCID_cid'],
+                'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
+            },
+            'cid_xref': {
+                'attr_deps': ['deprecatedCID_cid'],
+                'file_deps': []
+            },
+            'chebi_cid': {
+                'attr_deps': ['cid_xref'],
+                'file_deps': []
+            },
+            'rr_reactions': {
+                'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
+                'file_deps': ['retrorules_rr02_flat_all.tsv.gz']
+            },
+            'inchikey_cid': {
+                'attr_deps': ['cid_strc'],
+                'file_deps': []
+            },
+            'comp_xref': {
+                'attr_deps': [],
+                'file_deps': ['comp_xref.tsv.gz']
+            },
+            'deprecatedCompID_compid': {
+                'attr_deps': [],
+                'file_deps': ['comp_xref.tsv.gz']
+            },
+            'rr_full_reactions': {
+                'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
+                'file_deps': ['rxn_recipes.tsv.gz']
+            },
     }
 
     _attributes = list(__attributes.keys())

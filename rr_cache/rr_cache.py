@@ -66,11 +66,12 @@ class rrCache:
     Contains all the functions that parse different files, used to calculate the thermodynamics and the FBA of the the other steps. These should be called only when the files have changes
 
     """
-    # _input_cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
-    _cache_url       = 'https://gitlab.com/breakthewall/rpCache-data/-/raw/master/'
+
+    # _input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
+    __cache_url       = 'https://gitlab.com/breakthewall/rpCache-data/-/raw/master/'
 
     # static attribues
-    _convertMNXM = {
+    __convertMNXM = {
         'MNXM162231': 'MNXM6',
         'MNXM84':     'MNXM15',
         'MNXM96410':  'MNXM14',
@@ -81,7 +82,7 @@ class rrCache:
         }
 
     # name: sha512sum
-    _input_cache_files = {
+    __input__cache_files = {
             'chem_xref.tsv.gz':    'e558110990dcc75af943863790dc55360fd2d40ecb17d02335377671e80f0ab3738fd556acb340e03e48dd1afdec3eece1e92df1e18bc24e7445f24f778a10da',
             'reac_xref.tsv.gz':    '48b991cf4a9c2ca573d395cf35c378881ed79e87772827647bfab2f6345499698664e07195ec10b342fc0164304dbd2363cccff1a1182225e6afebce3c16448b',
             'compounds.tsv.gz':    '719716bb880257bd014e045c03eb8dd12e2bbeba3aa52e38e9632ce605817b9dc09530e81fadd25542c0a439bdb81e1dfbd3a38f35b30b061845d1a880dbfe01',
@@ -92,7 +93,7 @@ class rrCache:
             }
 
     # Attributes with dependencies (other attributes + input_cache files)
-    __attributes = {
+    __attributes_deps = {
             'deprecatedCID_cid': {
                 'attr_deps': [],
                 'file_deps': ['chem_xref.tsv.gz']
@@ -139,39 +140,38 @@ class rrCache:
             },
     }
 
-    _attributes = list(__attributes.keys())
+    __attributes_list = list(__attributes_deps.keys())
 
     # name: sha512sum
-    _cache_files = {
-            _attributes[0]+'.json.gz': '1012d85b4720cf9706340e2d3bbef264dd95b67d510d8c1532c612a0f4aa6e1bdb2b77f36e135907070edb35038f31606f291ddd487df025e9999a4c543c739e',
-            _attributes[1]+'.json.gz': '2cb1cc54c5a11962ef90a0da1d77e684b16b453214052541b473cf1b182491af9242d25e73f3d9b137e2c939eaf1ebf4adcee5b732ffab6cbb430d238f493b91',
-            _attributes[2]+'.json.gz': '0139e8779c298fb089940ee3a57de0e4d13dcca40b954db1ca728dba0132fae43b7bf1adb128e6989433dae11c5c24a32f729aa7154c86e1e9236ac1b9dd5311',
-            _attributes[3]+'.json.gz': 'fef4540c117f5ff75fe7106e55596b74729c8551d6713d454846a98509bc872114db92946389d57e24dcf6f588d85462e0d71606207c52676175fb5e5a81bf81',
-            _attributes[4]+'.json.gz': '3c483178ea3d10a8b0ba9a5982cd70540af15fe4b95dd27844cad5c221554f253b75729dbd2ddd20b01dbe7f3b427e3adf13238c3fb1f3ae853feab9e4c36d9d',
-            _attributes[5]+'.json.gz': '9579714acf9d25d6c207b94af5be9977a0d438910a5ef9c3cd22f10b3c3292097e2246dd7c3d387e61701d66d7fb25092f39639b12803cdd72494d04d5434158',
-            _attributes[6]+'.json.gz': '70b20aa9cdf331c8407d86761596b851879d6878ecb7c8f89945c93d67569973845096c902c8b056064d16347fac380dfa17cd1918954a502d0fee70eca037aa',
-            _attributes[7]+'.json.gz': 'd7d422e497af88bf8ea820857d4cca9846b2ccea7a9993beea479f270ba5852b901f3280a7c408d09ad8bd941cb2552940d281068c579592f41bbb659777a7b2',
-            _attributes[8]+'.json.gz': '249a5bbd2b06c6326b3da8c759818c78bc13eed13b077c9f0ab1a2c912d01806e0e29d439fe3c09f5c5c6f87f7e02cd0bf0d7c5d01b81240aedb47b1bc5a664e',
-            _attributes[9]+'.json.gz': '7e7e6a4805d74f680c31a48304abd4f221d394788604c935b91e977b78275cdf3266839d8bc1097637c2fd633b3583f082b60f0d5a54985bba931f0f945c9802',
-            _attributes[10]+'.json.gz': '33e6f15a61352686169d86c8c444717eb6ea315b4683ca1d60a8b0d542a1fea2411fc9327d2604df1e47defa836616e60beb1b139a43249cb44bb9b0e91a1c70'
+    __cache_files = {
+            __attributes_list[0]+'.json.gz': '1012d85b4720cf9706340e2d3bbef264dd95b67d510d8c1532c612a0f4aa6e1bdb2b77f36e135907070edb35038f31606f291ddd487df025e9999a4c543c739e',
+            __attributes_list[1]+'.json.gz': '2cb1cc54c5a11962ef90a0da1d77e684b16b453214052541b473cf1b182491af9242d25e73f3d9b137e2c939eaf1ebf4adcee5b732ffab6cbb430d238f493b91',
+            __attributes_list[2]+'.json.gz': '0139e8779c298fb089940ee3a57de0e4d13dcca40b954db1ca728dba0132fae43b7bf1adb128e6989433dae11c5c24a32f729aa7154c86e1e9236ac1b9dd5311',
+            __attributes_list[3]+'.json.gz': 'fef4540c117f5ff75fe7106e55596b74729c8551d6713d454846a98509bc872114db92946389d57e24dcf6f588d85462e0d71606207c52676175fb5e5a81bf81',
+            __attributes_list[4]+'.json.gz': '3c483178ea3d10a8b0ba9a5982cd70540af15fe4b95dd27844cad5c221554f253b75729dbd2ddd20b01dbe7f3b427e3adf13238c3fb1f3ae853feab9e4c36d9d',
+            __attributes_list[5]+'.json.gz': '9579714acf9d25d6c207b94af5be9977a0d438910a5ef9c3cd22f10b3c3292097e2246dd7c3d387e61701d66d7fb25092f39639b12803cdd72494d04d5434158',
+            __attributes_list[6]+'.json.gz': '70b20aa9cdf331c8407d86761596b851879d6878ecb7c8f89945c93d67569973845096c902c8b056064d16347fac380dfa17cd1918954a502d0fee70eca037aa',
+            __attributes_list[7]+'.json.gz': 'd7d422e497af88bf8ea820857d4cca9846b2ccea7a9993beea479f270ba5852b901f3280a7c408d09ad8bd941cb2552940d281068c579592f41bbb659777a7b2',
+            __attributes_list[8]+'.json.gz': '249a5bbd2b06c6326b3da8c759818c78bc13eed13b077c9f0ab1a2c912d01806e0e29d439fe3c09f5c5c6f87f7e02cd0bf0d7c5d01b81240aedb47b1bc5a664e',
+            __attributes_list[9]+'.json.gz': '7e7e6a4805d74f680c31a48304abd4f221d394788604c935b91e977b78275cdf3266839d8bc1097637c2fd633b3583f082b60f0d5a54985bba931f0f945c9802',
+            __attributes_list[10]+'.json.gz': '33e6f15a61352686169d86c8c444717eb6ea315b4683ca1d60a8b0d542a1fea2411fc9327d2604df1e47defa836616e60beb1b139a43249cb44bb9b0e91a1c70'
             }
-    # _cache_files = {
-    #         _attributes[0]+'.json.gz': '698a3e83cf4f9206ea2644c9c35a9af53957838baaae6efb245d02b6b8d0ea8b25c75008e562b99ba3e0189e50ee47655376f2d0635f6206e0015f91f0e4bad8',
-    #         _attributes[1]+'.json.gz': '51554c6f6ae99c6755da7496208b3feec30547bc4cf3007d9fd30f46fa4c0cc73bad5aeb743dca07e32711c4346504296bee776d135fb18e96c891a0086fc87e',
-    #         _attributes[2]+'.json.gz': '0021ef63165d75ee6b8c209ccf14b8a1b8b7b263b4077f544729c47b5525f66511c3fa578fd2089201abb61693085b9912639e62f7b7481d06ad1f38bfc2dd8e',
-    #         _attributes[3]+'.json.gz': '7d559cc7389c0cb2bd10f92e6e845bb5724be64d1624adc4e447111fc63599bb69396cd0cc3066a6bb19910c00e266c97e21b1254d9a6dc9da3a8b033603fcff',
-    #         _attributes[4]+'.json.gz': '587d6c5206ee94e63af6d9eaf49fd5e2ca417308b3ece8a7f47e916c42376e2c8635a031ce26dc815cd7330f2323054a44d23951e416a9a29c5a9a2ab51e8953',
-    #         _attributes[5]+'.json.gz': '8783aaa65a281c4a7ab3a82a6dc99620418ed2be4a739f46db8ee304fcb3536a78fed5a955e1c373a20c3e7d3673793157c792b4429ecb5c68ddaddb1a0f7de7',
-    #         _attributes[6]+'.json.gz': '8007480fc607caf41f0f9a93beb66c7caa66c37a3d01a809f6b94bc0df469cec72091e8cc0fbabb3bd8775e9776b928ecda2779fc545c7e4b9e71c504f9510ce',
-    #         _attributes[7]+'.json.gz': 'afc2ad3d31366a8f7fe1604fa49c190ade6d46bc8915f30bd20fdfdfc663c979bb10ca55ad10cadec6002a17add46639c70e7adf89cb66c57ed004fd3e4f0051',
-    #         _attributes[8]+'.json.gz': '81c673fe1940e25a6a9722fd74b16bc30e1590db0c40810f541ad4ffba7ae04c01268b929d4bf944e84095a0c2a1d0079d1861bc1df3e8308fbb6b35e0aaf107',
-    #         _attributes[9]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985',
-    #         _attributes[10]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985'
+    # __cache_files = {
+    #         __attributes_list[0]+'.json.gz': '698a3e83cf4f9206ea2644c9c35a9af53957838baaae6efb245d02b6b8d0ea8b25c75008e562b99ba3e0189e50ee47655376f2d0635f6206e0015f91f0e4bad8',
+    #         __attributes_list[1]+'.json.gz': '51554c6f6ae99c6755da7496208b3feec30547bc4cf3007d9fd30f46fa4c0cc73bad5aeb743dca07e32711c4346504296bee776d135fb18e96c891a0086fc87e',
+    #         __attributes_list[2]+'.json.gz': '0021ef63165d75ee6b8c209ccf14b8a1b8b7b263b4077f544729c47b5525f66511c3fa578fd2089201abb61693085b9912639e62f7b7481d06ad1f38bfc2dd8e',
+    #         __attributes_list[3]+'.json.gz': '7d559cc7389c0cb2bd10f92e6e845bb5724be64d1624adc4e447111fc63599bb69396cd0cc3066a6bb19910c00e266c97e21b1254d9a6dc9da3a8b033603fcff',
+    #         __attributes_list[4]+'.json.gz': '587d6c5206ee94e63af6d9eaf49fd5e2ca417308b3ece8a7f47e916c42376e2c8635a031ce26dc815cd7330f2323054a44d23951e416a9a29c5a9a2ab51e8953',
+    #         __attributes_list[5]+'.json.gz': '8783aaa65a281c4a7ab3a82a6dc99620418ed2be4a739f46db8ee304fcb3536a78fed5a955e1c373a20c3e7d3673793157c792b4429ecb5c68ddaddb1a0f7de7',
+    #         __attributes_list[6]+'.json.gz': '8007480fc607caf41f0f9a93beb66c7caa66c37a3d01a809f6b94bc0df469cec72091e8cc0fbabb3bd8775e9776b928ecda2779fc545c7e4b9e71c504f9510ce',
+    #         __attributes_list[7]+'.json.gz': 'afc2ad3d31366a8f7fe1604fa49c190ade6d46bc8915f30bd20fdfdfc663c979bb10ca55ad10cadec6002a17add46639c70e7adf89cb66c57ed004fd3e4f0051',
+    #         __attributes_list[8]+'.json.gz': '81c673fe1940e25a6a9722fd74b16bc30e1590db0c40810f541ad4ffba7ae04c01268b929d4bf944e84095a0c2a1d0079d1861bc1df3e8308fbb6b35e0aaf107',
+    #         __attributes_list[9]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985',
+    #         __attributes_list[10]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985'
     #         }
 
-    _ext = '.json.gz'
+    __ext = '.json.gz'
 
-    _pubchem_species = {}
 
     ## Cache constructor
     #
@@ -186,50 +186,52 @@ class rrCache:
         self.store_mode = db
         rrCache._db_timeout = 10
 
-        if attrs is not None:
-            if attrs != []:
-                if not isinstance(attrs, list):
-                    self.logger.warning('\'attrs\' argument is not of type list, trying to convert...')
-                    self._attributes = [attrs]
-                else:
-                    self._attributes = attrs
-        else: # the user doesn't want to load anything for now
-            self._attributes = None
-
         self.dirname = os_path.dirname(os_path.abspath( __file__ ))#+"/.."
-        # input_cache
-        self._input_cache_dir = os_path.join(self.dirname, 'input_cache')
+        # # input_cache
+        # self._input__cache_dir = os_path.join(self.dirname, 'input_cache')
         # cache
-        self._cache_dir = os_path.join(self.dirname, 'cache')
+        self.__cache_dir = os_path.join(self.dirname, 'cache')
 
-        if self._attributes is not None:
-            self.load()
+        # if self.__attributes_list is not None:
+        self.load(attrs)
 
 
-    def load(self):
+    def load(self, attrs: List=[]):
+
+        if attrs is None:
+            return
+
+        if attrs != []:
+            if not isinstance(attrs, list):
+                self.logger.warning('\'attrs\' argument is not of type list, trying to convert...')
+                self.__attributes_list = [attrs]
+                self.logger.warning('OK')
+            else:
+                self.__attributes_list = attrs
+
         if self.store_mode!='file':
             self.redis = StrictRedis(host=self.store_mode, port=6379, db=0, decode_responses=True)
             if not wait_for_redis(self.redis, self._db_timeout):
                 self.logger.critical("Database "+self.store_mode+" is not reachable")
                 exit()
-            for attr in self._attributes:
-                setattr(self, attr, CRedisDict(attr, self.redis))
+            for attr in self.__attributes_list:
+                setattr(self, '__'+attr, CRedisDict(attr, self.redis))
         else:
-            for attr in self._attributes:
-                setattr(self, attr, None)
+            for attr in self.__attributes_list:
+                setattr(self, '__'+attr, None)
 
         rrCache._check_or_download_cache_to_disk(
-            self._cache_dir,
-            self._attributes,
+            self.__cache_dir,
+            self.__attributes_list,
             self.logger
         )
-        # rrCache.generate_cache(self._cache_dir)
+        # rrCache.generate_cache(self.__cache_dir)
         try:
             self._check_or_load_cache()
         except (r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            rrCache.generate_cache(self._cache_dir)
+            rrCache.generate_cache(self.__cache_dir)
             self._check_or_load_cache()
         # exit()
         # try:
@@ -239,8 +241,8 @@ class rrCache:
         #         StreamHandler.terminator = "\r"
         #         logger.info('')
         #         rrCache._check_or_download_cache_to_disk(
-        #             self._cache_dir,
-        #             self._attributes,
+        #             self.__cache_dir,
+        #             self.__attributes_list,
         #             self.logger
         #         )
         #         self._check_or_load_cache()
@@ -248,7 +250,7 @@ class rrCache:
         #             r_exceptions.InvalidSchema,
         #             r_exceptions.ConnectionError):
         #         print_FAILED()
-        #         rrCache.generate_cache(self._cache_dir)
+        #         rrCache.generate_cache(self.__cache_dir)
         #         self._check_or_load_cache()
 
 
@@ -256,7 +258,8 @@ class rrCache:
     def _check_or_download_cache_to_disk(
         cache_dir: str,
         attributes: List,
-        logger: Logger=getLogger(__name__)):
+        logger: Logger=getLogger(__name__)
+    ):
         logger.debug('cache_dir: '+str(cache_dir))
         logger.debug('attributes: '+str(attributes))
 
@@ -264,35 +267,44 @@ class rrCache:
 
         for attr in attributes:
             print_progress()
-            filename = attr+rrCache._ext
+            filename = attr+rrCache.__ext
             if os_path.isfile(
                 os_path.join(cache_dir, filename)
             ) and sha512(
                 Path(
                     os_path.join(cache_dir, filename)
                 ).read_bytes()
-            ).hexdigest() == rrCache._cache_files[filename]:
+            ).hexdigest() == rrCache.__cache_files[filename]:
                 logger.debug(filename+" already downloaded")
                 # print_OK()
             else:
-                filename = attr+rrCache._ext
+                filename = attr+rrCache.__ext
                 logger.debug("Downloading "+filename+"...")
                 start_time = time_time()
                 if not os_path.isdir(cache_dir):
                     os_mkdir(cache_dir)
                 download(
-                    rrCache._cache_url+filename,
+                    rrCache.__cache_url+filename,
                     os_path.join(cache_dir, filename)
                 )
-                rrCache._cache_files[attr] = True
+                rrCache.__cache_files[attr] = True
                 end_time = time_time()
                 # print_OK(end_time-start_time)
 
         print_end(logger)
 
 
-    def get(self, attr):
-        return getattr(self, attr)
+    def get(self, attr: str):
+        try:
+            return getattr(self, '__'+attr)
+        except Exception as e:
+            self.logger.error(str(e))
+
+    def set(self, attr: str, val: object):
+        try:
+            return setattr(self, '__'+attr, val)
+        except Exception as e:
+            self.logger.error(str(e))
 
     #####################################################
     ################# ERROR functions ###################
@@ -344,12 +356,12 @@ class rrCache:
             makedirs(input_dir)
 
         # FETCH INPUT_CACHE FILES
-        url = rrCache._cache_url
+        url = rrCache.__cache_url
         # input_dir = os_path.join(
         #     os_path.normpath(outdir),
         # )'input-'+os_path.basename(os_path.normpath(outdir))
         print_start(logger, 'Downloading input cache')
-        for file in rrCache._input_cache_files.keys():
+        for file in rrCache.__input__cache_files.keys():
             rrCache._download_input_cache(url, file, input_dir)
             print_progress(logger)
         print_end(logger)
@@ -390,7 +402,7 @@ class rrCache:
         attribute = 'deprecatedCID_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedCID_cid = None
-        f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache._ext
+        f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
         if not os_path.isfile(f_deprecatedCID_cid):
             logger.debug("   Generating data...")
@@ -431,8 +443,8 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_strc = None
         cid_name = None
-        f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache._ext
-        f_cid_name = os_path.join(outdir, 'cid_name')+rrCache._ext
+        f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache.__ext
+        f_cid_name = os_path.join(outdir, 'cid_name')+rrCache.__ext
         if not os_path.isfile(f_cid_strc):
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
@@ -472,7 +484,7 @@ class rrCache:
         attribute = 'inchikey_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         inchikey_cid = None
-        f_inchikey_cid = os_path.join(outdir, attribute)+rrCache._ext
+        f_inchikey_cid = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_inchikey_cid):
             if not cid_strc['attr']:
                 logger.debug("   Loading input data from file...")
@@ -499,7 +511,7 @@ class rrCache:
         attribute = 'cid_xref'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_xref = None
-        f_cid_xref = os_path.join(outdir, attribute)+rrCache._ext
+        f_cid_xref = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_cid_xref):
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
@@ -534,7 +546,7 @@ class rrCache:
         attribute = 'chebi_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         chebi_cid = None
-        f_chebi_cid = os_path.join(outdir, attribute)+rrCache._ext
+        f_chebi_cid = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_chebi_cid):
             logger.debug("   Generating data...")
             chebi_cid = rrCache._m_chebi_cid(cid_xref['attr'])
@@ -557,7 +569,7 @@ class rrCache:
         attribute = 'deprecatedRID_rid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedRID_rid = None
-        f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache._ext
+        f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_deprecatedRID_rid):
             logger.debug("   Generating data...")
             deprecatedRID_rid = rrCache._m_deprecatedMNXR(
@@ -588,7 +600,7 @@ class rrCache:
         attribute = 'rr_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_reactions = None
-        f_rr_reactions = os_path.join(outdir, attribute)+rrCache._ext
+        f_rr_reactions = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_rr_reactions):
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
@@ -625,8 +637,8 @@ class rrCache:
         attribute = 'comp_xref, deprecatedCompID_compid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         comp_xref = deprecatedCompID_compid = None
-        f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache._ext
-        f_deprecatedCompID_compid = outdir+'deprecatedCompID_compid'+rrCache._ext
+        f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache.__ext
+        f_deprecatedCompID_compid = outdir+'deprecatedCompID_compid'+rrCache.__ext
         if not os_path.isfile(f_comp_xref) or not os_path.isfile(f_deprecatedCompID_compid):
             logger.debug("   Generating data...")
             comp_xref,deprecatedCompID_compid = rrCache._m_mnxc_xref(
@@ -657,7 +669,7 @@ class rrCache:
         attribute = 'rr_full_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_full_reactions = None
-        f_rr_full_reactions = os_path.join(outdir, attribute)+rrCache._ext
+        f_rr_full_reactions = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_rr_full_reactions):
             logger.debug("   Generating data...")
             if not deprecatedCID_cid['attr']:
@@ -684,11 +696,11 @@ class rrCache:
 
 
     def _load_from_file(self, attribute):
-        filename = attribute+rrCache._ext
+        filename = attribute+rrCache.__ext
         self.logger.debug("Loading "+filename+"...")
         # print("Loading "+filename+"...", end = '', flush=True)
         data = self._load_cache_from_file(
-            os_path.join(self._cache_dir, filename)
+            os_path.join(self.__cache_dir, filename)
         )
         # print_OK()
         return data
@@ -704,10 +716,9 @@ class rrCache:
 
     def _check_or_load_cache_in_memory(self):
         print_start(self.logger, 'Loading cache in memory')
-        for attribute in self._attributes:
-            if not getattr(self, attribute):
-                setattr(
-                    self,
+        for attribute in self.__attributes_list:
+            if not self.get(attribute):
+                self.set(
                     attribute,
                     self._load_from_file(attribute)
                 )
@@ -719,7 +730,7 @@ class rrCache:
 
     def _check_or_load_cache_in_db(self):
         print_start(self.logger, 'Loading cache in db')
-        for attribute in self._attributes:
+        for attribute in self.__attributes_list:
             if not CRedisDict.exists(self.redis, attribute):
                 self._store_cache_to_db(attribute, self._load_from_file(attribute))
             else:
@@ -883,7 +894,7 @@ class rrCache:
     def _m_deprecatedMNXM(chem_xref_path):
         deprecatedCID_cid = {}
         deprecatedCID_cid = rrCache._deprecatedMNX(chem_xref_path)
-        deprecatedCID_cid.update(rrCache._convertMNXM)
+        deprecatedCID_cid.update(rrCache.__convertMNXM)
         deprecatedCID_cid['MNXM01'] = 'MNXM1'
         return deprecatedCID_cid
 

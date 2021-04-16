@@ -41,7 +41,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=None,
         type=str,
         nargs='*',
-        help='generate the cache and exits'
+        help='print out specified reaction rule(s), all if nothing specified'
+    )
+    parser.add_argument(
+        '--reactions',
+        default=None,
+        type=str,
+        nargs='*',
+        help='print out specified reaction(s), all if nothing specified'
     )
     parser.add_argument(
         '--db',

@@ -61,7 +61,12 @@ print(cache.cid_src)
 ```sh
 python -m rr_cache --reaction-rules <RuleID_1> <RuleID_2>...
 ```
-If `RuleID_i` is(are) set, prints the reaction rule(s) or all reaction rules if nothing is specified.
+If `RuleID_i` is(are) set, prints out the reaction rule(s) or all reaction rules if nothing is specified.
+
+```sh
+python -m rr_cache --reactions <RxnID_1> <RxnID_2>...
+```
+If `RxnID_i` is(are) set, prints out the reaction(s) or all reactions if nothing is specified.
 
 ### (Re-)generate the cache
 **From Python code**

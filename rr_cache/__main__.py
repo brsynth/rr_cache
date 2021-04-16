@@ -90,9 +90,17 @@ def entry_point():
             logger
         )
     elif args.reaction_rules is not None:
-        print_rr(
+        print_attr(
             cache,
+            'rr_reactions',
             args.reaction_rules,
+            logger
+        )
+    elif args.reactions is not None:
+        print_attr(
+            cache,
+            'rr_full_reactions',
+            args.reactions,
             logger
         )
     else:
@@ -103,31 +111,37 @@ def gen_cache(outdir, logger):
     rrCache.generate_cache(outdir, logger)
 
 
-def print_rr(
+def print_attr(
     cache: 'rrCache',
-    reaction_rules: List,
+    attr: str,
+    attr_lst: List,
     logger: Logger=getLogger(__file__)
 ) -> None:
-    cache.load(['rr_reactions'])
-    if reaction_rules == []:
+    cache.load([attr])
+    if attr_lst == []:
         print(
             dumps(
-                cache.get('rr_reactions'),
+                cache.get(attr),
                 indent=4
             )
         )
     else:
-        for rr_id in reaction_rules:
+        for id in attr_lst:
             try:
                 print(
-                    rr_id+':',
+                    id+':',
                     dumps(
-                        cache.get('rr_reactions')[rr_id],
+                        cache.get(attr)[id],
                         indent=4
                     )
                 )
             except KeyError:
-                logger.error('Reaction rule ID not found: '+rr_id)
+                logger.error(
+                    'ID not found in rrCache(\'{attr}\'): {id}'.format(
+                        attr=attr,
+                        id=id
+                    )
+                )
 
 
 if __name__ == '__main__':

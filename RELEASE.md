@@ -1,9 +1,12 @@
 # Release history
 
-## 0.2.0
+## 0.4.0
 #### 16 April 2021
-- make rrCache attributes private
-- add get() and set() methods to read/write rrCache attributes
+- add '--reactions' option to print out rrCache content
+
+## 0.3.0
+#### 16 April 2021
+- add '--reaction-rules' option to print out rrCache content
 
 ## 0.2.0
 - make rrCache attributes private

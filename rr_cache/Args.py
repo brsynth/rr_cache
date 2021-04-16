@@ -37,6 +37,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='generate the cache and exits'
     )
     parser.add_argument(
+        '--reaction-rules',
+        default=None,
+        type=str,
+        nargs='*',
+        help='generate the cache and exits'
+    )
+    parser.add_argument(
         '--db',
         type=str,
         default='file',

@@ -1,6 +1,11 @@
 # Release history
 
 ## 0.2.0
+#### 16 April 2021
+- make rrCache attributes private
+- add get() and set() methods to read/write rrCache attributes
+
+## 0.2.0
 - make rrCache attributes private
 - add get() and set() methods to read/write rrCache attributes
 

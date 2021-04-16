@@ -717,7 +717,7 @@ class rrCache:
     def _check_or_load_cache_in_memory(self):
         print_start(self.logger, 'Loading cache in memory')
         for attribute in self.__attributes_list:
-            if not self.get(attribute):
+            if self.get(attribute) is None:
                 self.set(
                     attribute,
                     self._load_from_file(attribute)
@@ -1096,15 +1096,10 @@ class rrCache:
     def _m_rr_reactions(rules_rall_path, deprecatedCID_cid, deprecatedRID_rid, logger=getLogger(__name__)):
         rr_reactions = {}
         try:
-            #with gzip_open(rules_rall_path, 'r') as f:
-            #    reader = csv.reader(f, delimiter = '\t')
-            #    next(reader)
-            #    rule = {}
-            #    for row in reader:
             for row in csv_DictReader(gzip_open(rules_rall_path, 'rt'), delimiter='\t'):
-                #NOTE: as of now all the rules are generated using MNX
-                #but it may be that other db are used, we are handling this case
-                #WARNING: can have multiple products so need to seperate them
+                # NOTE: as of now all the rules are generated using MNX
+                # but it may be that other db are used, we are handling this case
+                # WARNING: can have multiple products so need to seperate them
                 products = {}
                 for i in row['Product_IDs'].split('.'):
                     cid = rrCache._checkCIDdeprecated(i, deprecatedCID_cid)
@@ -1113,9 +1108,9 @@ class rrCache:
                     else:
                         products[cid] += 1
                 try:
-                    #WARNING: one reaction rule can have multiple reactions associated with them
-                    #To change when you can set subpaths from the mutliple numbers of
-                    #we assume that the reaction rule has multiple unique reactions associated
+                    # WARNING: one reaction rule can have multiple reactions associated with them
+                    # To change when you can set subpaths from the mutliple numbers of
+                    # we assume that the reaction rule has multiple unique reactions associated
                     if row['# Rule_ID'] not in rr_reactions:
                         rr_reactions[row['# Rule_ID']] = {}
                     if row['# Rule_ID'] in rr_reactions[row['# Rule_ID']]:

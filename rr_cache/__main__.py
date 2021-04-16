@@ -6,13 +6,20 @@ from rr_cache.Args import (
     build_args_parser
 )
 from logging import (
-    Logger
+    Logger,
+    getLogger
 )
 from colored import fg, bg, attr
 from logging import StreamHandler
 from argparse import (
     ArgumentParser,
     Namespace
+)
+from json import dumps
+from typing import (
+    List,
+    Dict,
+    Tuple
 )
 
 
@@ -70,19 +77,57 @@ def entry_point():
 
     logger = init(parser, args)
 
+    cache = rrCache(
+        db=args.db,
+        attrs=None,
+        logger=logger
+    )
+
     if args.cache_dir:
         # print("rrCache is going to be generated into " + args.cache_dir)
-        gen_cache(args.cache_dir, logger)
-    else:
-        cache = rrCache(
-            db=args.db,
-            attrs=args.attrs,
-            logger=logger
+        gen_cache(
+            args.cache_dir,
+            logger
         )
+    elif args.reaction_rules is not None:
+        print_rr(
+            cache,
+            args.reaction_rules,
+            logger
+        )
+    else:
+        cache.load(args.attrs)
 
 
 def gen_cache(outdir, logger):
     rrCache.generate_cache(outdir, logger)
+
+
+def print_rr(
+    cache: 'rrCache',
+    reaction_rules: List,
+    logger: Logger=getLogger(__file__)
+) -> None:
+    cache.load(['rr_reactions'])
+    if reaction_rules == []:
+        print(
+            dumps(
+                cache.get('rr_reactions'),
+                indent=4
+            )
+        )
+    else:
+        for rr_id in reaction_rules:
+            try:
+                print(
+                    rr_id+':',
+                    dumps(
+                        cache.get('rr_reactions')[rr_id],
+                        indent=4
+                    )
+                )
+            except KeyError:
+                logger.error('Reaction rule ID not found: '+rr_id)
 
 
 if __name__ == '__main__':

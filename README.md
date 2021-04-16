@@ -1,6 +1,17 @@
-# rr_cache
+# rr_cache - RetroRules Cache
 
-RetroRules Cache
+## Requirements
+rr_cache has the following dependencies:
+- brs_utils
+- credisdict
+- requests
+- rdkit
+- redis-py
+- colored
+This dependencies can be installed through conda package manager with:
+```sh
+conda install -c brsynth -c conda-forge brs_utils credisdict requests rdkit redis-py colored
+```
 
 ## Memory management
 
@@ -46,6 +57,11 @@ from rr_cache import rrCache
 cache = rrCache(attrs='cid_strc')
 print(cache.cid_src)
 ```
+***From CLI***
+```sh
+python -m rr_cache --reaction-rules <RuleID_1> <RuleID_2>...
+```
+If `RuleID_i` is(are) set, prints the reaction rule(s) or all reaction rules if nothing is specified.
 
 ### (Re-)generate the cache
 **From Python code**
@@ -56,7 +72,6 @@ rrCache.generate_cache(outdir)
 ```
 
 **From CLI**
-After having installed rptools Python module:
 ```sh
 python -m rr_cache --gen_cache <folder>
 ```

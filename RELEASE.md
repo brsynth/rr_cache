@@ -1,5 +1,9 @@
 # Release history
 
+## 0.5.0
+#### 3 May 2021
+- add manual substitutions of IDs with no structure (from 'MNXM_replacement_20190524.csv')
+
 ## 0.4.0
 #### 16 April 2021
 - add '--reactions' option to print out rrCache content

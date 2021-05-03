@@ -1,5 +1,9 @@
 # Release history
 
+## 0.6.0
+#### 3 May 2021
+- add both deprecated reactions IDs and new ones in 'rr_full_reactions'
+
 ## 0.5.0
 #### 3 May 2021
 - add manual substitutions of IDs with no structure (from 'MNXM_replacement_20190524.csv')

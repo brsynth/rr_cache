@@ -410,32 +410,12 @@ class rrCache:
             deprecatedCID_cid = rrCache._m_deprecatedMNXM(
                 os_path.join(input_dir, 'chem_xref.tsv.gz')
             )
-            # # overwrite (or not if it doesn't exist) entries that are defined by Thomas
-            # try:
-            #     with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
-            #         reader = csv_reader(csv_file, delimiter=' ')
-            #         for row in reader:
-            #             if not row[0].startswith('#') and len(row) > 1:
-            #                 try:
-            #                     print('deprecatedCID_cid['+row[0]+']: ' + deprecatedCID_cid[row[0]] + ' ' + row[1])
-            #                     deprecatedCID_cid[row[0]] = row[1]
-            #                 except KeyError:
-            #                     logger.warning('Key ' + row[0] + ' is not present in deprecatedCID_cid\n')
-            #     exit()
-            #     user_mnx_replace = json_load(open('data/mnx_replace.json', 'r'))
-            #     for user_deprecated_mnxm in user_mnx_replace:
-            #         deprecatedCID_cid[user_deprecated_mnxm] = user_mnx_replace[user_deprecated_mnxm]['mnx']
-            # except FileNotFoundError:
-            #     logger.warning("   Error data/mnx_replace.json file not found")
-            # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid)
-            # print_OK()
 
         else:
             deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
             logger.debug("   Cache file already exists")
-            # print_OK()
 
         return {
             'attr': deprecatedCID_cid,
@@ -509,16 +489,12 @@ class rrCache:
             if not cid_strc['attr']:
                 logger.debug("   Loading input data from file...")
                 cid_strc['attr'] = rrCache._load_cache_from_file(cid_strc['file'])
-                # print_OK()
             logger.debug("   Generating data...")
             inchikey_cid = rrCache._m_inchikey_cid(cid_strc['attr'])
-            # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(inchikey_cid, f_inchikey_cid)
-            # print_OK()
         else:
             logger.debug("   Cache file already exists")
-            # print_OK()
 
 
     @staticmethod
@@ -532,24 +508,23 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_xref = None
         f_cid_xref = os_path.join(outdir, attribute)+rrCache.__ext
+
         if not os_path.isfile(f_cid_xref):
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
                 deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                # print_OK()
             logger.debug("   Generating data...")
             cid_xref = rrCache._m_mnxm_xref(
                 os_path.join(input_dir, 'chem_xref.tsv.gz'),
                 deprecatedCID_cid['attr']
             )
-            # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_xref, f_cid_xref)
-            # print_OK()
+
         else:
             cid_xref = rrCache._load_cache_from_file(f_cid_xref)
             logger.debug("   Cache file already exists")
-            # print_OK()
+
         return {
             'attr': cid_xref,
             'file': f_cid_xref
@@ -595,14 +570,11 @@ class rrCache:
             deprecatedRID_rid = rrCache._m_deprecatedMNXR(
                 os_path.join(input_dir, 'reac_xref.tsv.gz')
             )
-            # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedRID_rid, f_deprecatedRID_rid)
-            # print_OK()
         else:
             deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
             logger.debug("   Cache file already exists")
-            # print_OK()
         return {
             'attr': deprecatedRID_rid,
             'file': f_deprecatedRID_rid
@@ -625,7 +597,6 @@ class rrCache:
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
                 deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                # print_OK()
             if not deprecatedRID_rid['attr']:
                 logger.debug("   Loading input data from file...")
                 deprecatedRID_rid['attr'] = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
@@ -636,16 +607,12 @@ class rrCache:
                 deprecatedCID_cid,
                 deprecatedRID_rid
             )
-            # print_OK()
             del deprecatedRID_rid
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_reactions, f_rr_reactions)
-            # print_OK()
             del rr_reactions
         else:
             logger.debug("   Cache file already exists")
-            # print_OK()
-        # return deprecatedCID_cid
 
 
     @staticmethod
@@ -695,34 +662,27 @@ class rrCache:
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
                 deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                # print_OK()
             if not deprecatedRID_rid:
                 logger.debug("   Loading input data from file...")
                 deprecatedRID_rid = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
-                # print_OK()
             rr_full_reactions = rrCache._m_rr_full_reactions(
                 os_path.join(input_dir, 'rxn_recipes.tsv.gz'),
                 deprecatedCID_cid['attr'],
                 deprecatedRID_rid['attr']
             )
-            # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_full_reactions, f_rr_full_reactions)
-            # print_OK()
             del rr_full_reactions
         else:
             logger.debug("   Cache file already exists")
-            # print_OK()
 
 
     def _load_from_file(self, attribute):
         filename = attribute+rrCache.__ext
         self.logger.debug("Loading "+filename+"...")
-        # print("Loading "+filename+"...", end = '', flush=True)
         data = self._load_cache_from_file(
             os_path.join(self.__cache_dir, filename)
         )
-        # print_OK()
         return data
 
 
@@ -745,7 +705,6 @@ class rrCache:
                 print_progress(self.logger)
             else:
                 self.logger.debug(attribute+" already loaded in memory")
-                # print_OK()
         print_end(self.logger)
 
     def _check_or_load_cache_in_db(self):
@@ -755,7 +714,6 @@ class rrCache:
                 self._store_cache_to_db(attribute, self._load_from_file(attribute))
             else:
                 self.logger.debug(attribute+" already loaded in db")
-                # print_OK()
             print_progress(self.logger)
         print_end(self.logger)
 
@@ -766,14 +724,9 @@ class rrCache:
             os_mkdir(outdir)
         filename = os_path.join(outdir, file)
         if not os_path.isfile(filename):
-            # print("Downloading "+file+"...", end = '', flush=True)
             start_time = time_time()
             rrCache.__download_input_cache(url, file, outdir)
             end_time = time_time()
-            # print_OK(end_time-start_time)
-        # else:
-        #     print(filename+" already downloaded ", end = '', flush=True)
-            # print_OK()
 
 
     @staticmethod

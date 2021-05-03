@@ -84,6 +84,7 @@ class rrCache:
     # name: sha512sum
     __input__cache_files = {
             'chem_xref.tsv.gz':    'e558110990dcc75af943863790dc55360fd2d40ecb17d02335377671e80f0ab3738fd556acb340e03e48dd1afdec3eece1e92df1e18bc24e7445f24f778a10da',
+            'MNXM_replacement_20190524.csv':    '0ffd5da832f9be057b19ca6a813a5ed3f53d7b6c247513f117450a63f5b34deb86de68ecbb5ed765ac6c3417f8976c4e39590a4dd18275351a076de863e6bfa9',
             'reac_xref.tsv.gz':    '48b991cf4a9c2ca573d395cf35c378881ed79e87772827647bfab2f6345499698664e07195ec10b342fc0164304dbd2363cccff1a1182225e6afebce3c16448b',
             'compounds.tsv.gz':    '719716bb880257bd014e045c03eb8dd12e2bbeba3aa52e38e9632ce605817b9dc09530e81fadd25542c0a439bdb81e1dfbd3a38f35b30b061845d1a880dbfe01',
             'chem_prop.tsv.gz':    'f2d220d1f0425e5e47f01e7deccfa46b60094d43b9f62b191ffb0fab8c00ef79e87c3b71d10bdcd26020608094f24884f51b3ebc3d7d3c9a6d594c6eaa324c66',
@@ -96,7 +97,7 @@ class rrCache:
     __attributes_deps = {
             'deprecatedCID_cid': {
                 'attr_deps': [],
-                'file_deps': ['chem_xref.tsv.gz']
+                'file_deps': ['chem_xref.tsv.gz', 'MNXM_replacement_20190524.csv']
             },
             'deprecatedRID_rid': {
                 'attr_deps': [],
@@ -409,13 +410,23 @@ class rrCache:
             deprecatedCID_cid = rrCache._m_deprecatedMNXM(
                 os_path.join(input_dir, 'chem_xref.tsv.gz')
             )
-            # overwrite (or not if it dosn't exist) entries that are defined by Thomas
-            try:
-                user_mnx_replace = json_load(open('data/mnx_replace.json', 'r'))
-                for user_deprecated_mnxm in user_mnx_replace:
-                    deprecatedCID_cid[user_deprecated_mnxm] = user_mnx_replace[user_deprecated_mnxm]['mnx']
-            except FileNotFoundError:
-                logger.debug("   Error data/mnx_replace.json file not found")
+            # # overwrite (or not if it doesn't exist) entries that are defined by Thomas
+            # try:
+            #     with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
+            #         reader = csv_reader(csv_file, delimiter=' ')
+            #         for row in reader:
+            #             if not row[0].startswith('#') and len(row) > 1:
+            #                 try:
+            #                     print('deprecatedCID_cid['+row[0]+']: ' + deprecatedCID_cid[row[0]] + ' ' + row[1])
+            #                     deprecatedCID_cid[row[0]] = row[1]
+            #                 except KeyError:
+            #                     logger.warning('Key ' + row[0] + ' is not present in deprecatedCID_cid\n')
+            #     exit()
+            #     user_mnx_replace = json_load(open('data/mnx_replace.json', 'r'))
+            #     for user_deprecated_mnxm in user_mnx_replace:
+            #         deprecatedCID_cid[user_deprecated_mnxm] = user_mnx_replace[user_deprecated_mnxm]['mnx']
+            # except FileNotFoundError:
+            #     logger.warning("   Error data/mnx_replace.json file not found")
             # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid)
@@ -439,12 +450,14 @@ class rrCache:
         deprecatedCID_cid: Dict,
         logger=getLogger(__name__)
     ) -> Dict:
+
         attribute = 'cid_strc, cid_name'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_strc = None
         cid_name = None
         f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache.__ext
         f_cid_name = os_path.join(outdir, 'cid_name')+rrCache.__ext
+
         if not os_path.isfile(f_cid_strc):
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
@@ -456,15 +469,22 @@ class rrCache:
                 os_path.join(input_dir, 'chem_prop.tsv.gz'),
                 deprecatedCID_cid['attr']
             )
-            # print_OK()
+            # Replace compound IDs that have no structure with one that has.
+            # Done from a manually built file
+            with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
+                reader = csv_reader(csv_file, delimiter=' ')
+                for row in reader:
+                    if not row[0].startswith('#') and len(row) > 1:
+                        if row[1] != 'R_group':
+                            cid_strc[row[0]] = cid_strc[row[1]]
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_strc, f_cid_strc)
             rrCache._store_cache_to_file(cid_name, f_cid_name)
-            # print_OK()
+
         else:
             cid_strc = rrCache._load_cache_from_file(f_cid_strc)
             logger.debug("   Cache file already exists")
-            # print_OK()
+            
         return {
             'attr': cid_strc,
             'file': f_cid_strc
@@ -767,22 +787,30 @@ class rrCache:
             'chem_xref.tsv.gz',
             'chem_prop.tsv.gz',
             'comp_xref.tsv.gz'
-        ]: download(
-            url+'metanetx/'+file,
-            os_path.join(outdir, file)
-        )
+        ]:
+            download(
+                url+'metanetx/'+file,
+                os_path.join(outdir, file)
+            )
 
-        if file in [
+        elif file in [
             'compounds.tsv.gz',
             'rxn_recipes.tsv.gz'
-        ]: download(
-            url+'rr02_more_data/'+file,
-            os_path.join(outdir, file)
-        )
+        ]:
+            download(
+                url+'rr02_more_data/'+file,
+                os_path.join(outdir, file)
+            )
 
-        if file == 'retrorules_rr02_flat_all.tsv.gz':
+        elif file == 'retrorules_rr02_flat_all.tsv.gz':
             download(
                 url+'retrorules_rr02_rp3_hs/'+file,
+                os_path.join(outdir, file)
+            )
+
+        else:
+            download(
+                url+file,
                 os_path.join(outdir, file)
             )
 
@@ -873,7 +901,7 @@ class rrCache:
     #
     # @param xref_path Input file path
     # @return Dictionnary of identifiers
-    #TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+    # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
     @staticmethod
     def _deprecatedMNX(xref_path):
         deprecatedMNX_mnx = {}
@@ -983,15 +1011,21 @@ class rrCache:
                         elif tmp['smiles']:
                             itype = 'smiles'
                         else:
+                            ter = StreamHandler.terminator
+                            StreamHandler.terminator = "\n"
                             logger.warning('No valid entry for the convert_depiction function')
+                            StreamHandler.terminator = ter
                             continue
                         try:
                             resConv = rrCache._convert_depiction(idepic=tmp[itype], itype=itype, otype=otype)
                             for i in resConv:
                                 tmp[i] = resConv[i]
                         except rrCache.DepictionError as e:
+                            ter = StreamHandler.terminator
+                            StreamHandler.terminator = "\n"
                             logger.warning('Could not convert some of the structures: '+str(tmp))
                             logger.warning(e)
+                            StreamHandler.terminator = ter
                         cid_strc[tmp['cid']] = tmp
         return cid_strc, cid_name
 
@@ -1154,7 +1188,7 @@ class rrCache:
         try:
             for row in csv_DictReader(gzip_open(rxn_recipes_path, 'rt'), delimiter='\t'):
                 tmp = {} # makes sure that if theres an error its not added
-                #parse the reaction equation
+                # parse the reaction equation
                 if not len(row['Equation'].split('='))==2:
                     logger.warning('There should never be more or less than a left and right of an equation')
                     logger.warnin(row['Equation'])
@@ -1166,25 +1200,25 @@ class rrCache:
                 #     print(row)
                 #     exit()
                 for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', row['Equation'].split('=')[0]):
-                    #1) try to rescue if its one of the values
+                    # 1) try to rescue if its one of the values
                     try:
                         tmp['left'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
                     except KeyError:
-                        #2) try to convert to int if its not
+                        # 2) try to convert to int if its not
                         try:
                             tmp['left'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
                         except ValueError:
                             logger.warning('Cannot convert '+str(spe[0]))
                             continue
                 ####### RIGHT #####
-                ####  MNX id
+                #### MNX id
                 tmp['right'] = {}
                 for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', row['Equation'].split('=')[1]):
-                    #1) try to rescue if its one of the values
+                    # 1) try to rescue if its one of the values
                     try:
                         tmp['right'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
                     except KeyError:
-                        #2) try to convert to int if its not
+                        # 2) try to convert to int if its not
                         try:
                             tmp['right'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
                         except ValueError:

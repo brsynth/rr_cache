@@ -92,7 +92,7 @@ class Test_rrCache(TestCase):
     attributes = [
     ('chebi_cid',               123835),
     ('cid_name',                691482),
-    ('cid_strc',                655676),
+    ('cid_strc',                655684),
     ('cid_xref',                691494),
     ('comp_xref',               40),
     ('deprecatedCID_cid',       16267),

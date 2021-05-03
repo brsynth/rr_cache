@@ -99,6 +99,6 @@ class Test_rrCache(TestCase):
     ('deprecatedCompID_compid', 4370),
     ('deprecatedRID_rid',       53413),
     ('inchikey_cid',            332146),
-    ('rr_full_reactions',       41970),
+    ('rr_full_reactions',       48289),
     ('rr_reactions',            229862)
     ]

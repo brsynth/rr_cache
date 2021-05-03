@@ -10,7 +10,6 @@ from logging import (
     getLogger
 )
 from colored import fg, bg, attr
-from logging import StreamHandler
 from argparse import (
     ArgumentParser,
     Namespace

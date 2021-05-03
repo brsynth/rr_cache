@@ -1133,7 +1133,9 @@ class rrCache:
                            '0.02': 1, '0.2': 1,
                            '(n-1)': 0, '(n-2)': -1}
         reaction = {}
+
         try:
+
             for row in csv_DictReader(gzip_open(rxn_recipes_path, 'rt'), delimiter='\t'):
                 tmp = {} # makes sure that if theres an error its not added
                 # parse the reaction equation
@@ -1141,12 +1143,10 @@ class rrCache:
                     logger.warning('There should never be more or less than a left and right of an equation')
                     logger.warnin(row['Equation'])
                     continue
+
                 ######### LEFT ######
                 #### MNX id
                 tmp['left'] = {}
-                # if row['#Reaction_ID']=="MNXR141948":
-                #     print(row)
-                #     exit()
                 for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', row['Equation'].split('=')[0]):
                     # 1) try to rescue if its one of the values
                     try:
@@ -1156,8 +1156,12 @@ class rrCache:
                         try:
                             tmp['left'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
                         except ValueError:
+                            ter = StreamHandler.terminator
+                            StreamHandler.terminator = "\n"
                             logger.warning('Cannot convert '+str(spe[0]))
+                            StreamHandler.terminator = ter
                             continue
+
                 ####### RIGHT #####
                 #### MNX id
                 tmp['right'] = {}
@@ -1170,8 +1174,12 @@ class rrCache:
                         try:
                             tmp['right'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
                         except ValueError:
+                            ter = StreamHandler.terminator
+                            StreamHandler.terminator = "\n"
                             logger.warning('Cannot convert '+str(spe[0]))
+                            StreamHandler.terminator = ter
                             continue
+
                 ####### DIRECTION ######
                 try:
                     tmp['direction'] = int(row['Direction'])
@@ -1181,11 +1189,18 @@ class rrCache:
                 ### add the others
                 tmp['main_left'] = row['Main_left'].split(',')
                 tmp['main_right'] = row['Main_right'].split(',')
-                reaction[rrCache._checkRIDdeprecated(row['#Reaction_ID'], deprecatedRID_rid)] = tmp
+
+                rid = row['#Reaction_ID']
+                new_rid = rrCache._checkRIDdeprecated(row['#Reaction_ID'], deprecatedRID_rid)
+                reaction[new_rid] = tmp
+                if new_rid != rid: # rid is deprecated and has to point toward new_rid
+                    reaction[rid] = reaction[new_rid]
+ 
             return reaction
+
         except FileNotFoundError:
             logger.error('Cannot find file: '+str(rxn_recipes_path))
-            return False
+            return {}
 
 
     ######################## Generic functions ###############################

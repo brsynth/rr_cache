@@ -814,8 +814,6 @@ class rrCache:
         setattr(rrCache, attr_name, CRedisDict(attr_name, self.redis, data))
         print_OK()
 
-
-
     ## Function to create a dictionnary of old to new chemical id's
     #
     #  Generate a one-to-one dictionnary of old id's to new ones. Private function
@@ -828,7 +826,6 @@ class rrCache:
         except (KeyError, TypeError):
             return cid
 
-
     ## Function to create a dictionnary of old to new reaction id's
     #
     # TODO: check other things about the mnxm emtry like if it has the right structure etc...
@@ -838,7 +835,6 @@ class rrCache:
             return deprecatedRID_rid[rid]
         except (KeyError, TypeError):
             return rid
-
 
     #################################################################
     ################## Public functions #############################
@@ -890,7 +886,6 @@ class rrCache:
     @staticmethod
     def _m_deprecatedMNXR(reac_xref_path):
         return rrCache._deprecatedMNX(reac_xref_path)
-
 
     ## Function to parse the chemp_prop.tsv file from MetanetX and compounds.tsv from RetroRules. Uses the InchIkey as key to the dictionnary
     #
@@ -990,7 +985,7 @@ class rrCache:
     #  @param chem_xref_path MetaNetX chem_xref.tsv file path
     #  @param deprecatedCID_cid Dictionnary of deprecated chemical ids to uniform cid
     #  @return Dictionnary of cross references of a given chemical id
-    #TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+    # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
     @staticmethod
     def _m_mnxm_xref(chem_xref_path, deprecatedCID_cid, logger=getLogger(__name__)):
         cid_xref = {}
@@ -1028,7 +1023,7 @@ class rrCache:
     #
     #  @param comp_xref_path The MetaNetX file that contains the cross references
     #  @return a The dictionnary of compartment identifiers
-    #TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+    # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
     @staticmethod
     def _m_mnxc_xref(comp_xref_path, logger=getLogger(__name__)):
         comp_xref = {}

@@ -29,7 +29,7 @@ class Test_rrCache(TestCase):
         Method: Load a full rrCache in 'db' store mode (localhost). Then, for
         each attribute, compare its length with it is supposed to be.
         """
-        self.skipTest("Tool long, not in standard tests")
+        self.skipTest("Too long, not in standard tests")
         cache = rrCache('localhost', logger=self.logger)
         for attr, length in self.attributes:
             with self.subTest(attr=attr, length=length):
@@ -63,7 +63,7 @@ class Test_rrCache(TestCase):
         Method: Generate a full rrCache. Then, for each file, compare its size
         with it is supposed to be.
         """
-        self.skipTest("Tool long, not in standard tests")
+        self.skipTest("Too long, not in standard tests")
         cache.generate_cache(self.outdir, logger=self.logger)
         for file, size in self.files:
             outfile = extract_gz(file, self.outdir)

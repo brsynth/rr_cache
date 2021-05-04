@@ -256,30 +256,30 @@ class rrCache:
         for attr in attributes:
             print_progress()
             filename = attr+rrCache.__ext
-            sha = sha512(
-                Path(
-                    os_path.join(cache_dir, filename)
-                ).read_bytes()
-            ).hexdigest()
-            logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
-            if os_path.isfile(
-                os_path.join(cache_dir, filename)
-            ) and sha == rrCache.__cache_files[filename]:
+            full_filename = os_path.join(cache_dir, filename)
+            f_exists = os_path.isfile(full_filename)
+            sha_ok = False
+            # if file exists, check sha
+            if f_exists:
+                sha = sha512(
+                    Path(full_filename).read_bytes()
+                ).hexdigest()
+                sha_ok = sha == rrCache.__cache_files[filename]
+            if sha_ok:
                 logger.debug(filename+" already downloaded")
-                # print_OK()
-            else:
-                filename = attr+rrCache.__ext
+            else: # sha not ok or file does not exist
+                if f_exists: # only sha not ok
+                    logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
                 logger.debug("Downloading "+filename+"...")
                 start_time = time_time()
                 if not os_path.isdir(cache_dir):
                     os_mkdir(cache_dir)
                 download(
                     rrCache.__cache_url+filename,
-                    os_path.join(cache_dir, filename)
+                    full_filename
                 )
                 rrCache.__cache_files[attr] = True
                 end_time = time_time()
-                # print_OK(end_time-start_time)
 
         print_end(logger)
 
@@ -614,7 +614,7 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         comp_xref = deprecatedCompID_compid = None
         f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache.__ext
-        f_deprecatedCompID_compid = outdir+'deprecatedCompID_compid'+rrCache.__ext
+        f_deprecatedCompID_compid = os_path.join(outdir, 'deprecatedCompID_compid')+rrCache.__ext
         if not os_path.isfile(f_comp_xref) or not os_path.isfile(f_deprecatedCompID_compid):
             logger.debug("   Generating data...")
             comp_xref,deprecatedCompID_compid = rrCache._m_mnxc_xref(

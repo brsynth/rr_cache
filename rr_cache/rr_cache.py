@@ -247,7 +247,7 @@ class rrCache:
         cache_dir: str,
         attributes: List,
         logger: Logger=getLogger(__name__)
-    ):
+    ) -> None:
         logger.debug('cache_dir: '+str(cache_dir))
         logger.debug('attributes: '+str(attributes))
 
@@ -257,19 +257,20 @@ class rrCache:
             print_progress()
             filename = attr+rrCache.__ext
             full_filename = os_path.join(cache_dir, filename)
-            f_exists = os_path.isfile(full_filename)
-            sha_ok = False
-            # if file exists, check sha
-            if f_exists:
+
+            try:
+                # compute sha
                 sha = sha512(
                     Path(full_filename).read_bytes()
                 ).hexdigest()
-                sha_ok = sha == rrCache.__cache_files[filename]
-            if sha_ok:
-                logger.debug(filename+" already downloaded")
-            else: # sha not ok or file does not exist
-                if f_exists: # only sha not ok
+                # check sha
+                if sha == rrCache.__cache_files[filename]:
+                    logger.debug(filename+" already downloaded")
+                else: # sha not ok
                     logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
+                    raise FileNotFoundError
+
+            except FileNotFoundError:
                 logger.debug("Downloading "+filename+"...")
                 start_time = time_time()
                 if not os_path.isdir(cache_dir):
@@ -280,6 +281,30 @@ class rrCache:
                 )
                 rrCache.__cache_files[attr] = True
                 end_time = time_time()
+
+            # f_exists = os_path.isfile(full_filename)
+            # sha_ok = False
+            # # if file exists, check sha
+            # if f_exists:
+            #     sha = sha512(
+            #         Path(full_filename).read_bytes()
+            #     ).hexdigest()
+            #     sha_ok = sha == rrCache.__cache_files[filename]
+            # if sha_ok:
+            #     logger.debug(filename+" already downloaded")
+            # else: # sha not ok or file does not exist
+            #     if f_exists: # only sha not ok
+            #         logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
+            #     logger.debug("Downloading "+filename+"...")
+            #     start_time = time_time()
+            #     if not os_path.isdir(cache_dir):
+            #         os_mkdir(cache_dir)
+            #     download(
+            #         rrCache.__cache_url+filename,
+            #         full_filename
+            #     )
+            #     rrCache.__cache_files[attr] = True
+            #     end_time = time_time()
 
         print_end(logger)
 

@@ -1,9 +1,5 @@
 # Release history
 
-## 0.6.2
-#### 4 May 2021
-- fix: handle sha computation if file does not exist
-
 ## 0.6.1
 #### 4 May 2021
 - fix: change sha for 'cid_strc' and 'rr_full_reactions' files according to previous changes

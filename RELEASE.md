@@ -1,5 +1,9 @@
 # Release history
 
+## 0.6.1
+#### 4 May 2021
+- fix: change sha for 'cid_strc' and 'rr_full_reactions' files according to previous changes
+
 ## 0.6.0
 #### 3 May 2021
 - add both deprecated reactions IDs and new ones in 'rr_full_reactions'

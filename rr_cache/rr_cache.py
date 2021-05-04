@@ -147,7 +147,7 @@ class rrCache:
     __cache_files = {
             __attributes_list[0]+'.json.gz': '1012d85b4720cf9706340e2d3bbef264dd95b67d510d8c1532c612a0f4aa6e1bdb2b77f36e135907070edb35038f31606f291ddd487df025e9999a4c543c739e',
             __attributes_list[1]+'.json.gz': '2cb1cc54c5a11962ef90a0da1d77e684b16b453214052541b473cf1b182491af9242d25e73f3d9b137e2c939eaf1ebf4adcee5b732ffab6cbb430d238f493b91',
-            __attributes_list[2]+'.json.gz': '0139e8779c298fb089940ee3a57de0e4d13dcca40b954db1ca728dba0132fae43b7bf1adb128e6989433dae11c5c24a32f729aa7154c86e1e9236ac1b9dd5311',
+            __attributes_list[2]+'.json.gz': '99efdfe7ce124b6dbf243e9c73f167d76ec08904b0b4668148ef84eac86cd8886e8a5cd500302c2e57bc96fd77b7ab88c29b6692f5966e1be8590456657b5264',
             __attributes_list[3]+'.json.gz': 'fef4540c117f5ff75fe7106e55596b74729c8551d6713d454846a98509bc872114db92946389d57e24dcf6f588d85462e0d71606207c52676175fb5e5a81bf81',
             __attributes_list[4]+'.json.gz': '3c483178ea3d10a8b0ba9a5982cd70540af15fe4b95dd27844cad5c221554f253b75729dbd2ddd20b01dbe7f3b427e3adf13238c3fb1f3ae853feab9e4c36d9d',
             __attributes_list[5]+'.json.gz': '9579714acf9d25d6c207b94af5be9977a0d438910a5ef9c3cd22f10b3c3292097e2246dd7c3d387e61701d66d7fb25092f39639b12803cdd72494d04d5434158',
@@ -155,21 +155,8 @@ class rrCache:
             __attributes_list[7]+'.json.gz': 'd7d422e497af88bf8ea820857d4cca9846b2ccea7a9993beea479f270ba5852b901f3280a7c408d09ad8bd941cb2552940d281068c579592f41bbb659777a7b2',
             __attributes_list[8]+'.json.gz': '249a5bbd2b06c6326b3da8c759818c78bc13eed13b077c9f0ab1a2c912d01806e0e29d439fe3c09f5c5c6f87f7e02cd0bf0d7c5d01b81240aedb47b1bc5a664e',
             __attributes_list[9]+'.json.gz': '7e7e6a4805d74f680c31a48304abd4f221d394788604c935b91e977b78275cdf3266839d8bc1097637c2fd633b3583f082b60f0d5a54985bba931f0f945c9802',
-            __attributes_list[10]+'.json.gz': '33e6f15a61352686169d86c8c444717eb6ea315b4683ca1d60a8b0d542a1fea2411fc9327d2604df1e47defa836616e60beb1b139a43249cb44bb9b0e91a1c70'
+            __attributes_list[10]+'.json.gz': '46079940146cb2aa9426cba532c1901f1e1e953fc4f0cacaf80cd111d522f5c9e9e43cfcf200c8b1e4a8c9e6b655f5c4d9a5f645d980673b2850d563368991c8'
             }
-    # __cache_files = {
-    #         __attributes_list[0]+'.json.gz': '698a3e83cf4f9206ea2644c9c35a9af53957838baaae6efb245d02b6b8d0ea8b25c75008e562b99ba3e0189e50ee47655376f2d0635f6206e0015f91f0e4bad8',
-    #         __attributes_list[1]+'.json.gz': '51554c6f6ae99c6755da7496208b3feec30547bc4cf3007d9fd30f46fa4c0cc73bad5aeb743dca07e32711c4346504296bee776d135fb18e96c891a0086fc87e',
-    #         __attributes_list[2]+'.json.gz': '0021ef63165d75ee6b8c209ccf14b8a1b8b7b263b4077f544729c47b5525f66511c3fa578fd2089201abb61693085b9912639e62f7b7481d06ad1f38bfc2dd8e',
-    #         __attributes_list[3]+'.json.gz': '7d559cc7389c0cb2bd10f92e6e845bb5724be64d1624adc4e447111fc63599bb69396cd0cc3066a6bb19910c00e266c97e21b1254d9a6dc9da3a8b033603fcff',
-    #         __attributes_list[4]+'.json.gz': '587d6c5206ee94e63af6d9eaf49fd5e2ca417308b3ece8a7f47e916c42376e2c8635a031ce26dc815cd7330f2323054a44d23951e416a9a29c5a9a2ab51e8953',
-    #         __attributes_list[5]+'.json.gz': '8783aaa65a281c4a7ab3a82a6dc99620418ed2be4a739f46db8ee304fcb3536a78fed5a955e1c373a20c3e7d3673793157c792b4429ecb5c68ddaddb1a0f7de7',
-    #         __attributes_list[6]+'.json.gz': '8007480fc607caf41f0f9a93beb66c7caa66c37a3d01a809f6b94bc0df469cec72091e8cc0fbabb3bd8775e9776b928ecda2779fc545c7e4b9e71c504f9510ce',
-    #         __attributes_list[7]+'.json.gz': 'afc2ad3d31366a8f7fe1604fa49c190ade6d46bc8915f30bd20fdfdfc663c979bb10ca55ad10cadec6002a17add46639c70e7adf89cb66c57ed004fd3e4f0051',
-    #         __attributes_list[8]+'.json.gz': '81c673fe1940e25a6a9722fd74b16bc30e1590db0c40810f541ad4ffba7ae04c01268b929d4bf944e84095a0c2a1d0079d1861bc1df3e8308fbb6b35e0aaf107',
-    #         __attributes_list[9]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985',
-    #         __attributes_list[10]+'.json.gz': '599e4de4935d2ba649c0b526d8aeef6f0e3bf0ed9ee20adad65cb86b078ac139e4cc9758945c2bb6da1c6840867239c5415cb5bceeb80164798ff627aac0a985'
-    #         }
 
     __ext = '.json.gz'
 
@@ -269,13 +256,15 @@ class rrCache:
         for attr in attributes:
             print_progress()
             filename = attr+rrCache.__ext
-            if os_path.isfile(
-                os_path.join(cache_dir, filename)
-            ) and sha512(
+            sha = sha512(
                 Path(
                     os_path.join(cache_dir, filename)
                 ).read_bytes()
-            ).hexdigest() == rrCache.__cache_files[filename]:
+            ).hexdigest()
+            logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
+            if os_path.isfile(
+                os_path.join(cache_dir, filename)
+            ) and sha == rrCache.__cache_files[filename]:
                 logger.debug(filename+" already downloaded")
                 # print_OK()
             else:

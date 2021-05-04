@@ -174,13 +174,9 @@ class rrCache:
         self.store_mode = db
         rrCache._db_timeout = 10
 
-        self.dirname = os_path.dirname(os_path.abspath( __file__ ))#+"/.."
-        # # input_cache
-        # self._input__cache_dir = os_path.join(self.dirname, 'input_cache')
-        # cache
+        self.dirname = os_path.dirname(os_path.abspath( __file__ ))
         self.__cache_dir = os_path.join(self.dirname, 'cache')
 
-        # if self.__attributes_list is not None:
         self.load(attrs)
 
 
@@ -213,7 +209,7 @@ class rrCache:
             self.__attributes_list,
             self.logger
         )
-        # rrCache.generate_cache(self.__cache_dir)
+
         try:
             self._check_or_load_cache()
         except (r_exceptions.RequestException,
@@ -221,25 +217,6 @@ class rrCache:
                 r_exceptions.ConnectionError):
             rrCache.generate_cache(self.__cache_dir)
             self._check_or_load_cache()
-        # exit()
-        # try:
-        #     self._check_or_load_cache()
-        # except FileNotFoundError:
-        #     try:
-        #         StreamHandler.terminator = "\r"
-        #         logger.info('')
-        #         rrCache._check_or_download_cache_to_disk(
-        #             self.__cache_dir,
-        #             self.__attributes_list,
-        #             self.logger
-        #         )
-        #         self._check_or_load_cache()
-        #     except (r_exceptions.RequestException,
-        #             r_exceptions.InvalidSchema,
-        #             r_exceptions.ConnectionError):
-        #         print_FAILED()
-        #         rrCache.generate_cache(self.__cache_dir)
-        #         self._check_or_load_cache()
 
 
     @staticmethod
@@ -281,30 +258,6 @@ class rrCache:
                 )
                 rrCache.__cache_files[attr] = True
                 end_time = time_time()
-
-            # f_exists = os_path.isfile(full_filename)
-            # sha_ok = False
-            # # if file exists, check sha
-            # if f_exists:
-            #     sha = sha512(
-            #         Path(full_filename).read_bytes()
-            #     ).hexdigest()
-            #     sha_ok = sha == rrCache.__cache_files[filename]
-            # if sha_ok:
-            #     logger.debug(filename+" already downloaded")
-            # else: # sha not ok or file does not exist
-            #     if f_exists: # only sha not ok
-            #         logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
-            #     logger.debug("Downloading "+filename+"...")
-            #     start_time = time_time()
-            #     if not os_path.isdir(cache_dir):
-            #         os_mkdir(cache_dir)
-            #     download(
-            #         rrCache.__cache_url+filename,
-            #         full_filename
-            #     )
-            #     rrCache.__cache_files[attr] = True
-            #     end_time = time_time()
 
         print_end(logger)
 
@@ -372,9 +325,6 @@ class rrCache:
 
         # FETCH INPUT_CACHE FILES
         url = rrCache.__cache_url
-        # input_dir = os_path.join(
-        #     os_path.normpath(outdir),
-        # )'input-'+os_path.basename(os_path.normpath(outdir))
         print_start(logger, 'Downloading input cache')
         for file in rrCache.__input__cache_files.keys():
             rrCache._download_input_cache(url, file, input_dir)

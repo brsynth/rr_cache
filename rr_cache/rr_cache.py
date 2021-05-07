@@ -155,7 +155,7 @@ class rrCache:
             __attributes_list[7]+'.json.gz': 'd7d422e497af88bf8ea820857d4cca9846b2ccea7a9993beea479f270ba5852b901f3280a7c408d09ad8bd941cb2552940d281068c579592f41bbb659777a7b2',
             __attributes_list[8]+'.json.gz': '249a5bbd2b06c6326b3da8c759818c78bc13eed13b077c9f0ab1a2c912d01806e0e29d439fe3c09f5c5c6f87f7e02cd0bf0d7c5d01b81240aedb47b1bc5a664e',
             __attributes_list[9]+'.json.gz': '7e7e6a4805d74f680c31a48304abd4f221d394788604c935b91e977b78275cdf3266839d8bc1097637c2fd633b3583f082b60f0d5a54985bba931f0f945c9802',
-            __attributes_list[10]+'.json.gz': '46079940146cb2aa9426cba532c1901f1e1e953fc4f0cacaf80cd111d522f5c9e9e43cfcf200c8b1e4a8c9e6b655f5c4d9a5f645d980673b2850d563368991c8'
+            __attributes_list[10]+'.json.gz': '48fb7dfadfab65d36ecb33262fbb5b8e0ffa4bcf37b910b120a4f322a7b349df8b16624b5d9600b3c2fa03fe6cc02699d606ce87be862323608067bfe41199e0'
             }
 
     __ext = '.json.gz'
@@ -1089,82 +1089,118 @@ class rrCache:
     #  @return Boolean that determines the success or failure of the function
     @staticmethod
     def _m_rr_full_reactions(rxn_recipes_path, deprecatedCID_cid, deprecatedRID_rid, logger=getLogger(__name__)):
-        #### for character matching that are returned
-        DEFAULT_STOICHIO_RESCUE = {"4n": 4, "3n": 3, "2n": 2, 'n': 1,
-                           '(n)': 1, '(N)': 1, '(2n)': 2, '(x)': 1,
-                           'N': 1, 'm': 1, 'q': 1,
-                           '0.01': 1, '0.1': 1, '0.5': 1, '1.5': 1,
-                           '0.02': 1, '0.2': 1,
-                           '(n-1)': 0, '(n-2)': -1}
-        reaction = {}
 
-        try:
-
-            for row in csv_DictReader(gzip_open(rxn_recipes_path, 'rt'), delimiter='\t'):
-                tmp = {} # makes sure that if theres an error its not added
-                # parse the reaction equation
-                if not len(row['Equation'].split('='))==2:
-                    logger.warning('There should never be more or less than a left and right of an equation')
-                    logger.warnin(row['Equation'])
-                    continue
-
-                ######### LEFT ######
-                #### MNX id
-                tmp['left'] = {}
-                for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', row['Equation'].split('=')[0]):
-                    # 1) try to rescue if its one of the values
-                    try:
-                        tmp['left'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
-                    except KeyError:
-                        # 2) try to convert to int if its not
-                        try:
-                            tmp['left'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
-                        except ValueError:
-                            ter = StreamHandler.terminator
-                            StreamHandler.terminator = "\n"
-                            logger.warning('Cannot convert '+str(spe[0]))
-                            StreamHandler.terminator = ter
-                            continue
-
-                ####### RIGHT #####
-                #### MNX id
-                tmp['right'] = {}
-                for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', row['Equation'].split('=')[1]):
-                    # 1) try to rescue if its one of the values
-                    try:
-                        tmp['right'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
-                    except KeyError:
-                        # 2) try to convert to int if its not
-                        try:
-                            tmp['right'][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
-                        except ValueError:
-                            ter = StreamHandler.terminator
-                            StreamHandler.terminator = "\n"
-                            logger.warning('Cannot convert '+str(spe[0]))
-                            StreamHandler.terminator = ter
-                            continue
-
-                ####### DIRECTION ######
-                try:
-                    tmp['direction'] = int(row['Direction'])
-                except ValueError:
-                    logger.error('Cannot convert '+str(row['Direction'])+' to int')
-                    continue
-                ### add the others
-                tmp['main_left'] = row['Main_left'].split(',')
-                tmp['main_right'] = row['Main_right'].split(',')
-
-                rid = row['#Reaction_ID']
-                new_rid = rrCache._checkRIDdeprecated(row['#Reaction_ID'], deprecatedRID_rid)
-                reaction[new_rid] = tmp
-                if new_rid != rid: # rid is deprecated and has to point toward new_rid
-                    reaction[rid] = reaction[new_rid]
- 
-            return reaction
-
-        except FileNotFoundError:
+        if not os_path.exists(rxn_recipes_path):
             logger.error('Cannot find file: '+str(rxn_recipes_path))
-            return {}
+            return None
+
+        reactions = {}
+
+        for row in csv_DictReader(gzip_open(rxn_recipes_path, 'rt'), delimiter='\t'):
+
+            # Read equation
+            rxn = _read_equation(
+                row['Equation'],
+                row['#Reaction_ID'],
+                logger
+            )
+            if rxn is None:
+                # Pass to the next equation
+                continue
+
+            # Direction
+            dir = _read_direction(
+                row['Direction'],
+                logger
+            )
+            if dir is None:
+                # Pass to the next equation
+                continue
+            else:
+                rxn['direction'] = dir
+
+            # Others
+            rxn['main_left'] = row['Main_left'].split(',')
+            rxn['main_right'] = row['Main_right'].split(',')
+
+            reactions[row['#Reaction_ID']] = rxn
+
+        return reactions
+
+
+def _read_direction(
+    dir: str,
+    logger: Logger=getLogger(__name__)
+) -> Dict:
+    try:
+        _dir = int(dir)
+    except ValueError:
+        ter = StreamHandler.terminator
+        StreamHandler.terminator = "\n"
+        logger.warning(
+            'Cannot convert direction value {dir} to int'.format(
+                dir=dir
+            )
+        )
+        StreamHandler.terminator = ter
+        # Pass to the next equation
+        return None
+    return _dir
+
+
+def _read_equation(
+    eq: str,
+    rxn_id: str,
+    logger: Logger=getLogger(__name__)
+) -> Dict:
+
+    if not len(eq.split('='))==2:
+        logger.warning('There should never be more or less than a left and right of an equation')
+        logger.warning('Ignoring {eq}'.format(eq=eq))
+        return None
+
+    #### for character matching that are returned
+    DEFAULT_STOICHIO_RESCUE = {
+        '4n': 4, '3n': 3, '2n': 2, 'n': 1,
+        '(n)': 1, '(N)': 1, '(2n)': 2, '(x)': 1,
+        'N': 1, 'm': 1, 'q': 1,
+        '0.01': 1, '0.1': 1, '0.5': 1, '1.5': 1,
+        '0.02': 1, '0.2': 1,
+        '(n-1)': 0, '(n-2)': -1
+    }
+
+    rxn = {}
+
+    # Use int indices to be directly usable by re_findall
+    # 0 = left, 1 = right
+    for side in [0, 1]:
+        rxn[side] = {}
+        for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', eq.split('=')[side]):
+            # 1) try to rescue if its one of the values
+            try:
+                # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
+                rxn[side][spe[1]] = DEFAULT_STOICHIO_RESCUE[spe[0]]
+            except KeyError:
+                # 2) try to convert to int if its not
+                try:
+                    # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
+                    rxn[side][spe[1]] = int(spe[0])
+                except ValueError:
+                    ter = StreamHandler.terminator
+                    StreamHandler.terminator = "\n"
+                    logger.warning(
+                        'Cannot convert stoichio coeff {coeff} in {rxn_id}'.format(
+                            coeff=spe[0],
+                            rxn_id=rxn_id
+                        )
+                    )
+                    StreamHandler.terminator = ter
+                    # Stop parsing this equation and pass the next
+                    return None
+
+    return rxn
+
+
 
 
     ######################## Generic functions ###############################

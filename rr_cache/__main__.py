@@ -125,6 +125,7 @@ def print_attr(
             )
         )
     else:
+        print(cache.get('rr_full_reactions')['MNXR109162'])
         for id in attr_lst:
             try:
                 print(

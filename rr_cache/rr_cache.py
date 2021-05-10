@@ -132,7 +132,7 @@ class rrCache:
             'attr_deps': [],
             'file_deps': ['comp_xref.tsv.gz']
         },
-        'rr_full_reactions': {
+        'template_reactions': {
             'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
             'file_deps': ['rxn_recipes.tsv.gz']
         },
@@ -144,7 +144,7 @@ class rrCache:
 
     # name: sha512sum
     __cache_files = {
-        __attributes_list[0]: '397bd33389ee4f64c8e1cd3b906c49a5db86845c215146671d6612d7cfaab4445ca37474a6b6b75b1cf36d1c13788b0b33933f66dd1d1df86ba823acada0b9df',
+        __attributes_list[0]: '72b8919a8402fba900f485394a0e2c764635313e1c4632152378b0d3cd052d64ad78c32427c0d205a9b274c4bb917082160763e1f36983cfc5e09c7621092890',
         __attributes_list[1]: 'ee0b3f533017dc17a3a27cd7ed543f581b5e10d9a16ac02c5279b735b888a49c8fea65e911cbda77ce2a25c568ceb2d27aaa966ecb2fb84ce57bd5f2816d8778',
         __attributes_list[2]: '38c8bc53bf6febeacd6e334002728be8f13c30a5485b1c55581e13f82728712bd28792497bdc3256d46407e253f3df03166a6a425480bcc7fa16a05130f9ddf7',
         __attributes_list[3]: 'a61916f9438939d115ca4a6af98d609ec0f14a3f0936a4550b610225016ed64cd1ad239d10b85029144fba7921ef7dcae22495deafc6aef195ba23d8c87f0361',
@@ -154,7 +154,7 @@ class rrCache:
         __attributes_list[7]: '1f9fe3827630d1a06cbea9f10f584404957f85b13a51ae9f67e501d50911eb97d4b220a556597e70c3a441c0b51dd1b7ab1cbae22aeecd634654949b0fb647f2',
         __attributes_list[8]: '5c4705351a6649f86e275ba3093c3e87ad68f92e4a6cd1da9832e541d42247a309438e4382104cf141e0abd6781f04e0b6d4cadedd148ceae629d1537dcce338',
         __attributes_list[9]: '57abdc35553f5c9f9929c72cc0159c99a679131c5f683922858f32f6e391ede08e0f45f095ad55f4d6bbc209e75cc870edef01416c0252d39ff147186efb9edc',
-        __attributes_list[10]: 'e3317a2674c9a451eb289ccf60e1ac1c27aa3daaec97b9093d160fbf808f18da1575988e78ea001bd43c0f0307399c85323ddf437f4debcdaef16d1949217572'
+        __attributes_list[10]: '59be6d683c4417ca9f4ec254b05bb069c9db851aea5e041917c69b167313e019ca3e79a2481883a07cfeb2e77d5f0eca0c753c05c143c3482d8e1b3497c0ce2f'
     }
 
 
@@ -360,7 +360,7 @@ class rrCache:
         print_progress(logger)
         rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir, logger)
         print_progress(logger)
-        rrCache._gen_rr_full_reactions(input_dir, outdir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_template_reactions(input_dir, outdir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
         print_progress(logger)
@@ -653,20 +653,20 @@ class rrCache:
 
 
     @staticmethod
-    def _gen_rr_full_reactions(
+    def _gen_template_reactions(
         input_dir: str,
         outdir: str,
         # deprecatedCID_cid: Dict,
         # deprecatedRID_rid: Dict,
         logger=getLogger(__name__)
     ) -> None:
-        attribute = 'rr_full_reactions'
+        attribute = 'template_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
-        rr_full_reactions = None
-        f_rr_full_reactions = os_path.join(outdir, attribute)+rrCache.__ext
+        template_reactions = None
+        f_template_reactions = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_rr_full_reactions) and check_sha(
-            f_rr_full_reactions,
+        if os_path.exists(f_template_reactions) and check_sha(
+            f_template_reactions,
             rrCache.__cache_files[attribute]
         ):
             logger.debug("   Cache file already exists")
@@ -678,14 +678,14 @@ class rrCache:
             # if not deprecatedRID_rid:
             #     logger.debug("   Loading input data from file...")
             #     deprecatedRID_rid = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
-            rr_full_reactions = rrCache._m_rr_full_reactions(
+            template_reactions = rrCache._m_template_reactions(
                 os_path.join(input_dir, 'rxn_recipes.tsv.gz'),
                 # deprecatedCID_cid['attr'],
                 # deprecatedRID_rid['attr']
             )
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(rr_full_reactions, f_rr_full_reactions)
-            del rr_full_reactions
+            rrCache._store_cache_to_file(template_reactions, f_template_reactions)
+            del template_reactions
 
 
     def _load_from_file(self, attribute):
@@ -1161,13 +1161,13 @@ class rrCache:
     #
     #  These are the compplete reactions from which the reaction rules are generated from. This is used to
     #  reconstruct the full reactions from monocomponent reactions
-    #  Structur of the return: rr_full_reactions['MNXR142257'] = {'left': {'MNXM4660': 1}, 'right': {'MNXM97172': 1}, 'direction': 0, 'main_left': ['MNXM4660'], 'main_right': ['MNXM97172']}
+    #  Structur of the return: template_reactions['MNXR142257'] = {'left': {'MNXM4660': 1}, 'right': {'MNXM97172': 1}, 'direction': 0, 'main_left': ['MNXM4660'], 'main_right': ['MNXM97172']}
     #
     #  @param self The pointer object
     #  @param rxn_recipes_path Path to the recipes file
     #  @return Boolean that determines the success or failure of the function
     @staticmethod
-    def _m_rr_full_reactions(
+    def _m_template_reactions(
         rxn_recipes_path: str,
         # deprecatedCID_cid,
         # deprecatedRID_rid,

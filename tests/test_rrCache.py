@@ -15,6 +15,7 @@ from os import (
     remove as os_rm,
     path as os_path
 )
+from logging import Logger
 
 
 class Test_rrCache(TestCase):
@@ -87,7 +88,7 @@ class Test_rrCache(TestCase):
     (os_path.join(outdir, 'deprecatedCompID_compid.json.gz'), 89832),
     (os_path.join(outdir, 'deprecatedRID_rid.json.gz'      ), 1437122),
     (os_path.join(outdir, 'inchikey_cid.json.gz'           ), 20071352),
-    (os_path.join(outdir, 'rr_full_reactions.json.gz'      ), 7643885),
+    (os_path.join(outdir, 'template_reactions.json.gz'     ), 7643885),
     (os_path.join(outdir, 'rr_reactions.json.gz'           ), 84656878)
     ]
 
@@ -101,6 +102,6 @@ class Test_rrCache(TestCase):
     ('deprecatedCompID_compid', 4370),
     ('deprecatedRID_rid',       53413),
     ('inchikey_cid',            332146),
-    ('rr_full_reactions',       48289),
+    ('template_reactions',      48289),
     ('rr_reactions',            229862)
     ]

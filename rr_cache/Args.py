@@ -71,7 +71,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         choices=[
             'deprecatedCID_cid', 'deprecatedRID_rid', 'deprecatedCompID_compid',
             'cid_strc', 'cid_name', 'cid_xref', 'chebi_cid', 'inchikey_cid',
-            'rr_reactions', 'rr_full_reactions',
+            'rr_reactions', 'template_reactions',
             'comp_xref',
             'all'
         ],

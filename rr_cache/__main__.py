@@ -2,7 +2,6 @@ from rr_cache.rr_cache import (
     rrCache,
 )
 from rr_cache.Args import (
-    add_arguments,
     build_args_parser
 )
 from logging import (
@@ -44,7 +43,6 @@ def init(
 
     logger.info(
         '{color}{typo}rr_cache {version}{rst}{color}{rst}\n'.format(
-            prog = logger.name,
             version = __version__,
             color=fg('white'),
             typo=attr('bold'),
@@ -106,7 +104,7 @@ def print_attr(
     cache: 'rrCache',
     attr: str,
     attr_lst: List,
-    logger: Logger=getLogger(__file__)
+    logger: Logger = getLogger(__file__)
 ) -> None:
     cache.load([attr])
     if attr_lst == []:

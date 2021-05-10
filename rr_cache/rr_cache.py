@@ -20,15 +20,13 @@ from json import (
 )
 from gzip       import open as gzip_open
 from re         import findall as re_findall
-from time       import time as time_time
+# from time       import time as time_time
 from requests   import exceptions as r_exceptions
 from redis      import StrictRedis
 from hashlib    import sha512
 from pathlib    import Path
 from colored    import (
     attr as c_attr,
-    fg as c_fg,
-    bg as c_bg
 )
 from logging import (
     Logger,
@@ -37,11 +35,11 @@ from logging import (
 )
 from brs_utils  import (
     print_OK,
-    print_FAILED,
     print_start,
     print_progress,
     print_end,
     download,
+    check_sha
 )
 from credisdict import (
     CRedisDict,
@@ -52,7 +50,6 @@ from typing import (
     Tuple,
     Dict
 )
-
 
 
 #######################################################
@@ -79,93 +76,98 @@ class rrCache:
         'MNXM145523': 'MNXM57',
         'MNXM57425':  'MNXM9',
         'MNXM137':    'MNXM588022'
-        }
+    }
 
     # name: sha512sum
     __input__cache_files = {
-            'chem_xref.tsv.gz':    'e558110990dcc75af943863790dc55360fd2d40ecb17d02335377671e80f0ab3738fd556acb340e03e48dd1afdec3eece1e92df1e18bc24e7445f24f778a10da',
-            'MNXM_replacement_20190524.csv':    '0ffd5da832f9be057b19ca6a813a5ed3f53d7b6c247513f117450a63f5b34deb86de68ecbb5ed765ac6c3417f8976c4e39590a4dd18275351a076de863e6bfa9',
-            'reac_xref.tsv.gz':    '48b991cf4a9c2ca573d395cf35c378881ed79e87772827647bfab2f6345499698664e07195ec10b342fc0164304dbd2363cccff1a1182225e6afebce3c16448b',
-            'compounds.tsv.gz':    '719716bb880257bd014e045c03eb8dd12e2bbeba3aa52e38e9632ce605817b9dc09530e81fadd25542c0a439bdb81e1dfbd3a38f35b30b061845d1a880dbfe01',
-            'chem_prop.tsv.gz':    'f2d220d1f0425e5e47f01e7deccfa46b60094d43b9f62b191ffb0fab8c00ef79e87c3b71d10bdcd26020608094f24884f51b3ebc3d7d3c9a6d594c6eaa324c66',
-            'retrorules_rr02_flat_all.tsv.gz':   '890bdd24042c0192b5538964d775feefcb6cff9ad5f35690bfbfc5ae09334dd19df6828cdfc7f57a2018e090571517122b99d8760128052af898c638ae667e24',
-            'comp_xref.tsv.gz':    '913a827f3645fda1699676ae6c32b9d7a8debae97ce7b0c386d8447f4eee5aa721d31bfb856d4092b3d5e987a8f19a6fe4bd28ddf1c5df5f85e71c3625bd1d81',
-            'rxn_recipes.tsv.gz':  'dc0624f5ed7ab0b691d9a6ba02571a5cf334cfdb3109e78c98708e31574c46aeac2a97e9433788d80490ff80337679ccfd706cbb8e71a11cdc6122573bb69b0f'
-            }
+        'chem_xref.tsv.gz':    'e558110990dcc75af943863790dc55360fd2d40ecb17d02335377671e80f0ab3738fd556acb340e03e48dd1afdec3eece1e92df1e18bc24e7445f24f778a10da',
+        'MNXM_replacement_20190524.csv':    '0ffd5da832f9be057b19ca6a813a5ed3f53d7b6c247513f117450a63f5b34deb86de68ecbb5ed765ac6c3417f8976c4e39590a4dd18275351a076de863e6bfa9',
+        'reac_xref.tsv.gz':    '48b991cf4a9c2ca573d395cf35c378881ed79e87772827647bfab2f6345499698664e07195ec10b342fc0164304dbd2363cccff1a1182225e6afebce3c16448b',
+        'compounds.tsv.gz':    '719716bb880257bd014e045c03eb8dd12e2bbeba3aa52e38e9632ce605817b9dc09530e81fadd25542c0a439bdb81e1dfbd3a38f35b30b061845d1a880dbfe01',
+        'chem_prop.tsv.gz':    'f2d220d1f0425e5e47f01e7deccfa46b60094d43b9f62b191ffb0fab8c00ef79e87c3b71d10bdcd26020608094f24884f51b3ebc3d7d3c9a6d594c6eaa324c66',
+        'retrorules_rr02_flat_all.tsv.gz':   '890bdd24042c0192b5538964d775feefcb6cff9ad5f35690bfbfc5ae09334dd19df6828cdfc7f57a2018e090571517122b99d8760128052af898c638ae667e24',
+        'comp_xref.tsv.gz':    '913a827f3645fda1699676ae6c32b9d7a8debae97ce7b0c386d8447f4eee5aa721d31bfb856d4092b3d5e987a8f19a6fe4bd28ddf1c5df5f85e71c3625bd1d81',
+        'rxn_recipes.tsv.gz':  'dc0624f5ed7ab0b691d9a6ba02571a5cf334cfdb3109e78c98708e31574c46aeac2a97e9433788d80490ff80337679ccfd706cbb8e71a11cdc6122573bb69b0f'
+    }
 
     # Attributes with dependencies (other attributes + input_cache files)
     __attributes_deps = {
-            'deprecatedCID_cid': {
-                'attr_deps': [],
-                'file_deps': ['chem_xref.tsv.gz', 'MNXM_replacement_20190524.csv']
-            },
-            'deprecatedRID_rid': {
-                'attr_deps': [],
-                'file_deps': []
-            },
-            'cid_strc': {
-                'attr_deps': ['deprecatedCID_cid'],
-                'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
-            },
-            'cid_name': {
-                'attr_deps': ['deprecatedCID_cid'],
-                'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
-            },
-            'cid_xref': {
-                'attr_deps': ['deprecatedCID_cid'],
-                'file_deps': []
-            },
-            'chebi_cid': {
-                'attr_deps': ['cid_xref'],
-                'file_deps': []
-            },
-            'rr_reactions': {
-                'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
-                'file_deps': ['retrorules_rr02_flat_all.tsv.gz']
-            },
-            'inchikey_cid': {
-                'attr_deps': ['cid_strc'],
-                'file_deps': []
-            },
-            'comp_xref': {
-                'attr_deps': [],
-                'file_deps': ['comp_xref.tsv.gz']
-            },
-            'deprecatedCompID_compid': {
-                'attr_deps': [],
-                'file_deps': ['comp_xref.tsv.gz']
-            },
-            'rr_full_reactions': {
-                'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
-                'file_deps': ['rxn_recipes.tsv.gz']
-            },
+        'deprecatedCID_cid': {
+            'attr_deps': [],
+            'file_deps': ['chem_xref.tsv.gz', 'MNXM_replacement_20190524.csv']
+        },
+        'deprecatedRID_rid': {
+            'attr_deps': [],
+            'file_deps': []
+        },
+        'cid_strc': {
+            'attr_deps': ['deprecatedCID_cid'],
+            'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
+        },
+        'cid_name': {
+            'attr_deps': ['deprecatedCID_cid'],
+            'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
+        },
+        'cid_xref': {
+            'attr_deps': ['deprecatedCID_cid'],
+            'file_deps': []
+        },
+        'chebi_cid': {
+            'attr_deps': ['cid_xref'],
+            'file_deps': []
+        },
+        'rr_reactions': {
+            'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
+            'file_deps': ['retrorules_rr02_flat_all.tsv.gz']
+        },
+        'inchikey_cid': {
+            'attr_deps': ['cid_strc'],
+            'file_deps': []
+        },
+        'comp_xref': {
+            'attr_deps': [],
+            'file_deps': ['comp_xref.tsv.gz']
+        },
+        'deprecatedCompID_compid': {
+            'attr_deps': [],
+            'file_deps': ['comp_xref.tsv.gz']
+        },
+        'rr_full_reactions': {
+            'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
+            'file_deps': ['rxn_recipes.tsv.gz']
+        },
     }
 
     __attributes_list = list(__attributes_deps.keys())
 
+    __ext = '.json.gz'
+
     # name: sha512sum
     __cache_files = {
-            __attributes_list[0]+'.json.gz': '1012d85b4720cf9706340e2d3bbef264dd95b67d510d8c1532c612a0f4aa6e1bdb2b77f36e135907070edb35038f31606f291ddd487df025e9999a4c543c739e',
-            __attributes_list[1]+'.json.gz': '2cb1cc54c5a11962ef90a0da1d77e684b16b453214052541b473cf1b182491af9242d25e73f3d9b137e2c939eaf1ebf4adcee5b732ffab6cbb430d238f493b91',
-            __attributes_list[2]+'.json.gz': '99efdfe7ce124b6dbf243e9c73f167d76ec08904b0b4668148ef84eac86cd8886e8a5cd500302c2e57bc96fd77b7ab88c29b6692f5966e1be8590456657b5264',
-            __attributes_list[3]+'.json.gz': 'fef4540c117f5ff75fe7106e55596b74729c8551d6713d454846a98509bc872114db92946389d57e24dcf6f588d85462e0d71606207c52676175fb5e5a81bf81',
-            __attributes_list[4]+'.json.gz': '3c483178ea3d10a8b0ba9a5982cd70540af15fe4b95dd27844cad5c221554f253b75729dbd2ddd20b01dbe7f3b427e3adf13238c3fb1f3ae853feab9e4c36d9d',
-            __attributes_list[5]+'.json.gz': '9579714acf9d25d6c207b94af5be9977a0d438910a5ef9c3cd22f10b3c3292097e2246dd7c3d387e61701d66d7fb25092f39639b12803cdd72494d04d5434158',
-            __attributes_list[6]+'.json.gz': '70b20aa9cdf331c8407d86761596b851879d6878ecb7c8f89945c93d67569973845096c902c8b056064d16347fac380dfa17cd1918954a502d0fee70eca037aa',
-            __attributes_list[7]+'.json.gz': 'd7d422e497af88bf8ea820857d4cca9846b2ccea7a9993beea479f270ba5852b901f3280a7c408d09ad8bd941cb2552940d281068c579592f41bbb659777a7b2',
-            __attributes_list[8]+'.json.gz': '249a5bbd2b06c6326b3da8c759818c78bc13eed13b077c9f0ab1a2c912d01806e0e29d439fe3c09f5c5c6f87f7e02cd0bf0d7c5d01b81240aedb47b1bc5a664e',
-            __attributes_list[9]+'.json.gz': '7e7e6a4805d74f680c31a48304abd4f221d394788604c935b91e977b78275cdf3266839d8bc1097637c2fd633b3583f082b60f0d5a54985bba931f0f945c9802',
-            __attributes_list[10]+'.json.gz': '48fb7dfadfab65d36ecb33262fbb5b8e0ffa4bcf37b910b120a4f322a7b349df8b16624b5d9600b3c2fa03fe6cc02699d606ce87be862323608067bfe41199e0'
-            }
-
-    __ext = '.json.gz'
+        __attributes_list[0]: '397bd33389ee4f64c8e1cd3b906c49a5db86845c215146671d6612d7cfaab4445ca37474a6b6b75b1cf36d1c13788b0b33933f66dd1d1df86ba823acada0b9df',
+        __attributes_list[1]: 'ee0b3f533017dc17a3a27cd7ed543f581b5e10d9a16ac02c5279b735b888a49c8fea65e911cbda77ce2a25c568ceb2d27aaa966ecb2fb84ce57bd5f2816d8778',
+        __attributes_list[2]: '38c8bc53bf6febeacd6e334002728be8f13c30a5485b1c55581e13f82728712bd28792497bdc3256d46407e253f3df03166a6a425480bcc7fa16a05130f9ddf7',
+        __attributes_list[3]: 'a61916f9438939d115ca4a6af98d609ec0f14a3f0936a4550b610225016ed64cd1ad239d10b85029144fba7921ef7dcae22495deafc6aef195ba23d8c87f0361',
+        __attributes_list[4]: 'e420a269b4204c2c232a13ea673ad4b107685a19120987578105b7bc3fc6adc3af11611c74da5e18364cf511b2b0bf0a1639e6ed53972f3bc0dc6487f270372a',
+        __attributes_list[5]: 'c05bc081af14060c3768f98089d950861ccbed5cf7e5f90f4c3440687c22de6c1eea8f724aad83bf7b5b2e0cc95231306ca85eae97d1eb40134681d4c718eb0f',
+        __attributes_list[6]: 'ae5b53c97618f5ed698982b630c9b7806c7755a679cbaa03ce09c490023499cafbd4446b57ec323d42f61056d7624dfe99e8680b1aeb5f163731016da37e1a3c',
+        __attributes_list[7]: '1f9fe3827630d1a06cbea9f10f584404957f85b13a51ae9f67e501d50911eb97d4b220a556597e70c3a441c0b51dd1b7ab1cbae22aeecd634654949b0fb647f2',
+        __attributes_list[8]: '5c4705351a6649f86e275ba3093c3e87ad68f92e4a6cd1da9832e541d42247a309438e4382104cf141e0abd6781f04e0b6d4cadedd148ceae629d1537dcce338',
+        __attributes_list[9]: '57abdc35553f5c9f9929c72cc0159c99a679131c5f683922858f32f6e391ede08e0f45f095ad55f4d6bbc209e75cc870edef01416c0252d39ff147186efb9edc',
+        __attributes_list[10]: 'e3317a2674c9a451eb289ccf60e1ac1c27aa3daaec97b9093d160fbf808f18da1575988e78ea001bd43c0f0307399c85323ddf437f4debcdaef16d1949217572'
+    }
 
 
     ## Cache constructor
     #
     # @param self The object pointer
     # @param db Mode of storing objects ('file' or 'redis')
-    def __init__(self, db='file', attrs=[], logger=getLogger(__name__)):
+    def __init__(
+        self,
+        db: str = 'file',
+        attrs: List = [],
+        logger: Logger = getLogger(__name__)
+    ) -> 'rrCache':
 
         self.logger = logger
 
@@ -174,13 +176,13 @@ class rrCache:
         self.store_mode = db
         rrCache._db_timeout = 10
 
-        self.dirname = os_path.dirname(os_path.abspath( __file__ ))
+        self.dirname = os_path.dirname(os_path.abspath(__file__))
         self.__cache_dir = os_path.join(self.dirname, 'cache')
 
         self.load(attrs)
 
 
-    def load(self, attrs: List=[]):
+    def load(self, attrs: List = []):
 
         if attrs is None:
             return
@@ -193,7 +195,7 @@ class rrCache:
             else:
                 self.__attributes_list = attrs
 
-        if self.store_mode!='file':
+        if self.store_mode != 'file':
             self.redis = StrictRedis(host=self.store_mode, port=6379, db=0, decode_responses=True)
             if not wait_for_redis(self.redis, self._db_timeout):
                 self.logger.critical("Database "+self.store_mode+" is not reachable")
@@ -223,7 +225,7 @@ class rrCache:
     def _check_or_download_cache_to_disk(
         cache_dir: str,
         attributes: List,
-        logger: Logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> None:
         logger.debug('cache_dir: '+str(cache_dir))
         logger.debug('attributes: '+str(attributes))
@@ -236,20 +238,26 @@ class rrCache:
             full_filename = os_path.join(cache_dir, filename)
 
             try:
-                # compute sha
-                sha = sha512(
-                    Path(full_filename).read_bytes()
-                ).hexdigest()
-                # check sha
-                if sha == rrCache.__cache_files[filename]:
-                    logger.debug(filename+" already downloaded")
-                else: # sha not ok
-                    logger.debug('\nfilename: ' + filename + '\nlocation: ' + cache_dir + '\nsha (computed): ' + sha + '\nsha (expected): ' + rrCache.__cache_files[filename])
+                if os_path.exists(full_filename):
+                    if check_sha(
+                        full_filename,
+                        rrCache.__cache_files[attr]
+                    ):
+                        logger.debug(filename+" already downloaded")
+                    else:  # sha not ok
+                        logger.debug(
+                            '\nfilename: ' + filename
+                        + '\nlocation: ' + cache_dir
+                        + '\nsha (computed): ' + sha512(Path(filename).read_bytes()).hexdigest()
+                        + '\nsha (expected): ' + rrCache.__cache_files[attr]
+                        )
+                        raise FileNotFoundError
+                else:
                     raise FileNotFoundError
 
             except FileNotFoundError:
                 logger.debug("Downloading "+filename+"...")
-                start_time = time_time()
+                # start_time = time_time()
                 if not os_path.isdir(cache_dir):
                     os_mkdir(cache_dir)
                 download(
@@ -257,7 +265,7 @@ class rrCache:
                     full_filename
                 )
                 rrCache.__cache_files[attr] = True
-                end_time = time_time()
+                # end_time = time_time()
 
         print_end(logger)
 
@@ -297,33 +305,20 @@ class rrCache:
             :rtype: None
             :return: None
             """
-            #self.expression = expression
+            # self.expression = expression
             self.message = message
 
-    #url = 'https://www.metanetx.org/cgi-bin/mnxget/mnxref/'
-    #url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
+    # url = 'https://www.metanetx.org/cgi-bin/mnxget/mnxref/'
+    # url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
 
     @staticmethod
     def generate_cache(
-        outdir: str=None,
-        logger=getLogger(__name__)
+        outdir: str = None,
+        logger: Logger = getLogger(__name__)
     ) -> None:
 
-        # if outdir == '':
-        #     outdir = 'cache'
-        #     input_dir = 'input-'+outdir
-        # else:
-        #     input_dir = os_path.join(
-        #         outdir,
-        #         'input-cache'
-        #     )
-        #     outdir = os_path.join(
-        #         outdir,
-        #         'cache'
-        #     )
-
         if outdir is None:
-            outdir =  os_path.dirname(os_path.abspath( __file__ ))
+            outdir = os_path.dirname(os_path.abspath(__file__))
         input_dir = os_path.join(
             outdir,
             'input-cache'
@@ -361,11 +356,11 @@ class rrCache:
         del cid_xref
         deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_dir, outdir, logger)
         print_progress(logger)
-        rrCache._gen_rr_reactions(input_dir, outdir, logger)#, deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_rr_reactions(input_dir, outdir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir, logger)
         print_progress(logger)
-        rrCache._gen_rr_full_reactions(input_dir, outdir, logger)#, deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_rr_full_reactions(input_dir, outdir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
         print_progress(logger)
@@ -383,17 +378,19 @@ class rrCache:
         deprecatedCID_cid = None
         f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if not os_path.isfile(f_deprecatedCID_cid):
+        if os_path.exists(f_deprecatedCID_cid) and check_sha(
+            f_deprecatedCID_cid,
+            rrCache.__cache_files[attribute]
+        ):
+            deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
+            logger.debug("   Cache file already exists")
+        else:
             logger.debug("   Generating data...")
             deprecatedCID_cid = rrCache._m_deprecatedMNXM(
                 os_path.join(input_dir, 'chem_xref.tsv.gz')
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid)
-
-        else:
-            deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
-            logger.debug("   Cache file already exists")
 
         return {
             'attr': deprecatedCID_cid,
@@ -416,11 +413,20 @@ class rrCache:
         f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache.__ext
         f_cid_name = os_path.join(outdir, 'cid_name')+rrCache.__ext
 
-        if not os_path.isfile(f_cid_strc):
+        if os_path.exists(f_cid_strc) and check_sha(
+            f_cid_strc,
+            rrCache.__cache_files['cid_strc']
+        ) and os_path.exists(f_cid_name) and check_sha(
+            f_cid_name,
+            rrCache.__cache_files['cid_name']
+        ):
+            cid_strc = rrCache._load_cache_from_file(f_cid_strc)
+            logger.debug("   Cache file already exists")
+        else:
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
                 deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-                print_OK()
+                # print_OK()
             logger.debug("   Generating data...")
             cid_strc, cid_name = rrCache._m_mnxm_strc(
                 os_path.join(input_dir, 'compounds.tsv.gz'),
@@ -439,10 +445,6 @@ class rrCache:
             rrCache._store_cache_to_file(cid_strc, f_cid_strc)
             rrCache._store_cache_to_file(cid_name, f_cid_name)
 
-        else:
-            cid_strc = rrCache._load_cache_from_file(f_cid_strc)
-            logger.debug("   Cache file already exists")
-            
         return {
             'attr': cid_strc,
             'file': f_cid_strc
@@ -463,7 +465,13 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         inchikey_cid = None
         f_inchikey_cid = os_path.join(outdir, attribute)+rrCache.__ext
-        if not os_path.isfile(f_inchikey_cid):
+
+        if os_path.exists(f_inchikey_cid) and check_sha(
+            f_inchikey_cid,
+            rrCache.__cache_files[attribute]
+        ):
+            logger.debug("   Cache file already exists")
+        else:
             if not cid_strc['attr']:
                 logger.debug("   Loading input data from file...")
                 cid_strc['attr'] = rrCache._load_cache_from_file(cid_strc['file'])
@@ -471,8 +479,7 @@ class rrCache:
             inchikey_cid = rrCache._m_inchikey_cid(cid_strc['attr'])
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(inchikey_cid, f_inchikey_cid)
-        else:
-            logger.debug("   Cache file already exists")
+            del inchikey_cid
 
 
     @staticmethod
@@ -487,7 +494,13 @@ class rrCache:
         cid_xref = None
         f_cid_xref = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if not os_path.isfile(f_cid_xref):
+        if os_path.exists(f_cid_xref) and check_sha(
+            f_cid_xref,
+            rrCache.__cache_files[attribute]
+        ):
+            cid_xref = rrCache._load_cache_from_file(f_cid_xref)
+            logger.debug("   Cache file already exists")
+        else:
             if not deprecatedCID_cid['attr']:
                 logger.debug("   Loading input data from file...")
                 deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
@@ -498,10 +511,6 @@ class rrCache:
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_xref, f_cid_xref)
-
-        else:
-            cid_xref = rrCache._load_cache_from_file(f_cid_xref)
-            logger.debug("   Cache file already exists")
 
         return {
             'attr': cid_xref,
@@ -520,16 +529,19 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         chebi_cid = None
         f_chebi_cid = os_path.join(outdir, attribute)+rrCache.__ext
-        if not os_path.isfile(f_chebi_cid):
+
+        if os_path.exists(f_chebi_cid) and check_sha(
+            f_chebi_cid,
+            rrCache.__cache_files[attribute]
+        ):
+            logger.debug("   Cache file already exists")
+        else:
             logger.debug("   Generating data...")
             chebi_cid = rrCache._m_chebi_cid(cid_xref['attr'])
             # print_OK()
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(chebi_cid, f_chebi_cid)
             del chebi_cid
-            # print_OK()
-        else:
-            logger.debug("   Cache file already exists")
             # print_OK()
 
 
@@ -543,16 +555,21 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedRID_rid = None
         f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache.__ext
-        if not os_path.isfile(f_deprecatedRID_rid):
+
+        if os_path.exists(f_deprecatedRID_rid) and check_sha(
+            f_deprecatedRID_rid,
+            rrCache.__cache_files[attribute]
+        ):
+            deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
+            logger.debug("   Cache file already exists")
+        else:
             logger.debug("   Generating data...")
             deprecatedRID_rid = rrCache._m_deprecatedMNXR(
                 os_path.join(input_dir, 'reac_xref.tsv.gz')
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedRID_rid, f_deprecatedRID_rid)
-        else:
-            deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
-            logger.debug("   Cache file already exists")
+
         return {
             'attr': deprecatedRID_rid,
             'file': f_deprecatedRID_rid
@@ -571,7 +588,13 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_reactions = None
         f_rr_reactions = os_path.join(outdir, attribute)+rrCache.__ext
-        if not os_path.isfile(f_rr_reactions):
+
+        if os_path.exists(f_rr_reactions) and check_sha(
+            f_rr_reactions,
+            rrCache.__cache_files[attribute]
+        ):
+            logger.debug("   Cache file already exists")
+        else:
             # if not deprecatedCID_cid['attr']:
             #     logger.debug("   Loading input data from file...")
             #     deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
@@ -590,8 +613,6 @@ class rrCache:
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_reactions, f_rr_reactions)
             del rr_reactions
-        else:
-            logger.debug("   Cache file already exists")
 
 
     @staticmethod
@@ -605,9 +626,19 @@ class rrCache:
         comp_xref = deprecatedCompID_compid = None
         f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache.__ext
         f_deprecatedCompID_compid = os_path.join(outdir, 'deprecatedCompID_compid')+rrCache.__ext
-        if not os_path.isfile(f_comp_xref) or not os_path.isfile(f_deprecatedCompID_compid):
+
+        if os_path.exists(f_comp_xref) and check_sha(
+            f_comp_xref,
+            rrCache.__cache_files['comp_xref']
+        ) and os_path.exists(f_deprecatedCompID_compid) and check_sha(
+            f_deprecatedCompID_compid,
+            rrCache.__cache_files['deprecatedCompID_compid']
+        ):
+            logger.debug("   Cache files already exist")
+            # print_OK()
+        else:
             logger.debug("   Generating data...")
-            comp_xref,deprecatedCompID_compid = rrCache._m_mnxc_xref(
+            comp_xref, deprecatedCompID_compid = rrCache._m_mnxc_xref(
                 os_path.join(input_dir, 'comp_xref.tsv.gz')
             )
             # print_OK()
@@ -619,9 +650,6 @@ class rrCache:
             rrCache._store_cache_to_file(deprecatedCompID_compid, f_deprecatedCompID_compid)
             # print_OK()
             del deprecatedCompID_compid
-        else:
-            logger.debug("   Cache files already exist")
-            # print_OK()
 
 
     @staticmethod
@@ -636,7 +664,13 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_full_reactions = None
         f_rr_full_reactions = os_path.join(outdir, attribute)+rrCache.__ext
-        if not os_path.isfile(f_rr_full_reactions):
+
+        if os_path.exists(f_rr_full_reactions) and check_sha(
+            f_rr_full_reactions,
+            rrCache.__cache_files[attribute]
+        ):
+            logger.debug("   Cache file already exists")
+        else:
             logger.debug("   Generating data...")
             # if not deprecatedCID_cid['attr']:
             #     logger.debug("   Loading input data from file...")
@@ -652,8 +686,6 @@ class rrCache:
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_full_reactions, f_rr_full_reactions)
             del rr_full_reactions
-        else:
-            logger.debug("   Cache file already exists")
 
 
     def _load_from_file(self, attribute):
@@ -667,7 +699,7 @@ class rrCache:
 
     def _check_or_load_cache(self):
         self.logger.debug('store_mode: '+self.store_mode)
-        if self.store_mode=='file':
+        if self.store_mode == 'file':
             self._check_or_load_cache_in_memory()
         else:
             self._check_or_load_cache_in_db()
@@ -703,9 +735,9 @@ class rrCache:
             os_mkdir(outdir)
         filename = os_path.join(outdir, file)
         if not os_path.isfile(filename):
-            start_time = time_time()
+            # start_time = time_time()
             rrCache.__download_input_cache(url, file, outdir)
-            end_time = time_time()
+            # end_time = time_time()
 
 
     @staticmethod
@@ -836,9 +868,9 @@ class rrCache:
         with gzip_open(xref_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
-                if not row[0][0]=='#':
+                if not row[0][0] == '#':
                     mnx = row[0].split(':')
-                    if mnx[0]=='deprecated':
+                    if mnx[0] == 'deprecated':
                         deprecatedMNX_mnx[mnx[1]] = row[1]
         return deprecatedMNX_mnx
 
@@ -897,7 +929,7 @@ class rrCache:
                 'name':     None
             }
             try:
-                resConv = rrCache._convert_depiction(idepic=tmp['inchi'], itype='inchi', otype={'smiles','inchikey'})
+                resConv = rrCache._convert_depiction(idepic=tmp['inchi'], itype='inchi', otype={'smiles', 'inchikey'})
                 for i in resConv:
                     tmp[i] = resConv[i]
             except rrCache.DepictionError as e:
@@ -908,7 +940,7 @@ class rrCache:
         with gzip_open(chem_prop_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
-                if not row[0][0]=='#':
+                if not row[0][0] == '#':
                     mnxm = rrCache._checkCIDdeprecated(row[0], deprecatedCID_cid)
                     tmp = {
                         'formula':  row[2],
@@ -919,9 +951,9 @@ class rrCache:
                         'name': row[1]
                     }
                     for i in tmp:
-                        if tmp[i]=='' or tmp[i]=='NA':
+                        if tmp[i] == '' or tmp[i] == 'NA':
                             tmp[i] = None
-                    if not mnxm in cid_name and tmp['name']:
+                    if mnxm not in cid_name and tmp['name']:
                         cid_name[mnxm] = tmp['name']
                     if mnxm in cid_strc:
                         cid_strc[mnxm]['formula'] = row[2]
@@ -931,7 +963,7 @@ class rrCache:
                         if not cid_strc[mnxm]['inchikey'] and tmp['inchikey']:
                             cid_strc[mnxm]['inchikey'] = tmp['inchikey']
                     else:
-                        #check to see if the inchikey is valid or not
+                        # check to see if the inchikey is valid or not
                         otype = set({})
                         if not tmp['inchikey']:
                             otype.add('inchikey')
@@ -983,27 +1015,27 @@ class rrCache:
         with gzip_open(chem_xref_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
-                if not row[0][0]=='#':
+                if not row[0][0] == '#':
                     mnx = rrCache._checkCIDdeprecated(row[1], deprecatedCID_cid)
-                    if len(row[0].split(':'))==1:
+                    if len(row[0].split(':')) == 1:
                         dbName = 'mnx'
                         dbId = row[0]
                     else:
                         dbName = row[0].split(':')[0]
                         dbId = ''.join(row[0].split(':')[1:])
-                        if dbName=='deprecated':
+                        if dbName == 'deprecated':
                             dbName = 'mnx'
                     # mnx
-                    if not mnx in cid_xref:
+                    if mnx not in cid_xref:
                         cid_xref[mnx] = {}
-                    if not dbName in cid_xref[mnx]:
+                    if dbName not in cid_xref[mnx]:
                         cid_xref[mnx][dbName] = []
-                    if not dbId in cid_xref[mnx][dbName]:
+                    if dbId not in cid_xref[mnx][dbName]:
                         cid_xref[mnx][dbName].append(dbId)
                     ### DB ###
-                    if not dbName in cid_xref:
+                    if dbName not in cid_xref:
                         cid_xref[dbName] = {}
-                    if not dbId in cid_xref[dbName]:
+                    if dbId not in cid_xref[dbName]:
                         cid_xref[dbName][dbId] = mnx
         return cid_xref
 
@@ -1032,27 +1064,27 @@ class rrCache:
             # not_recognised = []
             for row in c:
                 # cid = row[0].split(':')
-                if not row[0][0]=='#':
+                if not row[0][0] == '#':
                     # collect the info
                     mnxc = row[1]
-                    if len(row[0].split(':'))==1:
+                    if len(row[0].split(':')) == 1:
                         dbName = 'mnx'
                         dbCompId = row[0]
                     else:
                         dbName = row[0].split(':')[0]
                         dbCompId = ''.join(row[0].split(':')[1:])
                         dbCompId = dbCompId.lower()
-                    if dbName=='deprecated':
+                    if dbName == 'deprecated':
                         dbName = 'mnx'
                     # create the dicts
-                    if not mnxc in comp_xref:
+                    if mnxc not in comp_xref:
                         comp_xref[mnxc] = {}
-                    if not dbName in comp_xref[mnxc]:
+                    if dbName not in comp_xref[mnxc]:
                         comp_xref[mnxc][dbName] = []
-                    if not dbCompId in comp_xref[mnxc][dbName]:
+                    if dbCompId not in comp_xref[mnxc][dbName]:
                         comp_xref[mnxc][dbName].append(dbCompId)
                     # create the reverse dict
-                    if not dbCompId in deprecatedCompID_compid:
+                    if dbCompId not in deprecatedCompID_compid:
                         deprecatedCompID_compid[dbCompId] = mnxc
 
         return comp_xref, deprecatedCompID_compid
@@ -1092,7 +1124,7 @@ class rrCache:
             for cid in row['Product_IDs'].split('.'):
 
                 # cid = rrCache._checkCIDdeprecated(i, deprecatedCID_cid)
-                if not cid in products:
+                if cid not in products:
                     products[cid] = 1
                 else:
                     products[cid] += 1
@@ -1182,7 +1214,7 @@ class rrCache:
 
     def _read_direction(
         dir: str,
-        logger: Logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         try:
             _dir = int(dir)
@@ -1203,10 +1235,10 @@ class rrCache:
     def _read_equation(
         eq: str,
         rxn_id: str,
-        logger: Logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
 
-        if not len(eq.split('='))==2:
+        if not len(eq.split('=')) == 2:
             logger.warning('There should never be more or less than a left and right of an equation')
             logger.warning('Ignoring {eq}'.format(eq=eq))
             return None
@@ -1299,8 +1331,7 @@ class rrCache:
     #  @param self Object pointer
     #  @param chem_xref_path Input file path
     #  @return a The dictionnary of identifiers
-    #TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
-#    def _m_chebi_cid(self, cid_xref):
+    # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
     @staticmethod
     def _m_chebi_cid(cid_xref):
         chebi_cid = {}
@@ -1320,8 +1351,9 @@ class rrCache:
         for cid in cid_strc:
             inchikey = cid_strc[cid]['inchikey']
             # This line is needed to put a value in 'inchikey', otherwise there are some problems in future strucutres
-            if not inchikey: inchikey = 'NO_INCHIKEY'
-            if not inchikey in inchikey_cid:
+            if not inchikey:
+                inchikey = 'NO_INCHIKEY'
+            if inchikey not in inchikey_cid:
                 inchikey_cid[inchikey] = []
             inchikey_cid[inchikey].append(cid)
         return inchikey_cid

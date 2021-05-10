@@ -19,9 +19,11 @@ from os import (
 
 class Test_rrCache(TestCase):
 
-
-    def setUp(self):
-        self.logger = create_logger(__name__, 'ERROR')
+    def setUp(self, logger: Logger = None):
+        if logger is None:
+            self.logger = create_logger(__name__, 'ERROR')
+        else:
+            self.logger = logger
 
     def test_all_attr_db(self):
         r"""Test of loading all attributes in rrCache and store them in a db.
@@ -64,10 +66,10 @@ class Test_rrCache(TestCase):
         with it is supposed to be.
         """
         self.skipTest("Too long, not in standard tests")
-        cache.generate_cache(self.outdir, logger=self.logger)
+        rrCache.generate_cache(self.outdir, logger=self.logger)
         for file, size in self.files:
             outfile = extract_gz(file, self.outdir)
-            self.assertTrue(Main._check_file_size(outfile, size))
+            self.assertTrue(check_file_size(outfile, size, self.logger))
             os_rm(outfile)
 
 

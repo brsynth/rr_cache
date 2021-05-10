@@ -304,20 +304,33 @@ class rrCache:
     #url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
 
     @staticmethod
-    def generate_cache(outdir, logger=getLogger(__name__)):
+    def generate_cache(
+        outdir: str=None,
+        logger=getLogger(__name__)
+    ) -> None:
 
-        if outdir == '':
-            outdir = 'cache'
-            input_dir = 'input-'+outdir
-        else:
-            input_dir = os_path.join(
-                outdir,
-                'input-cache'
-            )
-            outdir = os_path.join(
-                outdir,
-                'cache'
-            )
+        # if outdir == '':
+        #     outdir = 'cache'
+        #     input_dir = 'input-'+outdir
+        # else:
+        #     input_dir = os_path.join(
+        #         outdir,
+        #         'input-cache'
+        #     )
+        #     outdir = os_path.join(
+        #         outdir,
+        #         'cache'
+        #     )
+        if outdir is None:
+            outdir = self.__cache_dir
+        input_dir = os_path.join(
+            outdir,
+            'input-cache'
+        )
+        outdir = os_path.join(
+            outdir,
+            'cache'
+        )
         if not os_path.isdir(outdir):
             makedirs(outdir)
         if not os_path.isdir(input_dir):
@@ -347,11 +360,11 @@ class rrCache:
         del cid_xref
         deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_dir, outdir, logger)
         print_progress(logger)
-        rrCache._gen_rr_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_rr_reactions(input_dir, outdir, logger)#, deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir, logger)
         print_progress(logger)
-        rrCache._gen_rr_full_reactions(input_dir, outdir, deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_rr_full_reactions(input_dir, outdir, logger)#, deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
         print_progress(logger)
@@ -549,8 +562,8 @@ class rrCache:
     def _gen_rr_reactions(
         input_dir: str,
         outdir: str,
-        deprecatedCID_cid: Dict,
-        deprecatedRID_rid: Dict,
+        # deprecatedCID_cid: Dict,
+        # deprecatedRID_rid: Dict,
         logger=getLogger(__name__)
     ) -> None:
         attribute = 'rr_reactions'
@@ -558,20 +571,21 @@ class rrCache:
         rr_reactions = None
         f_rr_reactions = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_rr_reactions):
-            if not deprecatedCID_cid['attr']:
-                logger.debug("   Loading input data from file...")
-                deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-            if not deprecatedRID_rid['attr']:
-                logger.debug("   Loading input data from file...")
-                deprecatedRID_rid['attr'] = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
-                print_OK()
+            # if not deprecatedCID_cid['attr']:
+            #     logger.debug("   Loading input data from file...")
+            #     deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
+            # if not deprecatedRID_rid['attr']:
+            #     logger.debug("   Loading input data from file...")
+            #     deprecatedRID_rid['attr'] = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
+            #     print_OK()
             logger.debug("   Generating data...")
             rr_reactions = rrCache._m_rr_reactions(
                 os_path.join(input_dir, 'retrorules_rr02_flat_all.tsv.gz'),
-                deprecatedCID_cid,
-                deprecatedRID_rid
+                logger=logger
+                # deprecatedCID_cid,
+                # deprecatedRID_rid
             )
-            del deprecatedRID_rid
+            # del deprecatedRID_rid
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_reactions, f_rr_reactions)
             del rr_reactions
@@ -613,8 +627,8 @@ class rrCache:
     def _gen_rr_full_reactions(
         input_dir: str,
         outdir: str,
-        deprecatedCID_cid: Dict,
-        deprecatedRID_rid: Dict,
+        # deprecatedCID_cid: Dict,
+        # deprecatedRID_rid: Dict,
         logger=getLogger(__name__)
     ) -> None:
         attribute = 'rr_full_reactions'
@@ -623,16 +637,16 @@ class rrCache:
         f_rr_full_reactions = os_path.join(outdir, attribute)+rrCache.__ext
         if not os_path.isfile(f_rr_full_reactions):
             logger.debug("   Generating data...")
-            if not deprecatedCID_cid['attr']:
-                logger.debug("   Loading input data from file...")
-                deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-            if not deprecatedRID_rid:
-                logger.debug("   Loading input data from file...")
-                deprecatedRID_rid = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
+            # if not deprecatedCID_cid['attr']:
+            #     logger.debug("   Loading input data from file...")
+            #     deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
+            # if not deprecatedRID_rid:
+            #     logger.debug("   Loading input data from file...")
+            #     deprecatedRID_rid = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
             rr_full_reactions = rrCache._m_rr_full_reactions(
                 os_path.join(input_dir, 'rxn_recipes.tsv.gz'),
-                deprecatedCID_cid['attr'],
-                deprecatedRID_rid['attr']
+                # deprecatedCID_cid['attr'],
+                # deprecatedRID_rid['attr']
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(rr_full_reactions, f_rr_full_reactions)
@@ -862,10 +876,16 @@ class rrCache:
     #  @param deprecatedCID_cid Dictionnary of deprecated CID to cid
     #  @return cid_strc Dictionnary of formula, smiles, inchi and inchikey
     @staticmethod
-    def _m_mnxm_strc(rr_compounds_path, chem_prop_path, deprecatedCID_cid, logger=getLogger(__name__)):
+    def _m_mnxm_strc(
+        rr_compounds_path: str,
+        chem_prop_path: str,
+        deprecatedCID_cid: Dict,
+        logger=getLogger(__name__)
+    ) -> Tuple[Dict, Dict]:
 
         cid_strc = {}
         cid_name = {}
+
         for row in csv_DictReader(gzip_open(rr_compounds_path, 'rt'), delimiter='\t'):
             tmp = {
                 'formula':  None,
@@ -883,6 +903,7 @@ class rrCache:
                 logger.warning('Could not convert some of the structures: '+str(tmp))
                 logger.warning(e)
             cid_strc[tmp['cid']] = tmp
+
         with gzip_open(chem_prop_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
@@ -939,6 +960,7 @@ class rrCache:
                             logger.warning(e)
                             StreamHandler.terminator = ter
                         cid_strc[tmp['cid']] = tmp
+
         return cid_strc, cid_name
 
 
@@ -951,7 +973,11 @@ class rrCache:
     #  @return Dictionnary of cross references of a given chemical id
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
     @staticmethod
-    def _m_mnxm_xref(chem_xref_path, deprecatedCID_cid, logger=getLogger(__name__)):
+    def _m_mnxm_xref(
+        chem_xref_path: str,
+        deprecatedCID_cid: Dict,
+        logger=getLogger(__name__)
+    ) -> Dict:
         cid_xref = {}
         with gzip_open(chem_xref_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
@@ -966,7 +992,7 @@ class rrCache:
                         dbId = ''.join(row[0].split(':')[1:])
                         if dbName=='deprecated':
                             dbName = 'mnx'
-                    #mnx
+                    # mnx
                     if not mnx in cid_xref:
                         cid_xref[mnx] = {}
                     if not dbName in cid_xref[mnx]:
@@ -989,41 +1015,46 @@ class rrCache:
     #  @return a The dictionnary of compartment identifiers
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
     @staticmethod
-    def _m_mnxc_xref(comp_xref_path, logger=getLogger(__name__)):
+    def _m_mnxc_xref(
+        comp_xref_path,
+        logger=getLogger(__name__)
+    ) -> Tuple[Dict, Dict]:
         comp_xref = {}
         deprecatedCompID_compid = {}
-        try:
-            with gzip_open(comp_xref_path, 'rt') as f:
-                c = csv_reader(f, delimiter='\t')
-                #not_recognised = []
-                for row in c:
-                    #cid = row[0].split(':')
-                    if not row[0][0]=='#':
-                        #collect the info
-                        mnxc = row[1]
-                        if len(row[0].split(':'))==1:
-                            dbName = 'mnx'
-                            dbCompId = row[0]
-                        else:
-                            dbName = row[0].split(':')[0]
-                            dbCompId = ''.join(row[0].split(':')[1:])
-                            dbCompId = dbCompId.lower()
-                        if dbName=='deprecated':
-                            dbName = 'mnx'
-                        #create the dicts
-                        if not mnxc in comp_xref:
-                            comp_xref[mnxc] = {}
-                        if not dbName in comp_xref[mnxc]:
-                            comp_xref[mnxc][dbName] = []
-                        if not dbCompId in comp_xref[mnxc][dbName]:
-                            comp_xref[mnxc][dbName].append(dbCompId)
-                        #create the reverse dict
-                        if not dbCompId in deprecatedCompID_compid:
-                            deprecatedCompID_compid[dbCompId] = mnxc
-        except FileNotFoundError:
-            logger.error('comp_xref file not found')
-            return {}
-        return comp_xref,deprecatedCompID_compid
+
+        if not os_path.exists(comp_xref_path):
+            logger.error('Could not read the file {filename}'.format(filename=comp_xref_path))
+            return None
+
+        with gzip_open(comp_xref_path, 'rt') as f:
+            c = csv_reader(f, delimiter='\t')
+            # not_recognised = []
+            for row in c:
+                # cid = row[0].split(':')
+                if not row[0][0]=='#':
+                    # collect the info
+                    mnxc = row[1]
+                    if len(row[0].split(':'))==1:
+                        dbName = 'mnx'
+                        dbCompId = row[0]
+                    else:
+                        dbName = row[0].split(':')[0]
+                        dbCompId = ''.join(row[0].split(':')[1:])
+                        dbCompId = dbCompId.lower()
+                    if dbName=='deprecated':
+                        dbName = 'mnx'
+                    # create the dicts
+                    if not mnxc in comp_xref:
+                        comp_xref[mnxc] = {}
+                    if not dbName in comp_xref[mnxc]:
+                        comp_xref[mnxc][dbName] = []
+                    if not dbCompId in comp_xref[mnxc][dbName]:
+                        comp_xref[mnxc][dbName].append(dbCompId)
+                    # create the reverse dict
+                    if not dbCompId in deprecatedCompID_compid:
+                        deprecatedCompID_compid[dbCompId] = mnxc
+
+        return comp_xref, deprecatedCompID_compid
 
 
     ######################## RetroRules specific functions ##################
@@ -1039,43 +1070,58 @@ class rrCache:
     #  @param deprecatedRID_rid Dictionnary of deprecated to uniformed reaction id's
     #  @return Dictionnary describing each reaction rule
     @staticmethod
-    def _m_rr_reactions(rules_rall_path, deprecatedCID_cid, deprecatedRID_rid, logger=getLogger(__name__)):
+    def _m_rr_reactions(
+        rules_rall_path: str,
+        # deprecatedCID_cid,
+        # deprecatedRID_rid,
+        logger=getLogger(__name__)
+    ) -> Dict:
         rr_reactions = {}
-        try:
-            for row in csv_DictReader(gzip_open(rules_rall_path, 'rt'), delimiter='\t'):
-                # NOTE: as of now all the rules are generated using MNX
-                # but it may be that other db are used, we are handling this case
-                # WARNING: can have multiple products so need to seperate them
-                products = {}
-                for i in row['Product_IDs'].split('.'):
-                    cid = rrCache._checkCIDdeprecated(i, deprecatedCID_cid)
-                    if not cid in products:
-                        products[cid] = 1
-                    else:
-                        products[cid] += 1
-                try:
-                    # WARNING: one reaction rule can have multiple reactions associated with them
-                    # To change when you can set subpaths from the mutliple numbers of
-                    # we assume that the reaction rule has multiple unique reactions associated
-                    if row['# Rule_ID'] not in rr_reactions:
-                        rr_reactions[row['# Rule_ID']] = {}
-                    if row['# Rule_ID'] in rr_reactions[row['# Rule_ID']]:
-                        logger.warning('There is already reaction '+str(row['# Rule_ID'])+' in reaction rule '+str(row['# Rule_ID']))
-                    rr_reactions[row['# Rule_ID']][row['Reaction_ID']] = {
-                        'rule_id': row['# Rule_ID'],
-                        'rule_score': float(row['Score_normalized']),
-                        'reac_id': rrCache._checkRIDdeprecated(row['Reaction_ID'], deprecatedRID_rid),
-                        'subs_id': rrCache._checkCIDdeprecated(row['Substrate_ID'], deprecatedCID_cid),
-                        'rel_direction': int(row['Rule_relative_direction']),
-                        'left': {rrCache._checkCIDdeprecated(row['Substrate_ID'], deprecatedCID_cid): 1},
-                        'right': products}
-                except ValueError:
-                    logger.error('Problem converting rel_direction: '+str(row['Rule_relative_direction']))
-                    logger.error('Problem converting rule_score: '+str(row['Score_normalized']))
-            return rr_reactions
-        except FileNotFoundError as e:
-                logger.error('Could not read the rules_rall file ('+str(rules_rall_path)+')')
-                return {}
+
+        if not os_path.exists(rules_rall_path):
+            logger.error('Could not read the rules_rall file ('+str(rules_rall_path)+')')
+            return None
+
+        for row in csv_DictReader(gzip_open(rules_rall_path, 'rt'), delimiter='\t'):
+            # NOTE: as of now all the rules are generated using MNX
+            # but it may be that other db are used, we are handling this case
+            # WARNING: can have multiple products so need to seperate them
+            products = {}
+
+            for cid in row['Product_IDs'].split('.'):
+
+                # cid = rrCache._checkCIDdeprecated(i, deprecatedCID_cid)
+                if not cid in products:
+                    products[cid] = 1
+                else:
+                    products[cid] += 1
+
+            try:
+                # WARNING: one reaction rule can have multiple reactions associated with them
+                # To change when you can set subpaths from the mutliple numbers of
+                # we assume that the reaction rule has multiple unique reactions associated
+                if row['# Rule_ID'] not in rr_reactions:
+                    rr_reactions[row['# Rule_ID']] = {}
+                if row['# Rule_ID'] in rr_reactions[row['# Rule_ID']]:
+                    logger.warning('There is already reaction '+str(row['# Rule_ID'])+' in reaction rule '+str(row['# Rule_ID']))
+                rr_reactions[row['# Rule_ID']][row['Reaction_ID']] = {
+                    'rule_id': row['# Rule_ID'],
+                    'rule_score': float(row['Score_normalized']),
+                    # 'reac_id': rrCache._checkRIDdeprecated(row['Reaction_ID'], deprecatedRID_rid),
+                    # 'subs_id': rrCache._checkCIDdeprecated(row['Substrate_ID'], deprecatedCID_cid),
+                    'reac_id': row['Reaction_ID'],
+                    'subs_id': row['Substrate_ID'],
+                    'rel_direction': int(row['Rule_relative_direction']),
+                    # 'left': {rrCache._checkCIDdeprecated(row['Substrate_ID'], deprecatedCID_cid): 1},
+                    'left': {row['Substrate_ID']: 1},
+                    'right': products
+                }
+
+            except ValueError:
+                logger.error('Problem converting rel_direction: '+str(row['Rule_relative_direction']))
+                logger.error('Problem converting rule_score: '+str(row['Score_normalized']))
+
+        return rr_reactions
 
 
     ## Generate complete reactions from the rxn_recipes.tsv from RetroRules
@@ -1088,7 +1134,12 @@ class rrCache:
     #  @param rxn_recipes_path Path to the recipes file
     #  @return Boolean that determines the success or failure of the function
     @staticmethod
-    def _m_rr_full_reactions(rxn_recipes_path, deprecatedCID_cid, deprecatedRID_rid, logger=getLogger(__name__)):
+    def _m_rr_full_reactions(
+        rxn_recipes_path: str,
+        # deprecatedCID_cid,
+        # deprecatedRID_rid,
+        logger=getLogger(__name__)
+    ) -> Dict:
 
         if not os_path.exists(rxn_recipes_path):
             logger.error('Cannot find file: '+str(rxn_recipes_path))
@@ -1099,7 +1150,7 @@ class rrCache:
         for row in csv_DictReader(gzip_open(rxn_recipes_path, 'rt'), delimiter='\t'):
 
             # Read equation
-            rxn = _read_equation(
+            rxn = rrCache._read_equation(
                 row['Equation'],
                 row['#Reaction_ID'],
                 logger
@@ -1109,7 +1160,7 @@ class rrCache:
                 continue
 
             # Direction
-            dir = _read_direction(
+            dir = rrCache._read_direction(
                 row['Direction'],
                 logger
             )
@@ -1128,79 +1179,77 @@ class rrCache:
         return reactions
 
 
-def _read_direction(
-    dir: str,
-    logger: Logger=getLogger(__name__)
-) -> Dict:
-    try:
-        _dir = int(dir)
-    except ValueError:
-        ter = StreamHandler.terminator
-        StreamHandler.terminator = "\n"
-        logger.warning(
-            'Cannot convert direction value {dir} to int'.format(
-                dir=dir
+    def _read_direction(
+        dir: str,
+        logger: Logger=getLogger(__name__)
+    ) -> Dict:
+        try:
+            _dir = int(dir)
+        except ValueError:
+            ter = StreamHandler.terminator
+            StreamHandler.terminator = "\n"
+            logger.warning(
+                'Cannot convert direction value {dir} to int'.format(
+                    dir=dir
+                )
             )
-        )
-        StreamHandler.terminator = ter
-        # Pass to the next equation
-        return None
-    return _dir
+            StreamHandler.terminator = ter
+            # Pass to the next equation
+            return None
+        return _dir
 
 
-def _read_equation(
-    eq: str,
-    rxn_id: str,
-    logger: Logger=getLogger(__name__)
-) -> Dict:
+    def _read_equation(
+        eq: str,
+        rxn_id: str,
+        logger: Logger=getLogger(__name__)
+    ) -> Dict:
 
-    if not len(eq.split('='))==2:
-        logger.warning('There should never be more or less than a left and right of an equation')
-        logger.warning('Ignoring {eq}'.format(eq=eq))
-        return None
+        if not len(eq.split('='))==2:
+            logger.warning('There should never be more or less than a left and right of an equation')
+            logger.warning('Ignoring {eq}'.format(eq=eq))
+            return None
 
-    #### for character matching that are returned
-    DEFAULT_STOICHIO_RESCUE = {
-        '4n': 4, '3n': 3, '2n': 2, 'n': 1,
-        '(n)': 1, '(N)': 1, '(2n)': 2, '(x)': 1,
-        'N': 1, 'm': 1, 'q': 1,
-        '0.01': 1, '0.1': 1, '0.5': 1, '1.5': 1,
-        '0.02': 1, '0.2': 1,
-        '(n-1)': 0, '(n-2)': -1
-    }
+        #### for character matching that are returned
+        DEFAULT_STOICHIO_RESCUE = {
+            '4n': 4, '3n': 3, '2n': 2, 'n': 1,
+            '(n)': 1, '(N)': 1, '(2n)': 2, '(x)': 1,
+            'N': 1, 'm': 1, 'q': 1,
+            '0.01': 1, '0.1': 1, '0.5': 1, '1.5': 1,
+            '0.02': 1, '0.2': 1,
+            '(n-1)': 0, '(n-2)': -1
+        }
 
-    rxn = {}
+        rxn = {}
 
-    # Use int indices to be directly usable by re_findall
-    # 0 = left, 1 = right
-    for side in [0, 1]:
-        rxn[side] = {}
-        for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', eq.split('=')[side]):
-            # 1) try to rescue if its one of the values
-            try:
-                # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
-                rxn[side][spe[1]] = DEFAULT_STOICHIO_RESCUE[spe[0]]
-            except KeyError:
-                # 2) try to convert to int if its not
+        # Use int indices to be directly usable by re_findall
+        # 0 = left, 1 = right
+        for side in [0, 1]:
+            rxn[side] = {}
+            for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', eq.split('=')[side]):
+                # 1) try to rescue if its one of the values
                 try:
-                    # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
-                    rxn[side][spe[1]] = int(spe[0])
-                except ValueError:
-                    ter = StreamHandler.terminator
-                    StreamHandler.terminator = "\n"
-                    logger.warning(
-                        'Cannot convert stoichio coeff {coeff} in {rxn_id}'.format(
-                            coeff=spe[0],
-                            rxn_id=rxn_id
+                    # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]
+                    rxn[side][spe[1]] = DEFAULT_STOICHIO_RESCUE[spe[0]]
+                except KeyError:
+                    # 2) try to convert to int if its not
+                    try:
+                        # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
+                        rxn[side][spe[1]] = int(spe[0])
+                    except ValueError:
+                        ter = StreamHandler.terminator
+                        StreamHandler.terminator = "\n"
+                        logger.warning(
+                            'Cannot convert stoichio coeff {coeff} in {rxn_id}'.format(
+                                coeff=spe[0],
+                                rxn_id=rxn_id
+                            )
                         )
-                    )
-                    StreamHandler.terminator = ter
-                    # Stop parsing this equation and pass the next
-                    return None
+                        StreamHandler.terminator = ter
+                        # Stop parsing this equation and pass the next
+                        return None
 
-    return rxn
-
-
+        return rxn
 
 
     ######################## Generic functions ###############################

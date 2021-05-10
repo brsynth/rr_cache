@@ -321,8 +321,9 @@ class rrCache:
         #         outdir,
         #         'cache'
         #     )
+
         if outdir is None:
-            outdir = self.__cache_dir
+            outdir =  os_path.dirname(os_path.abspath( __file__ ))
         input_dir = os_path.join(
             outdir,
             'input-cache'

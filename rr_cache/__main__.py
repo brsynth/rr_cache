@@ -82,12 +82,8 @@ def entry_point():
         logger=logger
     )
 
-    if args.cache_dir:
-        # print("rrCache is going to be generated into " + args.cache_dir)
-        gen_cache(
-            args.cache_dir,
-            logger
-        )
+    if args.gen_cache:
+        rrCache.generate_cache(args.cache_dir, logger)
     elif args.reaction_rules is not None:
         print_attr(
             cache,
@@ -106,10 +102,6 @@ def entry_point():
         cache.load(args.attrs)
 
 
-def gen_cache(outdir, logger):
-    rrCache.generate_cache(outdir, logger)
-
-
 def print_attr(
     cache: 'rrCache',
     attr: str,
@@ -125,7 +117,7 @@ def print_attr(
             )
         )
     else:
-        print(cache.get('rr_full_reactions')['MNXR109162'])
+        # print(cache.get('rr_full_reactions')['MNXR109162'])
         for id in attr_lst:
             try:
                 print(

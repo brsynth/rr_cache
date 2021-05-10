@@ -36,8 +36,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--gen-cache',
         default=None,
-        type=str,
-        dest='cache_dir',
+        action='store_true',
         help='generate the cache and exits'
     )
     parser.add_argument(
@@ -53,6 +52,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         nargs='*',
         help='print out specified reaction(s), all if nothing specified'
+    )
+    parser.add_argument(
+        '--cache-dir',
+        default=None,
+        type=str,
+        help='Path to the cache to generate or read from'
     )
     parser.add_argument(
         '--db',

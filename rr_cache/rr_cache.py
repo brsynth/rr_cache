@@ -154,7 +154,7 @@ class rrCache:
         __attributes_list[7]: '1f9fe3827630d1a06cbea9f10f584404957f85b13a51ae9f67e501d50911eb97d4b220a556597e70c3a441c0b51dd1b7ab1cbae22aeecd634654949b0fb647f2',
         __attributes_list[8]: '5c4705351a6649f86e275ba3093c3e87ad68f92e4a6cd1da9832e541d42247a309438e4382104cf141e0abd6781f04e0b6d4cadedd148ceae629d1537dcce338',
         __attributes_list[9]: '57abdc35553f5c9f9929c72cc0159c99a679131c5f683922858f32f6e391ede08e0f45f095ad55f4d6bbc209e75cc870edef01416c0252d39ff147186efb9edc',
-        __attributes_list[10]: '59be6d683c4417ca9f4ec254b05bb069c9db851aea5e041917c69b167313e019ca3e79a2481883a07cfeb2e77d5f0eca0c753c05c143c3482d8e1b3497c0ce2f'
+        __attributes_list[10]: 'c94b50573aa9103fd1c6b9d14e276d35d55f6cdab4c8d2eff5dab870907aafcd04865b3b47595d2c9458fe2e39f31844e888ef0dd0b2aa9a8c20935109199a45'
     }
 
 
@@ -421,10 +421,10 @@ class rrCache:
         # Do not checksum since it is a dictionary
         if os_path.exists(f_cid_strc) and check_sha(
             f_cid_strc,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache_files['cid_strc']
         ) and os_path.exists(f_cid_name) and check_sha(
             f_cid_name,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache_files['cid_name']
         ):
             cid_strc = rrCache._load_cache_from_file(f_cid_strc)
             logger.debug("   Cache file already exists")
@@ -641,10 +641,10 @@ class rrCache:
         # Do not checksum since it is a dictionary
         if os_path.exists(f_comp_xref) and check_sha(
             f_comp_xref,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache_files['comp_xref']
         ) and os_path.exists(f_deprecatedCompID_compid) and check_sha(
             f_deprecatedCompID_compid,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache_files['deprecatedCompID_compid']
         ):
             logger.debug("   Cache files already exist")
             # print_OK()
@@ -1294,7 +1294,10 @@ class rrCache:
                         # Stop parsing this equation and pass the next
                         return None
 
-        return rxn
+        return {
+            'left': rxn[0],
+            'right': rxn[1]
+        }
 
 
     ######################## Generic functions ###############################

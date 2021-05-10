@@ -1,5 +1,11 @@
 # Release history
 
+## 0.7.0
+#### 10 May 2021
+- remove deprecated infos
+- BREAK: rename 'rr_full_reactions' into 'template_reactions'
+- add cache-dir argument for generating or reading the cache
+
 ## 0.6.1
 #### 4 May 2021
 - fix: change sha for 'cid_strc' and 'rr_full_reactions' files according to previous changes

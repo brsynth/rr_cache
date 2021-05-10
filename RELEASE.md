@@ -1,5 +1,9 @@
 # Release history
 
+## 0.7.1
+#### 10 May 2021
+- put back checksum controls
+
 ## 0.7.0
 #### 10 May 2021
 - remove deprecated infos

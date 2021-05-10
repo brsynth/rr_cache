@@ -94,7 +94,7 @@ class Test_rrCache(TestCase):
 
     attributes = [
     ('chebi_cid',               123835),
-    ('cid_name',                691482),
+    ('cid_name',                691481),
     ('cid_strc',                655684),
     ('cid_xref',                691494),
     ('comp_xref',               40),
@@ -102,6 +102,6 @@ class Test_rrCache(TestCase):
     ('deprecatedCompID_compid', 4370),
     ('deprecatedRID_rid',       53413),
     ('inchikey_cid',            332146),
-    ('template_reactions',      48289),
+    ('template_reactions',      44045),
     ('rr_reactions',            229862)
     ]

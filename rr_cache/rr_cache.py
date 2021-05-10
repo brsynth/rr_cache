@@ -383,7 +383,10 @@ class rrCache:
         f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_deprecatedCID_cid):
+        if os_path.exists(f_deprecatedCID_cid) and check_sha(
+            f_deprecatedCID_cid,
+            rrCache.__cache_files[attribute]
+        ):
             deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
             logger.debug("   Cache file already exists")
         else:
@@ -416,7 +419,13 @@ class rrCache:
         f_cid_name = os_path.join(outdir, 'cid_name')+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_cid_strc) and os_path.exists(f_cid_name):
+        if os_path.exists(f_cid_strc) and check_sha(
+            f_cid_strc,
+            rrCache.__cache_files[attribute]
+        ) and os_path.exists(f_cid_name) and check_sha(
+            f_cid_name,
+            rrCache.__cache_files[attribute]
+        ):
             cid_strc = rrCache._load_cache_from_file(f_cid_strc)
             logger.debug("   Cache file already exists")
         else:
@@ -464,7 +473,10 @@ class rrCache:
         f_inchikey_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_inchikey_cid):
+        if os_path.exists(f_inchikey_cid) and check_sha(
+            f_inchikey_cid,
+            rrCache.__cache_files[attribute]
+        ):
             logger.debug("   Cache file already exists")
         else:
             if not cid_strc['attr']:
@@ -490,7 +502,10 @@ class rrCache:
         f_cid_xref = os_path.join(outdir, attribute)+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_cid_xref):
+        if os_path.exists(f_cid_xref) and check_sha(
+            f_cid_xref,
+            rrCache.__cache_files[attribute]
+        ):
             cid_xref = rrCache._load_cache_from_file(f_cid_xref)
             logger.debug("   Cache file already exists")
         else:
@@ -524,7 +539,10 @@ class rrCache:
         f_chebi_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_chebi_cid):
+        if os_path.exists(f_chebi_cid) and check_sha(
+            f_chebi_cid,
+            rrCache.__cache_files[attribute]
+        ):
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")
@@ -548,7 +566,10 @@ class rrCache:
         f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_deprecatedRID_rid):
+        if os_path.exists(f_deprecatedRID_rid) and check_sha(
+            f_deprecatedRID_rid,
+            rrCache.__cache_files[attribute]
+        ):
             deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
             logger.debug("   Cache file already exists")
         else:
@@ -579,7 +600,10 @@ class rrCache:
         f_rr_reactions = os_path.join(outdir, attribute)+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_rr_reactions):
+        if os_path.exists(f_rr_reactions) and check_sha(
+            f_rr_reactions,
+            rrCache.__cache_files[attribute]
+        ):
             logger.debug("   Cache file already exists")
         else:
             # if not deprecatedCID_cid['attr']:
@@ -615,7 +639,13 @@ class rrCache:
         f_deprecatedCompID_compid = os_path.join(outdir, 'deprecatedCompID_compid')+rrCache.__ext
 
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_comp_xref) and os_path.exists(f_deprecatedCompID_compid):
+        if os_path.exists(f_comp_xref) and check_sha(
+            f_comp_xref,
+            rrCache.__cache_files[attribute]
+        ) and os_path.exists(f_deprecatedCompID_compid) and check_sha(
+            f_deprecatedCompID_compid,
+            rrCache.__cache_files[attribute]
+        ):
             logger.debug("   Cache files already exist")
             # print_OK()
         else:
@@ -647,7 +677,10 @@ class rrCache:
         template_reactions = None
         f_template_reactions = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_template_reactions):
+        if os_path.exists(f_template_reactions) and check_sha(
+            f_template_reactions,
+            rrCache.__cache_files[attribute]
+        ):
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")

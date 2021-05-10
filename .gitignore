@@ -1,6 +1,6 @@
 # Specific
 _exclude_*
-cache*
+*cache*
 
 # Generic
 __pycache__

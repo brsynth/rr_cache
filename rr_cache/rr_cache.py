@@ -166,6 +166,7 @@ class rrCache:
         self,
         db: str = 'file',
         attrs: List = [],
+        cache_dir: str = None,
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
 
@@ -177,7 +178,10 @@ class rrCache:
         rrCache._db_timeout = 10
 
         self.dirname = os_path.dirname(os_path.abspath(__file__))
-        self.__cache_dir = os_path.join(self.dirname, 'cache')
+        if cache_dir is None:
+            self.__cache_dir = os_path.join(self.dirname, 'cache')
+        else:
+            self.__cache_dir = cache_dir
 
         self.load(attrs)
 
@@ -378,10 +382,8 @@ class rrCache:
         deprecatedCID_cid = None
         f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_deprecatedCID_cid) and check_sha(
-            f_deprecatedCID_cid,
-            rrCache.__cache_files[attribute]
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_deprecatedCID_cid):
             deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
             logger.debug("   Cache file already exists")
         else:
@@ -413,13 +415,8 @@ class rrCache:
         f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache.__ext
         f_cid_name = os_path.join(outdir, 'cid_name')+rrCache.__ext
 
-        if os_path.exists(f_cid_strc) and check_sha(
-            f_cid_strc,
-            rrCache.__cache_files['cid_strc']
-        ) and os_path.exists(f_cid_name) and check_sha(
-            f_cid_name,
-            rrCache.__cache_files['cid_name']
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_cid_strc) and os_path.exists(f_cid_name):
             cid_strc = rrCache._load_cache_from_file(f_cid_strc)
             logger.debug("   Cache file already exists")
         else:
@@ -466,10 +463,8 @@ class rrCache:
         inchikey_cid = None
         f_inchikey_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_inchikey_cid) and check_sha(
-            f_inchikey_cid,
-            rrCache.__cache_files[attribute]
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_inchikey_cid):
             logger.debug("   Cache file already exists")
         else:
             if not cid_strc['attr']:
@@ -494,10 +489,8 @@ class rrCache:
         cid_xref = None
         f_cid_xref = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_cid_xref) and check_sha(
-            f_cid_xref,
-            rrCache.__cache_files[attribute]
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_cid_xref):
             cid_xref = rrCache._load_cache_from_file(f_cid_xref)
             logger.debug("   Cache file already exists")
         else:
@@ -530,10 +523,8 @@ class rrCache:
         chebi_cid = None
         f_chebi_cid = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_chebi_cid) and check_sha(
-            f_chebi_cid,
-            rrCache.__cache_files[attribute]
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_chebi_cid):
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")
@@ -556,10 +547,8 @@ class rrCache:
         deprecatedRID_rid = None
         f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_deprecatedRID_rid) and check_sha(
-            f_deprecatedRID_rid,
-            rrCache.__cache_files[attribute]
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_deprecatedRID_rid):
             deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
             logger.debug("   Cache file already exists")
         else:
@@ -589,10 +578,8 @@ class rrCache:
         rr_reactions = None
         f_rr_reactions = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_rr_reactions) and check_sha(
-            f_rr_reactions,
-            rrCache.__cache_files[attribute]
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_rr_reactions):
             logger.debug("   Cache file already exists")
         else:
             # if not deprecatedCID_cid['attr']:
@@ -627,13 +614,8 @@ class rrCache:
         f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache.__ext
         f_deprecatedCompID_compid = os_path.join(outdir, 'deprecatedCompID_compid')+rrCache.__ext
 
-        if os_path.exists(f_comp_xref) and check_sha(
-            f_comp_xref,
-            rrCache.__cache_files['comp_xref']
-        ) and os_path.exists(f_deprecatedCompID_compid) and check_sha(
-            f_deprecatedCompID_compid,
-            rrCache.__cache_files['deprecatedCompID_compid']
-        ):
+        # Do not checksum since it is a dictionary
+        if os_path.exists(f_comp_xref) and os_path.exists(f_deprecatedCompID_compid):
             logger.debug("   Cache files already exist")
             # print_OK()
         else:
@@ -665,10 +647,7 @@ class rrCache:
         template_reactions = None
         f_template_reactions = os_path.join(outdir, attribute)+rrCache.__ext
 
-        if os_path.exists(f_template_reactions) and check_sha(
-            f_template_reactions,
-            rrCache.__cache_files[attribute]
-        ):
+        if os_path.exists(f_template_reactions):
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")

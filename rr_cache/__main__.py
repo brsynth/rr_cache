@@ -77,6 +77,7 @@ def entry_point():
     cache = rrCache(
         db=args.db,
         attrs=None,
+        cache_dir=args.cache_dir,
         logger=logger
     )
 
@@ -92,7 +93,7 @@ def entry_point():
     elif args.reactions is not None:
         print_attr(
             cache,
-            'rr_full_reactions',
+            'template_reactions',
             args.reactions,
             logger
         )

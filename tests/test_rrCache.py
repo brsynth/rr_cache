@@ -9,7 +9,8 @@ from unittest  import TestCase
 from rr_cache import rrCache
 from brs_utils import (
     create_logger,
-    extract_gz
+    extract_gz,
+    check_file_size
 )
 from os import (
     remove as os_rm,

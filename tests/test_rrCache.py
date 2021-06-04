@@ -74,7 +74,57 @@ class Test_rrCache(TestCase):
             self.assertTrue(check_file_size(outfile, size, self.logger))
             os_rm(outfile)
 
+    def test_get_compound(self):
+        cache = rrCache(db='file', attrs=None)
+        self.assertDictEqual(
+            cache.get_compound('MNXM2'),
+            self.__MNXM2
+        )
 
+    def test_get_list_of_compounds(self):
+        cache = rrCache(db='file', attrs=None)
+        self.assertTrue(
+            'MNXM2' in cache.get_list_of_compounds()
+        )
+        self.assertEqual(
+            len(cache.get_list_of_compounds()),
+            655684
+        )
+
+    def test_get_reaction(self):
+        cache = rrCache(db='file', attrs=None)
+        self.assertDictEqual(
+            cache.get_reaction('MNXR94688'),
+            self.__MNXR94688
+        )
+
+    def test_get_list_of_reactions(self):
+        cache = rrCache(db='file', attrs=None)
+        self.assertTrue(
+            'MNXR94688' in cache.get_list_of_reactions()
+        )
+        self.assertEqual(
+            len(cache.get_list_of_reactions()),
+            44045
+        )
+
+    def test_get_reaction_rule(self):
+        cache = rrCache(db='file', attrs=None)
+        self.assertDictEqual(
+            cache.get_reaction_rule('RR-02-f85f00f767901186-16-F'),
+            self.__RR_02_f85f00f767901186_16_F
+        )
+            
+    def test_get_list_of_reaction_rules(self):
+        cache = rrCache(db='file', attrs=None)
+        self.assertTrue(
+            'RR-02-f85f00f767901186-16-F' in cache.get_list_of_reaction_rules()
+        )
+        self.assertEqual(
+            len(cache.get_list_of_reaction_rules()),
+            229862
+        )
+            
     outdir = 'cache-3.2'
 
     # Not possible to compare hashes since files contain dict that have to be sorted before comparing them and then fill up the memory
@@ -106,3 +156,75 @@ class Test_rrCache(TestCase):
     ('template_reactions',      44045),
     ('rr_reactions',            229862)
     ]
+
+    __MNXM2 = {
+        'formula': 'H2O',
+        'smiles': 'O',
+        'inchi': 'InChI=1S/H2O/h1H2',
+        'inchikey': 'XLYOFNOQVPJJNP-UHFFFAOYSA-N',
+        'cid': 'MNXM2',
+        'name': 'H2O'
+    }
+
+    __MNXR94688 = {
+        'left': {
+            'MNXM1': 1,
+            'MNXM17': 1,
+            'MNXM91349': 1
+        },
+        'right': {
+            'MNXM52': 1
+        },
+        'direction': 0,
+        'main_left': [
+            'MNXM91349'
+        ],
+        'main_right': [
+            'MNXM52'
+        ]
+    }
+
+    __RR_02_f85f00f767901186_16_F = {
+        'MNXR100137': {
+            'rule_id': 'RR-02-f85f00f767901186-16-F',
+            'rule_score': 0.7486085128675456,
+            'reac_id': 'MNXR100137',
+            'subs_id': 'MNXM2210',
+            'rel_direction': 1,
+            'left': {
+                'MNXM2210': 1
+            },
+            'right': {
+                'MNXM139': 1,
+                'MNXM83': 1
+            }
+        },
+        'MNXR112247': {
+            'rule_id': 'RR-02-f85f00f767901186-16-F',
+            'rule_score': 0.7486085128675456,
+            'reac_id': 'MNXR112247',
+            'subs_id': 'MNXM7283',
+            'rel_direction': 1,
+            'left': {
+                'MNXM7283': 1
+            },
+            'right': {
+                'MNXM2473': 1,
+                'MNXM83': 1
+            }
+        },
+        'MNXR116653': {
+            'rule_id': 'RR-02-f85f00f767901186-16-F',
+            'rule_score': 0.7486085128675456,
+            'reac_id': 'MNXR116653',
+            'subs_id': 'MNXM13314',
+            'rel_direction': 1,
+            'left': {
+                'MNXM13314': 1
+            },
+            'right': {
+                'MNXM13541': 1,
+                'MNXM83': 1
+            }
+        }
+    }

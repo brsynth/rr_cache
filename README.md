@@ -54,8 +54,8 @@ For less loading time and memory footprint, a part of the cache can be loaded:
 ```python
 from rr_cache import rrCache
 
-cache = rrCache(attrs='cid_strc')
-print(cache.cid_src)
+cache = rrCache()
+cache.get_compound('MNXM2)
 ```
 ***From CLI***
 ```sh
@@ -67,6 +67,11 @@ If `RuleID_i` is(are) set, prints out the reaction rule(s) or all reaction rules
 python -m rr_cache --reactions <RxnID_1> <RxnID_2>...
 ```
 If `RxnID_i` is(are) set, prints out the reaction(s) or all reactions if nothing is specified.
+
+```sh
+python -m rr_cache --compounds <CmpdID_1> <CmpdID_2>...
+```
+If `CmpdID_i` is(are) set, prints out the compound(s) or all compounds if nothing is specified.
 
 ### (Re-)generate the cache
 **From Python code**

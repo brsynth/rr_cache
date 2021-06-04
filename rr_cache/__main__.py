@@ -97,6 +97,13 @@ def entry_point():
             args.reactions,
             logger
         )
+    elif args.compounds is not None:
+        print_attr(
+            cache,
+            'cid_strc',
+            args.compounds,
+            logger
+        )
     else:
         cache.load(args.attrs)
 

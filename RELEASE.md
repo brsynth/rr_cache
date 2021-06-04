@@ -1,5 +1,12 @@
 # Release history
 
+## 0.8.0
+#### 4 Jun 2021
+- feat: add --compounds CLI arguments
+- feat: add get_compound(), get_list_of_compound()
+- feat: get_reaction(), get_list_of_reactions()
+- feat: get_reaction_rules(), get_list_of_reaction_rules()
+
 ## 0.7.1
 #### 10 May 2021
 - put back checksum controls

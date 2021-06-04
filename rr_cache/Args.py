@@ -54,6 +54,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='print out specified reaction(s), all if nothing specified'
     )
     parser.add_argument(
+        '--compounds',
+        default=None,
+        type=str,
+        nargs='*',
+        help='print out specified compound(s), all if nothing specified'
+    )
+    parser.add_argument(
         '--cache-dir',
         default=None,
         type=str,

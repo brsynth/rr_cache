@@ -273,10 +273,46 @@ class rrCache:
 
         print_end(logger)
 
-
     def get(self, attr: str):
         try:
             return getattr(self, '__'+attr)
+        except Exception as e:
+            self.logger.error(str(e))
+
+    def __hasattr(self, attr: str):
+        return hasattr(self, '__'+attr)
+
+    def get_compound(self, cid: str):
+        return self.__get_object('cid_strc', cid)
+
+    def get_list_of_compounds(self):
+        return self.__get_list_of_objects('cid_strc')
+
+    def get_reaction(self, rxn_id: str):
+        return self.__get_object('template_reactions', rxn_id)
+
+    def get_list_of_reactions(self):
+        return self.__get_list_of_objects('template_reactions')
+
+    def get_reaction_rule(self, rr_id: str):
+        return self.__get_object('rr_reactions', rr_id)
+
+    def get_list_of_reaction_rules(self):
+        return self.__get_list_of_objects('rr_reactions')
+
+    def __get_object(self, attr: str, id: str):
+        try:
+            if not self.__hasattr(attr):
+                self.load(attrs=[attr])
+            return self.get(attr)[id]
+        except Exception as e:
+            self.logger.error(str(e))
+
+    def __get_list_of_objects(self, attr: str):
+        try:
+            if not self.__hasattr(attr):
+                self.load(attrs=[attr])
+            return self.get(attr).keys()
         except Exception as e:
             self.logger.error(str(e))
 

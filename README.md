@@ -8,7 +8,7 @@ rr_cache has the following dependencies:
 - colored
 This dependencies can be installed through conda package manager with:
 ```sh
-conda install -c brsynth -c conda-forge brs_utils credisdict requests rdkit redis-py colored
+conda install -c brsynth -c conda-forge brs_utils requests rdkit colored
 ```
 
 ## Memory management

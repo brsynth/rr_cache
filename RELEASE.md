@@ -1,5 +1,9 @@
 # Release history
 
+## 1.0.0
+#### 5 Oct 2021
+- BREAK! feat: remove redis feature
+
 ## 0.8.0
 #### 4 Jun 2021
 - feat: add --compounds CLI arguments

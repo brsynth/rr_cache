@@ -75,7 +75,6 @@ def entry_point():
     logger = init(parser, args)
 
     cache = rrCache(
-        db=args.db,
         attrs=None,
         cache_dir=args.cache_dir,
         logger=logger

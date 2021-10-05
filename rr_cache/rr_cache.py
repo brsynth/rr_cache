@@ -22,7 +22,6 @@ from gzip       import open as gzip_open
 from re         import findall as re_findall
 # from time       import time as time_time
 from requests   import exceptions as r_exceptions
-from redis      import StrictRedis
 from hashlib    import sha512
 from pathlib    import Path
 from colored    import (
@@ -40,10 +39,6 @@ from brs_utils  import (
     print_end,
     download,
     check_sha
-)
-from credisdict import (
-    CRedisDict,
-    wait_for_redis
 )
 from typing import (
     List,
@@ -161,10 +156,8 @@ class rrCache:
     ## Cache constructor
     #
     # @param self The object pointer
-    # @param db Mode of storing objects ('file' or 'redis')
     def __init__(
         self,
-        db: str = 'file',
         attrs: List = [],
         cache_dir: str = None,
         logger: Logger = getLogger(__name__)
@@ -173,9 +166,6 @@ class rrCache:
         self.logger = logger
 
         self.logger.debug('New instance of rrCache')
-
-        self.store_mode = db
-        rrCache._db_timeout = 10
 
         self.dirname = os_path.dirname(os_path.abspath(__file__))
         if cache_dir is None:
@@ -199,16 +189,8 @@ class rrCache:
             else:
                 self.__attributes_list = attrs
 
-        if self.store_mode != 'file':
-            self.redis = StrictRedis(host=self.store_mode, port=6379, db=0, decode_responses=True)
-            if not wait_for_redis(self.redis, self._db_timeout):
-                self.logger.critical("Database "+self.store_mode+" is not reachable")
-                exit()
-            for attr in self.__attributes_list:
-                setattr(self, '__'+attr, CRedisDict(attr, self.redis))
-        else:
-            for attr in self.__attributes_list:
-                setattr(self, '__'+attr, None)
+        for attr in self.__attributes_list:
+            setattr(self, '__'+attr, None)
 
         rrCache._check_or_download_cache_to_disk(
             self.__cache_dir,
@@ -746,11 +728,7 @@ class rrCache:
 
 
     def _check_or_load_cache(self):
-        self.logger.debug('store_mode: '+self.store_mode)
-        if self.store_mode == 'file':
-            self._check_or_load_cache_in_memory()
-        else:
-            self._check_or_load_cache_in_db()
+        self._check_or_load_cache_in_memory()
 
 
     def _check_or_load_cache_in_memory(self):
@@ -764,16 +742,6 @@ class rrCache:
                 print_progress(self.logger)
             else:
                 self.logger.debug(attribute+" already loaded in memory")
-        print_end(self.logger)
-
-    def _check_or_load_cache_in_db(self):
-        print_start(self.logger, 'Loading cache in db')
-        for attribute in self.__attributes_list:
-            if not CRedisDict.exists(self.redis, attribute):
-                self._store_cache_to_db(attribute, self._load_from_file(attribute))
-            else:
-                self.logger.debug(attribute+" already loaded in db")
-            print_progress(self.logger)
         print_end(self.logger)
 
 
@@ -860,18 +828,6 @@ class rrCache:
         else:
             fp = open(filename, 'w')
         json_dump(data, fp)
-
-    ## Method to store data into redis database
-    #
-    #  Assign a CRedisDict object to the attribute to copy data into the database
-    #
-    #  @param self Object pointer
-    #  @param attr_name Attribute name (database key)
-    #  @param data Content of the attribute
-    def _store_cache_to_db(self, attr_name, data):
-        print("Storing "+attr_name+" to db...", end = '', flush=True)
-        setattr(rrCache, attr_name, CRedisDict(attr_name, self.redis, data))
-        print_OK()
 
     ## Function to create a dictionnary of old to new chemical id's
     #

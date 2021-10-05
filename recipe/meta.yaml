@@ -18,10 +18,8 @@ requirements:
   run:
     - python {{ python }}
     - brs_utils
-    - credisdict
     - requests
     - rdkit
-    - redis-py
     - colored
 
 test:

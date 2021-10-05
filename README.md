@@ -3,10 +3,8 @@
 ## Requirements
 rr_cache has the following dependencies:
 - brs_utils
-- credisdict
 - requests
 - rdkit
-- redis-py
 - colored
 This dependencies can be installed through conda package manager with:
 ```sh
@@ -15,12 +13,7 @@ conda install -c brsynth -c conda-forge brs_utils credisdict requests rdkit redi
 
 ## Memory management
 
-### File mode
-This is the default mode. All cache data are stored into files on disk and loaded in memory each time the tool is used. In this mode, fingerprint in memory is equal to the size of cache files loaded in memory multiplied by the number of processes which are running at the same time. Option can be specified by `--store-mode file`.
-
-### DB mode
-In order to save memory space, cache data can be loaded once in a database (redis) so that the memory space taken is equal to one instance of the cache, whatever the number of processes whic are running. Option can be specified by `--store-mode <db_host>`, where `db_host` is the hostname on which redis server is running.
-
+All cache data are stored into files on disk and loaded in memory each time the tool is used. In this mode, fingerprint in memory is equal to the size of cache files loaded in memory multiplied by the number of processes which are running at the same time.
 
 ## Install
 ### From Conda
@@ -31,23 +24,12 @@ In order to save memory space, cache data can be loaded once in a database (redi
 ## Use
 
 ### Load rrCache in memory
-**Full cache into files**
 ```python
 from rr_cache import rrCache
 
-cache = rrCache(db='file')
+cache = rrCache()
 print(cache.cid_src)
 ```
-
-**Full cache into Redis DB**
-For multiple instances of rrCache simultaneously, rrCache can be loaded into one single Redis database:
-```python
-from rr_cache import rrCache
-
-cache = rrCache(db='localhost')
-print(cache.cid_src)
-```
-`localhost` means that rrCache will look for a redis database locally. If there is not, it will start a brand new redis server. `localhost` could be replaced by any hostname that hosts the Redis database.
 
 **A part of cache**
 For less loading time and memory footprint, a part of the cache can be loaded:

@@ -2,18 +2,19 @@
 
 ## Requirements
 rr_cache has the following dependencies:
-- brs_utils
-- requests
-- rdkit
-- colored
-This dependencies can be installed through conda package manager with:
+- `brs_utils`
+- `requests`
+- `rdkit`
+- `colored`
+
+These dependencies can be installed through conda package manager with:
 ```sh
-conda install -c brsynth -c conda-forge brs_utils requests rdkit colored
+conda install -c conda-forge brs_utils requests rdkit colored
 ```
-
-## Memory management
-
-All cache data are stored into files on disk and loaded in memory each time the tool is used. In this mode, fingerprint in memory is equal to the size of cache files loaded in memory multiplied by the number of processes which are running at the same time.
+or by creating a dedicated environment:
+```sh
+conda env create -f environment.yaml
+```
 
 ## Install
 ### From Conda
@@ -23,12 +24,14 @@ All cache data are stored into files on disk and loaded in memory each time the 
 
 ## Use
 
+All cache data are stored into files on disk and loaded in memory each time the tool is used. Memory fingerprint is equal to the size of cache files loaded in memory multiplied by the number of processes which are running at the same time.
+
 ### Load rrCache in memory
 ```python
 from rr_cache import rrCache
 
 cache = rrCache()
-print(cache.cid_src)
+print(cache.cid_strc)
 ```
 
 **A part of cache**
@@ -36,8 +39,8 @@ For less loading time and memory footprint, a part of the cache can be loaded:
 ```python
 from rr_cache import rrCache
 
-cache = rrCache()
-cache.get_compound('MNXM2)
+cache = rrCache(['cid_strc'])
+cache.get_compound('MNXM2')
 ```
 ***From CLI***
 ```sh

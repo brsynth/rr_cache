@@ -1,0 +1,9 @@
+name: rr_cache-dev
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - brs_utils
+  - requests
+  - rdkit
+  - colored

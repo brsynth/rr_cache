@@ -38,7 +38,6 @@ def init(
         # from rdkit import RDLogger
         # RDLogger.DisableLog('rdApp.*')
 
-
     # Create logger
     logger = create_logger(parser.prog, args.log)
 

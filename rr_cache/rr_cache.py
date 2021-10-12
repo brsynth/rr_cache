@@ -33,7 +33,6 @@ from logging import (
     StreamHandler
 )
 from brs_utils  import (
-    print_OK,
     print_start,
     print_progress,
     print_end,
@@ -806,6 +805,8 @@ class rrCache:
     #  @param self Object pointer
     #  @param filename File to fetch data from
     #  @return file content
+
+
     @staticmethod
     def _load_cache_from_file(filename):
         if filename.endswith('.gz') or filename.endswith('.zip'):
@@ -866,6 +867,8 @@ class rrCache:
     # @param xref_path Input file path
     # @return Dictionnary of identifiers
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+
+
     @staticmethod
     def _deprecatedMNX(xref_path):
         deprecatedMNX_mnx = {}
@@ -1009,6 +1012,8 @@ class rrCache:
     #  @param deprecatedCID_cid Dictionnary of deprecated chemical ids to uniform cid
     #  @return Dictionnary of cross references of a given chemical id
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+
+
     @staticmethod
     def _m_mnxm_xref(
         chem_xref_path: str,
@@ -1051,6 +1056,8 @@ class rrCache:
     #  @param comp_xref_path The MetaNetX file that contains the cross references
     #  @return a The dictionnary of compartment identifiers
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+
+
     @staticmethod
     def _m_mnxc_xref(
         comp_xref_path,
@@ -1106,6 +1113,8 @@ class rrCache:
     #  @param deprecatedCID_cid Dictionnary of deprecated to uniformed chemical id's
     #  @param deprecatedRID_rid Dictionnary of deprecated to uniformed reaction id's
     #  @return Dictionnary describing each reaction rule
+
+
     @staticmethod
     def _m_rr_reactions(
         rules_rall_path: str,
@@ -1170,6 +1179,8 @@ class rrCache:
     #  @param self The pointer object
     #  @param rxn_recipes_path Path to the recipes file
     #  @return Boolean that determines the success or failure of the function
+
+
     @staticmethod
     def _m_template_reactions(
         rxn_recipes_path: str,
@@ -1305,6 +1316,8 @@ class rrCache:
     #  @param itype type of depiction provided as input, str
     #  @param otype types of depiction to be generated, {"", "", ..}
     #  @return odepic generated depictions, {"otype1": "odepic1", ..}
+
+
     @staticmethod
     def _convert_depiction(idepic, itype='smiles', otype={'inchikey'}):
         # Import (if needed)
@@ -1339,6 +1352,8 @@ class rrCache:
     #  @param chem_xref_path Input file path
     #  @return a The dictionnary of identifiers
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
+
+
     @staticmethod
     def _m_chebi_cid(cid_xref):
         chebi_cid = {}

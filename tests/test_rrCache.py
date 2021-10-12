@@ -102,7 +102,7 @@ class Test_rrCache(TestCase):
             cache.get_reaction_rule('RR-02-f85f00f767901186-16-F'),
             self.__RR_02_f85f00f767901186_16_F
         )
-            
+
     def test_get_list_of_reaction_rules(self):
         cache = rrCache(attrs=None)
         self.assertTrue(
@@ -112,37 +112,37 @@ class Test_rrCache(TestCase):
             len(cache.get_list_of_reaction_rules()),
             229862
         )
-            
+
     outdir = 'cache-3.2'
 
     # Not possible to compare hashes since files contain dict that have to be sorted before comparing them and then fill up the memory
     # Size of gunzipped files
     files = [
-    (os_path.join(outdir, 'chebi_cid.json.gz'              ), 2786801),
-    (os_path.join(outdir, 'cid_name.json.gz'               ), 55787548),
-    (os_path.join(outdir, 'cid_strc.json.gz'               ), 296896910),
-    (os_path.join(outdir, 'cid_xref.json.gz'               ), 88383985),
-    (os_path.join(outdir, 'comp_xref.json.gz'              ), 51059),
-    (os_path.join(outdir, 'deprecatedCID_cid.json.gz'      ), 423443),
+    (os_path.join(outdir, 'chebi_cid.json.gz'), 2786801),
+    (os_path.join(outdir, 'cid_name.json.gz'), 55787548),
+    (os_path.join(outdir, 'cid_strc.json.gz'), 296896910),
+    (os_path.join(outdir, 'cid_xref.json.gz'), 88383985),
+    (os_path.join(outdir, 'comp_xref.json.gz'), 51059),
+    (os_path.join(outdir, 'deprecatedCID_cid.json.gz'), 423443),
     (os_path.join(outdir, 'deprecatedCompID_compid.json.gz'), 89832),
-    (os_path.join(outdir, 'deprecatedRID_rid.json.gz'      ), 1437122),
-    (os_path.join(outdir, 'inchikey_cid.json.gz'           ), 20071352),
-    (os_path.join(outdir, 'template_reactions.json.gz'     ), 7643885),
-    (os_path.join(outdir, 'rr_reactions.json.gz'           ), 84656878)
+    (os_path.join(outdir, 'deprecatedRID_rid.json.gz'), 1437122),
+    (os_path.join(outdir, 'inchikey_cid.json.gz'), 20071352),
+    (os_path.join(outdir, 'template_reactions.json.gz'), 7643885),
+    (os_path.join(outdir, 'rr_reactions.json.gz'), 84656878)
     ]
 
     attributes = [
-    ('chebi_cid',               123835),
-    ('cid_name',                691481),
-    ('cid_strc',                655684),
-    ('cid_xref',                691494),
-    ('comp_xref',               40),
-    ('deprecatedCID_cid',       16267),
+    ('chebi_cid', 123835),
+    ('cid_name', 691481),
+    ('cid_strc', 655684),
+    ('cid_xref', 691494),
+    ('comp_xref', 40),
+    ('deprecatedCID_cid', 16267),
     ('deprecatedCompID_compid', 4370),
-    ('deprecatedRID_rid',       53413),
-    ('inchikey_cid',            332146),
-    ('template_reactions',      44045),
-    ('rr_reactions',            229862)
+    ('deprecatedRID_rid', 53413),
+    ('inchikey_cid', 332146),
+    ('template_reactions', 44045),
+    ('rr_reactions', 229862)
     ]
 
     __MNXM2 = {

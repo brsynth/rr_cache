@@ -1,5 +1,4 @@
 from argparse  import ArgumentParser
-from rr_cache._version import __version__
 from typing import (
     Callable,
 )
@@ -79,12 +78,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=[],
         nargs='+',
         help='Name(s) of attributes to load, all if not given (default).'
-    )
-    parser.add_argument(
-        '--version', '-v',
-        action='version',
-        version='%(prog)s {}'.format(__version__),
-        help='show the version number and exit'
     )
 
     return parser

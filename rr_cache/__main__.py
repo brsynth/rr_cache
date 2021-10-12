@@ -8,7 +8,10 @@ from logging import (
     Logger,
     getLogger
 )
-from colored import fg, bg, attr
+from colored import (
+    fg,
+    attr
+)
 from argparse import (
     ArgumentParser,
     Namespace
@@ -16,8 +19,6 @@ from argparse import (
 from json import dumps
 from typing import (
     List,
-    Dict,
-    Tuple
 )
 
 

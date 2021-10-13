@@ -1,4 +1,11 @@
-# rr_cache - RetroRules Cache
+# rr_cache
+RetroRules and MetaNetX cache
+| Name | Downloads | Version | Platforms |
+| --- | --- | --- | --- |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-rr_cache-green.svg)](https://anaconda.org/conda-forge/rr_cache) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/rr_cache.svg)](https://anaconda.org/conda-forge/rr_cache) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/rr_cache.svg)](https://anaconda.org/conda-forge/rr_cache) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/rr_cache.svg)](https://anaconda.org/conda-forge/rr_cache) |
+
+## Description
+*rr_cache* provides a cache for RetroRules and MetaNetX compounds and reactions
 
 ## Requirements
 rr_cache has the following dependencies:
@@ -19,7 +26,7 @@ conda env create -f environment.yaml
 ## Install
 ### From Conda
 ```sh
-[sudo] conda install -c brsynth -c conda-forge rr_cache
+[sudo] conda install -c conda-forge rr_cache
 ```
 
 ## Use

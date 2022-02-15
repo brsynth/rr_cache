@@ -1,4 +1,4 @@
-name: rr_cache-dev
+name: rr_cache
 channels:
   - conda-forge
 dependencies:

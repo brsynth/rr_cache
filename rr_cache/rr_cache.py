@@ -46,10 +46,11 @@ from typing import (
 )
 
 
-#######################################################
-################### rrCache  ##########################
-#######################################################
+HERE = os_path.dirname(os_path.abspath( __file__ ))
+DATA_PATH = os_path.join(HERE, 'data')
 
+class FileCorruptedError(Exception):
+    pass
 
 class rrCache:
     """Class to generate the cache
@@ -59,102 +60,31 @@ class rrCache:
     """
 
     # _input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
-    __cache_url       = 'https://gitlab.com/breakthewall/rrCache-data/-/raw/master/'
+    __cache_url = 'https://gitlab.com/breakthewall/rrCache-data/-/raw/master/'
 
     # static attribues
-    __convertMNXM = {
-        'MNXM162231': 'MNXM6',
-        'MNXM84':     'MNXM15',
-        'MNXM96410':  'MNXM14',
-        'MNXM114062': 'MNXM3',
-        'MNXM145523': 'MNXM57',
-        'MNXM57425':  'MNXM9',
-        'MNXM137':    'MNXM588022'
-    }
+    with open(os_path.join(DATA_PATH, 'convert.json'), 'r') as f:
+        __convertMNXM = json_load(f)
 
     # name: sha512sum
-    __input__cache_files = {
-        'chem_xref.tsv.gz':    'e558110990dcc75af943863790dc55360fd2d40ecb17d02335377671e80f0ab3738fd556acb340e03e48dd1afdec3eece1e92df1e18bc24e7445f24f778a10da',
-        'MNXM_replacement_20190524.csv':    '0ffd5da832f9be057b19ca6a813a5ed3f53d7b6c247513f117450a63f5b34deb86de68ecbb5ed765ac6c3417f8976c4e39590a4dd18275351a076de863e6bfa9',
-        'reac_xref.tsv.gz':    '48b991cf4a9c2ca573d395cf35c378881ed79e87772827647bfab2f6345499698664e07195ec10b342fc0164304dbd2363cccff1a1182225e6afebce3c16448b',
-        'compounds.tsv.gz':    '719716bb880257bd014e045c03eb8dd12e2bbeba3aa52e38e9632ce605817b9dc09530e81fadd25542c0a439bdb81e1dfbd3a38f35b30b061845d1a880dbfe01',
-        'chem_prop.tsv.gz':    'f2d220d1f0425e5e47f01e7deccfa46b60094d43b9f62b191ffb0fab8c00ef79e87c3b71d10bdcd26020608094f24884f51b3ebc3d7d3c9a6d594c6eaa324c66',
-        'retrorules_rr02_flat_all.tsv.gz':   '890bdd24042c0192b5538964d775feefcb6cff9ad5f35690bfbfc5ae09334dd19df6828cdfc7f57a2018e090571517122b99d8760128052af898c638ae667e24',
-        'comp_xref.tsv.gz':    '913a827f3645fda1699676ae6c32b9d7a8debae97ce7b0c386d8447f4eee5aa721d31bfb856d4092b3d5e987a8f19a6fe4bd28ddf1c5df5f85e71c3625bd1d81',
-        'rxn_recipes.tsv.gz':  'dc0624f5ed7ab0b691d9a6ba02571a5cf334cfdb3109e78c98708e31574c46aeac2a97e9433788d80490ff80337679ccfd706cbb8e71a11cdc6122573bb69b0f'
-    }
+    with open(os_path.join(DATA_PATH, 'input_cache.json'), 'r') as f:
+        __input__cache_files = json_load(f)
 
     # Attributes with dependencies (other attributes + input_cache files)
-    __attributes_deps = {
-        'deprecatedCID_cid': {
-            'attr_deps': [],
-            'file_deps': ['chem_xref.tsv.gz', 'MNXM_replacement_20190524.csv']
-        },
-        'deprecatedRID_rid': {
-            'attr_deps': [],
-            'file_deps': []
-        },
-        'cid_strc': {
-            'attr_deps': ['deprecatedCID_cid'],
-            'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
-        },
-        'cid_name': {
-            'attr_deps': ['deprecatedCID_cid'],
-            'file_deps': ['compounds.tsv.gz', 'chem_prop.tsv.gz']
-        },
-        'cid_xref': {
-            'attr_deps': ['deprecatedCID_cid'],
-            'file_deps': []
-        },
-        'chebi_cid': {
-            'attr_deps': ['cid_xref'],
-            'file_deps': []
-        },
-        'rr_reactions': {
-            'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
-            'file_deps': ['retrorules_rr02_flat_all.tsv.gz']
-        },
-        'inchikey_cid': {
-            'attr_deps': ['cid_strc'],
-            'file_deps': []
-        },
-        'comp_xref': {
-            'attr_deps': [],
-            'file_deps': ['comp_xref.tsv.gz']
-        },
-        'deprecatedCompID_compid': {
-            'attr_deps': [],
-            'file_deps': ['comp_xref.tsv.gz']
-        },
-        'template_reactions': {
-            'attr_deps': ['deprecatedCID_cid', 'deprecatedRID_rid'],
-            'file_deps': ['rxn_recipes.tsv.gz']
-        },
-    }
-
+    with open(os_path.join(DATA_PATH, 'attributes_deps.json'), 'r') as f:
+        __attributes_deps = json_load(f)
     __attributes_list = list(__attributes_deps.keys())
 
     __ext = '.json.gz'
 
     # name: sha512sum
-    __cache_files = {
-        __attributes_list[0]: '72b8919a8402fba900f485394a0e2c764635313e1c4632152378b0d3cd052d64ad78c32427c0d205a9b274c4bb917082160763e1f36983cfc5e09c7621092890',
-        __attributes_list[1]: 'ee0b3f533017dc17a3a27cd7ed543f581b5e10d9a16ac02c5279b735b888a49c8fea65e911cbda77ce2a25c568ceb2d27aaa966ecb2fb84ce57bd5f2816d8778',
-        __attributes_list[2]: '38c8bc53bf6febeacd6e334002728be8f13c30a5485b1c55581e13f82728712bd28792497bdc3256d46407e253f3df03166a6a425480bcc7fa16a05130f9ddf7',
-        __attributes_list[3]: 'a61916f9438939d115ca4a6af98d609ec0f14a3f0936a4550b610225016ed64cd1ad239d10b85029144fba7921ef7dcae22495deafc6aef195ba23d8c87f0361',
-        __attributes_list[4]: 'e420a269b4204c2c232a13ea673ad4b107685a19120987578105b7bc3fc6adc3af11611c74da5e18364cf511b2b0bf0a1639e6ed53972f3bc0dc6487f270372a',
-        __attributes_list[5]: 'c05bc081af14060c3768f98089d950861ccbed5cf7e5f90f4c3440687c22de6c1eea8f724aad83bf7b5b2e0cc95231306ca85eae97d1eb40134681d4c718eb0f',
-        __attributes_list[6]: 'ae5b53c97618f5ed698982b630c9b7806c7755a679cbaa03ce09c490023499cafbd4446b57ec323d42f61056d7624dfe99e8680b1aeb5f163731016da37e1a3c',
-        __attributes_list[7]: '1f9fe3827630d1a06cbea9f10f584404957f85b13a51ae9f67e501d50911eb97d4b220a556597e70c3a441c0b51dd1b7ab1cbae22aeecd634654949b0fb647f2',
-        __attributes_list[8]: '5c4705351a6649f86e275ba3093c3e87ad68f92e4a6cd1da9832e541d42247a309438e4382104cf141e0abd6781f04e0b6d4cadedd148ceae629d1537dcce338',
-        __attributes_list[9]: '57abdc35553f5c9f9929c72cc0159c99a679131c5f683922858f32f6e391ede08e0f45f095ad55f4d6bbc209e75cc870edef01416c0252d39ff147186efb9edc',
-        __attributes_list[10]: 'c94b50573aa9103fd1c6b9d14e276d35d55f6cdab4c8d2eff5dab870907aafcd04865b3b47595d2c9458fe2e39f31844e888ef0dd0b2aa9a8c20935109199a45'
-    }
-
+    with open(os_path.join(DATA_PATH, 'cache.json'), 'r') as f:
+        __cache_files_fingerprint = json_load(f)
+        __cache_files = {}
+        for key, value in __cache_files_fingerprint.items():
+            __cache_files[__attributes_list[int(key)]] = value
 
     ## Cache constructor
-    #
-    # @param self The object pointer
     def __init__(
         self,
         attrs: List = [],
@@ -356,8 +286,8 @@ class rrCache:
         # FETCH INPUT_CACHE FILES
         url = rrCache.__cache_url
         print_start(logger, 'Downloading input cache')
-        for file in rrCache.__input__cache_files.keys():
-            rrCache._download_input_cache(url, file, input_dir)
+        for file, fingerprint in rrCache.__input__cache_files.items():
+            rrCache._download_input_cache(url, file, input_dir, fingerprint)
             print_progress(logger)
         print_end(logger)
 
@@ -745,14 +675,38 @@ class rrCache:
 
 
     @staticmethod
-    def _download_input_cache(url, file, outdir):
+    def _download_input_cache(
+        url: str,
+        file: str,
+        outdir: str,
+        fingerprint: str=None,
+        logger: Logger = getLogger(__name__)
+    ):
         if not os_path.isdir(outdir):
             os_mkdir(outdir)
         filename = os_path.join(outdir, file)
-        if not os_path.isfile(filename):
+        if (
+            not os_path.isfile(filename)
+            or not check_sha(filename, fingerprint)
+        ):
             # start_time = time_time()
             rrCache.__download_input_cache(url, file, outdir)
             # end_time = time_time()
+        if not check_sha(
+            filename,
+            fingerprint
+        ):  # sha not ok
+            logger.debug(f'\n\
+                filename: {filename}\n\
+                sha (computed): {sha512(Path(filename).read_bytes()).hexdigest()}\n\
+                sha (expected): {fingerprint}\n\
+            '
+            )
+            logger.error(f'\nUnable to download input-cache file {file} from {url}.')
+            logger.error('\nEither the URL is broken or the file content has changed.')
+            logger.error('\nExiting...\n')
+            exit()
+            raise FileCorruptedError
 
 
     @staticmethod

@@ -59,7 +59,7 @@ class rrCache:
     """
 
     # _input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
-    __cache_url       = 'https://gitlab.com/breakthewall/rrCache-data/-/raw/master/'
+    __cache_url       = 'https://gitlab.com/breakthewall/rrCache-data/-/blob/master/'
 
     # static attribues
     __convertMNXM = {

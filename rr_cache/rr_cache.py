@@ -59,7 +59,7 @@ class rrCache:
     """
 
     # _input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
-    __cache_url       = 'https://gitlab.com/breakthewall/rrCache-data/-/blob/master/'
+    __cache_url       = 'https://gitlab.com/breakthewall/rrCache-data/-/raw/master/'
 
     # static attribues
     __convertMNXM = {
@@ -392,7 +392,7 @@ class rrCache:
     def _gen_deprecatedCID_cid(
         input_dir: str,
         outdir: str,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         attribute = 'deprecatedCID_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -425,7 +425,7 @@ class rrCache:
         input_dir: str,
         outdir: str,
         deprecatedCID_cid: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
 
         attribute = 'cid_strc, cid_name'
@@ -482,7 +482,7 @@ class rrCache:
         input_dir: str,
         outdir: str,
         cid_strc: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> None:
         attribute = 'inchikey_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -511,7 +511,7 @@ class rrCache:
         input_dir: str,
         outdir: str,
         deprecatedCID_cid: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         attribute = 'cid_xref'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -548,7 +548,7 @@ class rrCache:
         input_dir: str,
         outdir: str,
         cid_xref: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         attribute = 'chebi_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -575,7 +575,7 @@ class rrCache:
     def _gen_deprecatedRID_rid(
         input_dir: str,
         outdir: str,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         attribute = 'deprecatedRID_rid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -609,7 +609,7 @@ class rrCache:
         outdir: str,
         # deprecatedCID_cid: Dict,
         # deprecatedRID_rid: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> None:
         attribute = 'rr_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -647,7 +647,7 @@ class rrCache:
     def _gen_comp_xref_deprecatedCompID_compid(
         input_dir: str,
         outdir: str,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> None:
         attribute = 'comp_xref, deprecatedCompID_compid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -687,7 +687,7 @@ class rrCache:
         outdir: str,
         # deprecatedCID_cid: Dict,
         # deprecatedRID_rid: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> None:
         attribute = 'template_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
@@ -808,7 +808,8 @@ class rrCache:
 
 
     @staticmethod
-    def _load_cache_from_file(filename):
+    def _load_cache_from_file(filename, logger: Logger = getLogger(__name__)):
+        logger.debug(filename)
         if filename.endswith('.gz') or filename.endswith('.zip'):
             fp = gzip_open(filename, 'rt', encoding='ascii')
         else:
@@ -920,7 +921,7 @@ class rrCache:
         rr_compounds_path: str,
         chem_prop_path: str,
         deprecatedCID_cid: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Tuple[Dict, Dict]:
 
         cid_strc = {}
@@ -1018,7 +1019,7 @@ class rrCache:
     def _m_mnxm_xref(
         chem_xref_path: str,
         deprecatedCID_cid: Dict,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         cid_xref = {}
         with gzip_open(chem_xref_path, 'rt') as f:
@@ -1061,7 +1062,7 @@ class rrCache:
     @staticmethod
     def _m_mnxc_xref(
         comp_xref_path,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Tuple[Dict, Dict]:
         comp_xref = {}
         deprecatedCompID_compid = {}
@@ -1120,7 +1121,7 @@ class rrCache:
         rules_rall_path: str,
         # deprecatedCID_cid,
         # deprecatedRID_rid,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
         rr_reactions = {}
 
@@ -1186,7 +1187,7 @@ class rrCache:
         rxn_recipes_path: str,
         # deprecatedCID_cid,
         # deprecatedRID_rid,
-        logger=getLogger(__name__)
+        logger: Logger = getLogger(__name__)
     ) -> Dict:
 
         if not os_path.exists(rxn_recipes_path):

@@ -1,0 +1,10 @@
+{
+    "MNXM2": {
+        "formula": "H2O",
+        "smiles": "O",
+        "inchi": "InChI=1S/H2O/h1H2",
+        "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+        "cid": "MNXM2",
+        "name": "H2O"
+    }
+}

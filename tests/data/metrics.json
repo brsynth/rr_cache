@@ -1,0 +1,46 @@
+{
+    "chebi_cid": {
+        "length": 123835,
+        "file_size": 2786801
+    },
+    "cid_name": {
+        "length": 691481,
+        "file_size": 55787548
+    },
+    "cid_strc": {
+        "length": 655684,
+        "file_size": 296896910
+    },
+    "cid_xref": {
+        "length": 691494,
+        "file_size": 88383985
+    },
+    "comp_xref": {
+        "length": 40,
+        "file_size": 51059
+    },
+    "deprecatedCID_cid": {
+        "length": 16267,
+        "file_size": 423443
+    },
+    "deprecatedCompID_compid": {
+        "length": 4370,
+        "file_size": 89832
+    },
+    "deprecatedRID_rid": {
+        "length": 53413,
+        "file_size": 1437122
+    },
+    "inchikey_cid": {
+        "length": 332146,
+        "file_size": 20071352
+    },
+    "template_reactions": {
+        "length": 93329,
+        "file_size": 7643885
+    },
+    "rr_reactions": {
+        "length": 229862,
+        "file_size": 84656878
+    }
+}

@@ -50,6 +50,7 @@ from typing import (
 HERE = os_path.dirname(os_path.abspath( __file__ ))
 DATA_PATH = os_path.join(HERE, 'data')
 
+
 class FileCorruptedError(Exception):
     pass
 

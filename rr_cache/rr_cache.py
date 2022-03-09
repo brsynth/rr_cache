@@ -3,6 +3,7 @@ from os import (
     mkdir as os_mkdir,
     makedirs
 )
+from tempfile import NamedTemporaryFile
 from rdkit.Chem import (
     MolFromSmiles,
     MolFromInchi,
@@ -59,8 +60,7 @@ class rrCache:
 
     """
 
-    # _input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
-    __cache_url = 'https://gitlab.com/breakthewall/rrCache-data/-/raw/master/'
+    # __input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
 
     # static attribues
     with open(os_path.join(DATA_PATH, 'convert.json'), 'r') as f:
@@ -68,21 +68,12 @@ class rrCache:
 
     # name: sha512sum
     with open(os_path.join(DATA_PATH, 'input_cache.json'), 'r') as f:
-        __input__cache_files = json_load(f)
+        __input__cache = json_load(f)
 
     # Attributes with dependencies (other attributes + input_cache files)
-    with open(os_path.join(DATA_PATH, 'attributes_deps.json'), 'r') as f:
-        __attributes_deps = json_load(f)
-    __attributes_list = list(__attributes_deps.keys())
-
-    __ext = '.json.gz'
-
-    # name: sha512sum
     with open(os_path.join(DATA_PATH, 'cache.json'), 'r') as f:
-        __cache_files_fingerprint = json_load(f)
-        __cache_files = {}
-        for key, value in __cache_files_fingerprint.items():
-            __cache_files[__attributes_list[int(key)]] = value
+        __cache = json_load(f)
+    __attributes_list = list(__cache.keys())
 
     ## Cache constructor
     def __init__(
@@ -139,32 +130,33 @@ class rrCache:
     @staticmethod
     def _check_or_download_cache_to_disk(
         cache_dir: str,
-        attributes: List,
+        attributes_list: Dict,
         logger: Logger = getLogger(__name__)
     ) -> None:
         logger.debug('cache_dir: '+str(cache_dir))
-        logger.debug('attributes: '+str(attributes))
+        logger.debug('attributes: '+str(attributes_list))
 
         print_start(logger, 'Downloading cache')
 
-        for attr in attributes:
+        for attr in attributes_list:
             print_progress()
-            filename = attr+rrCache.__ext
+            filename = rrCache.__cache[attr]['file']['name']
             full_filename = os_path.join(cache_dir, filename)
 
             try:
                 if os_path.exists(full_filename):
+                    fingerprint = rrCache.__cache[attr]['file']['fingerprint']
                     if check_sha(
                         full_filename,
-                        rrCache.__cache_files[attr]
+                        fingerprint
                     ):
                         logger.debug(filename+" already downloaded")
                     else:  # sha not ok
                         logger.debug(
                             '\nfilename: ' + filename
                         + '\nlocation: ' + cache_dir
-                        + '\nsha (computed): ' + sha512(Path(filename).read_bytes()).hexdigest()
-                        + '\nsha (expected): ' + rrCache.__cache_files[attr]
+                        + '\nsha (computed): ' + sha512(Path(full_filename).read_bytes()).hexdigest()
+                        + '\nsha (expected): ' + fingerprint
                         )
                         raise FileNotFoundError
                 else:
@@ -176,19 +168,21 @@ class rrCache:
                 if not os_path.isdir(cache_dir):
                     os_mkdir(cache_dir)
                 download(
-                    rrCache.__cache_url+filename,
+                    rrCache.__cache[attr]['file']['url']+filename,
                     full_filename
                 )
-                rrCache.__cache_files[attr] = True
+                # rrCache.__cache[attr] = True
                 # end_time = time_time()
 
         print_end(logger)
 
     def get(self, attr: str):
+        self.logger.debug(f'Getting attribute: {attr}')
         try:
             return getattr(self, '__'+attr)
         except Exception as e:
             self.logger.error(str(e))
+            return None
 
     def __hasattr(self, attr: str):
         return hasattr(self, '__'+attr)
@@ -259,9 +253,6 @@ class rrCache:
             # self.expression = expression
             self.message = message
 
-    # url = 'https://www.metanetx.org/cgi-bin/mnxget/mnxref/'
-    # url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
-
     @staticmethod
     def generate_cache(
         outdir: str = None,
@@ -284,11 +275,16 @@ class rrCache:
             makedirs(input_dir)
 
         # FETCH INPUT_CACHE FILES
-        url = rrCache.__cache_url
         print_start(logger, 'Downloading input cache')
-        for file, fingerprint in rrCache.__input__cache_files.items():
-            rrCache._download_input_cache(url, file, input_dir, fingerprint)
-            print_progress(logger)
+        for input_type, input in rrCache.__input__cache.items():
+            for filename, fingerprint in input['files'].items():
+                rrCache._download_input_cache(
+                    url=input['url'],
+                    file=filename,
+                    outdir=input_dir,
+                    fingerprint=fingerprint,
+                    logger=logger
+                )
         print_end(logger)
 
         # GENERATE CACHE FILES AND STORE THEM TO DISK
@@ -311,7 +307,7 @@ class rrCache:
         print_progress(logger)
         rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir, logger)
         print_progress(logger)
-        rrCache._gen_template_reactions(input_dir, outdir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_template_reactions(input_dir, outdir, deprecatedRID_rid, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
         print_progress(logger)
@@ -327,19 +323,19 @@ class rrCache:
         attribute = 'deprecatedCID_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedCID_cid = None
-        f_deprecatedCID_cid = os_path.join(outdir, attribute)+rrCache.__ext
+        f_deprecatedCID_cid = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_deprecatedCID_cid) and check_sha(
             f_deprecatedCID_cid,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache[attribute]
         ):
             deprecatedCID_cid = rrCache._load_cache_from_file(f_deprecatedCID_cid)
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")
             deprecatedCID_cid = rrCache._m_deprecatedMNXM(
-                os_path.join(input_dir, 'chem_xref.tsv.gz')
+                os_path.join(input_dir, 'chem_xref.tsv')
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid)
@@ -362,16 +358,16 @@ class rrCache:
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_strc = None
         cid_name = None
-        f_cid_strc = os_path.join(outdir, 'cid_strc')+rrCache.__ext
-        f_cid_name = os_path.join(outdir, 'cid_name')+rrCache.__ext
+        f_cid_strc = os_path.join(outdir, rrCache.__cache['cid_strc']['file']['name'])
+        f_cid_name = os_path.join(outdir, rrCache.__cache['cid_name']['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_cid_strc) and check_sha(
             f_cid_strc,
-            rrCache.__cache_files['cid_strc']
+            rrCache.__cache['cid_strc']
         ) and os_path.exists(f_cid_name) and check_sha(
             f_cid_name,
-            rrCache.__cache_files['cid_name']
+            rrCache.__cache['cid_name']
         ):
             cid_strc = rrCache._load_cache_from_file(f_cid_strc)
             logger.debug("   Cache file already exists")
@@ -383,7 +379,7 @@ class rrCache:
             logger.debug("   Generating data...")
             cid_strc, cid_name = rrCache._m_mnxm_strc(
                 os_path.join(input_dir, 'compounds.tsv.gz'),
-                os_path.join(input_dir, 'chem_prop.tsv.gz'),
+                os_path.join(input_dir, 'chem_prop.tsv'),
                 deprecatedCID_cid['attr']
             )
             # Replace compound IDs that have no structure with one that has.
@@ -417,12 +413,12 @@ class rrCache:
         attribute = 'inchikey_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         inchikey_cid = None
-        f_inchikey_cid = os_path.join(outdir, attribute)+rrCache.__ext
+        f_inchikey_cid = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_inchikey_cid) and check_sha(
             f_inchikey_cid,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache[attribute]
         ):
             logger.debug("   Cache file already exists")
         else:
@@ -446,12 +442,12 @@ class rrCache:
         attribute = 'cid_xref'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_xref = None
-        f_cid_xref = os_path.join(outdir, attribute)+rrCache.__ext
+        f_cid_xref = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_cid_xref) and check_sha(
             f_cid_xref,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache[attribute]
         ):
             cid_xref = rrCache._load_cache_from_file(f_cid_xref)
             logger.debug("   Cache file already exists")
@@ -461,7 +457,7 @@ class rrCache:
                 deprecatedCID_cid['attr'] = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
             logger.debug("   Generating data...")
             cid_xref = rrCache._m_mnxm_xref(
-                os_path.join(input_dir, 'chem_xref.tsv.gz'),
+                os_path.join(input_dir, 'chem_xref.tsv'),
                 deprecatedCID_cid['attr']
             )
             logger.debug("   Writing data to file...")
@@ -483,12 +479,12 @@ class rrCache:
         attribute = 'chebi_cid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         chebi_cid = None
-        f_chebi_cid = os_path.join(outdir, attribute)+rrCache.__ext
+        f_chebi_cid = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_chebi_cid) and check_sha(
             f_chebi_cid,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache[attribute]
         ):
             logger.debug("   Cache file already exists")
         else:
@@ -510,19 +506,19 @@ class rrCache:
         attribute = 'deprecatedRID_rid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         deprecatedRID_rid = None
-        f_deprecatedRID_rid = os_path.join(outdir, attribute)+rrCache.__ext
+        f_deprecatedRID_rid = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_deprecatedRID_rid) and check_sha(
             f_deprecatedRID_rid,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache[attribute]
         ):
             deprecatedRID_rid = rrCache._load_cache_from_file(f_deprecatedRID_rid)
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")
             deprecatedRID_rid = rrCache._m_deprecatedMNXR(
-                os_path.join(input_dir, 'reac_xref.tsv.gz')
+                os_path.join(input_dir, 'reac_xref.tsv')
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(deprecatedRID_rid, f_deprecatedRID_rid)
@@ -544,12 +540,12 @@ class rrCache:
         attribute = 'rr_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         rr_reactions = None
-        f_rr_reactions = os_path.join(outdir, attribute)+rrCache.__ext
+        f_rr_reactions = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_rr_reactions) and check_sha(
             f_rr_reactions,
-            rrCache.__cache_files[attribute]
+            rrCache.__cache[attribute]
         ):
             logger.debug("   Cache file already exists")
         else:
@@ -582,23 +578,23 @@ class rrCache:
         attribute = 'comp_xref, deprecatedCompID_compid'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         comp_xref = deprecatedCompID_compid = None
-        f_comp_xref = os_path.join(outdir, 'comp_xref')+rrCache.__ext
-        f_deprecatedCompID_compid = os_path.join(outdir, 'deprecatedCompID_compid')+rrCache.__ext
+        f_comp_xref = os_path.join(outdir, rrCache.__cache['comp_xref']['file']['name'])
+        f_deprecatedCompID_compid = os_path.join(outdir, rrCache.__cache['deprecatedCompID_compid']['file']['name'])
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_comp_xref) and check_sha(
             f_comp_xref,
-            rrCache.__cache_files['comp_xref']
+            rrCache.__cache['comp_xref']
         ) and os_path.exists(f_deprecatedCompID_compid) and check_sha(
             f_deprecatedCompID_compid,
-            rrCache.__cache_files['deprecatedCompID_compid']
+            rrCache.__cache['deprecatedCompID_compid']
         ):
             logger.debug("   Cache files already exist")
             # print_OK()
         else:
             logger.debug("   Generating data...")
             comp_xref, deprecatedCompID_compid = rrCache._m_mnxc_xref(
-                os_path.join(input_dir, 'comp_xref.tsv.gz')
+                os_path.join(input_dir, 'comp_xref.tsv')
             )
             # print_OK()
             logger.debug("   Writing data to file...")
@@ -615,45 +611,40 @@ class rrCache:
     def _gen_template_reactions(
         input_dir: str,
         outdir: str,
-        # deprecatedCID_cid: Dict,
-        # deprecatedRID_rid: Dict,
+        deprecatedRID_rid: Dict,
         logger: Logger = getLogger(__name__)
     ) -> None:
         attribute = 'template_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         template_reactions = None
-        f_template_reactions = os_path.join(outdir, attribute)+rrCache.__ext
+        f_template_reactions = os_path.join(outdir, rrCache.__cache[attribute]['file']['name'])
 
-        if os_path.exists(f_template_reactions) and check_sha(
-            f_template_reactions,
-            rrCache.__cache_files[attribute]
-        ):
-            logger.debug("   Cache file already exists")
-        else:
-            logger.debug("   Generating data...")
-            # if not deprecatedCID_cid['attr']:
-            #     logger.debug("   Loading input data from file...")
-            #     deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
-            # if not deprecatedRID_rid:
-            #     logger.debug("   Loading input data from file...")
-            #     deprecatedRID_rid = rrCache._load_cache_from_file(deprecatedRID_rid['file'])
-            template_reactions = rrCache._m_template_reactions(
-                os_path.join(input_dir, 'rxn_recipes.tsv.gz'),
-                # deprecatedCID_cid['attr'],
-                # deprecatedRID_rid['attr']
-            )
-            logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(template_reactions, f_template_reactions)
-            del template_reactions
-
-
-    def _load_from_file(self, attribute):
-        filename = attribute+rrCache.__ext
-        self.logger.debug("Loading "+filename+"...")
-        data = self._load_cache_from_file(
-            os_path.join(self.__cache_dir, filename)
+        # if os_path.exists(f_template_reactions) and check_sha(
+        #     f_template_reactions,
+        #     rrCache.__cache[attribute]
+        # ):
+        #     logger.debug("   Cache file already exists")
+        # else:
+        logger.debug("   Generating data...")
+        template_reactions = rrCache._m_template_reactions(
+            os_path.join(input_dir, 'rxn_recipes.tsv.gz')
         )
-        return data
+        for depRID, newRID in deprecatedRID_rid['attr'].items():
+            try:
+                template_reactions[depRID] = template_reactions[newRID]
+            except KeyError as key:
+                logger.warning(f'Reaction ID {key} not found in rxn_recipes.tsv.gz')
+        logger.debug("   Writing data to file...")
+        rrCache._store_cache_to_file(template_reactions, f_template_reactions)
+        del template_reactions
+
+
+    # def _load_from_file(self, filename):
+    #     self.logger.debug("Loading "+filename+"...")
+    #     data = self._load_cache_from_file(
+    #         os_path.join(self.__cache_dir, filename)
+    #     )
+    #     return data
 
 
     def _check_or_load_cache(self):
@@ -663,10 +654,13 @@ class rrCache:
     def _check_or_load_cache_in_memory(self):
         print_start(self.logger, 'Loading cache in memory')
         for attribute in self.__attributes_list:
+            filename = rrCache.__cache[attribute]['file']['name']
             if self.get(attribute) is None:
                 self.set(
                     attribute,
-                    self._load_from_file(attribute)
+                    self._load_cache_from_file(
+                        os_path.join(self.__cache_dir, filename)
+                    )
                 )
                 print_progress(self.logger)
             else:
@@ -691,6 +685,7 @@ class rrCache:
         ):
             # start_time = time_time()
             rrCache.__download_input_cache(url, file, outdir)
+            print_progress(logger)
             # end_time = time_time()
         if not check_sha(
             filename,
@@ -702,7 +697,7 @@ class rrCache:
                 sha (expected): {fingerprint}\n\
             '
             )
-            logger.error(f'\nUnable to download input-cache file {file} from {url}.')
+            logger.error(f'\nUnable to download input-cache file {file}.')
             logger.error('\nEither the URL is broken or the file content has changed.')
             logger.error('\nExiting...\n')
             exit()
@@ -710,43 +705,18 @@ class rrCache:
 
 
     @staticmethod
-    def __download_input_cache(url, file, outdir):
+    def __download_input_cache(
+        url: str,
+        file: str,
+        outdir: str,
+        logger: Logger = getLogger(__name__)
+    ):
 
         if not os_path.isdir(outdir):
             os_mkdir(outdir)
 
-        if file in [
-            'reac_xref.tsv.gz',
-            'chem_xref.tsv.gz',
-            'chem_prop.tsv.gz',
-            'comp_xref.tsv.gz'
-        ]:
-            download(
-                url+'metanetx/'+file,
-                os_path.join(outdir, file)
-            )
-
-        elif file in [
-            'compounds.tsv.gz',
-            'rxn_recipes.tsv.gz'
-        ]:
-            download(
-                url+'rr02_more_data/'+file,
-                os_path.join(outdir, file)
-            )
-
-        elif file == 'retrorules_rr02_flat_all.tsv.gz':
-            download(
-                url+'retrorules_rr02_rp3_hs/'+file,
-                os_path.join(outdir, file)
-            )
-
-        else:
-            download(
-                url+file,
-                os_path.join(outdir, file)
-            )
-
+        logger.debug(f'Downloading {file} from {url}')
+        download(url+file, os_path.join(outdir, file))
 
     ##########################################################
     ################## Private Functions #####################
@@ -827,7 +797,7 @@ class rrCache:
     @staticmethod
     def _deprecatedMNX(xref_path):
         deprecatedMNX_mnx = {}
-        with gzip_open(xref_path, 'rt') as f:
+        with open(xref_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
                 if not row[0][0] == '#':
@@ -899,7 +869,7 @@ class rrCache:
                 logger.warning(e)
             cid_strc[tmp['cid']] = tmp
 
-        with gzip_open(chem_prop_path, 'rt') as f:
+        with open(chem_prop_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
                 if not row[0][0] == '#':
@@ -976,7 +946,7 @@ class rrCache:
         logger: Logger = getLogger(__name__)
     ) -> Dict:
         cid_xref = {}
-        with gzip_open(chem_xref_path, 'rt') as f:
+        with open(chem_xref_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
                 if not row[0][0] == '#':
@@ -1025,7 +995,7 @@ class rrCache:
             logger.error('Could not read the file {filename}'.format(filename=comp_xref_path))
             return None
 
-        with gzip_open(comp_xref_path, 'rt') as f:
+        with open(comp_xref_path, 'rt') as f:
             c = csv_reader(f, delimiter='\t')
             # not_recognised = []
             for row in c:
@@ -1129,7 +1099,7 @@ class rrCache:
     #
     #  These are the compplete reactions from which the reaction rules are generated from. This is used to
     #  reconstruct the full reactions from monocomponent reactions
-    #  Structur of the return: template_reactions['MNXR142257'] = {'left': {'MNXM4660': 1}, 'right': {'MNXM97172': 1}, 'direction': 0, 'main_left': ['MNXM4660'], 'main_right': ['MNXM97172']}
+    #  Structure of the return: template_reactions['MNXR142257'] = {'left': {'MNXM4660': 1}, 'right': {'MNXM97172': 1}, 'direction': 0, 'main_left': ['MNXM4660'], 'main_right': ['MNXM97172']}
     #
     #  @param self The pointer object
     #  @param rxn_recipes_path Path to the recipes file
@@ -1139,8 +1109,6 @@ class rrCache:
     @staticmethod
     def _m_template_reactions(
         rxn_recipes_path: str,
-        # deprecatedCID_cid,
-        # deprecatedRID_rid,
         logger: Logger = getLogger(__name__)
     ) -> Dict:
 
@@ -1238,7 +1206,7 @@ class rrCache:
                     # 2) try to convert to int if its not
                     try:
                         # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = int(spe[0])
-                        rxn[side][spe[1]] = int(spe[0])
+                        rxn[side][spe[1]] = float(spe[0])
                     except ValueError:
                         ter = StreamHandler.terminator
                         StreamHandler.terminator = "\n"

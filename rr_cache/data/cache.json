@@ -117,7 +117,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
             "name": "template_reactions.json.gz",
-            "fingerprint": "0b0994cb27a9347d43d2f460723774272f00b3bc4d12ffe60b2ac462e948a88e900e437cf88c39d28e29361e03a6cf93854e0741a97a3cd71c67507aaf90b2e6DEBUG"
+            "fingerprint": "65a04f098c94759347d1aa099ddfc960adaea226cb7c67372de9cf3f9f3f5a5173ce3fe0aee7ae7cc022ba7a729b6d781ef367808b2ee53bdb0a4c88de7dd97a"
         }
     }
 }

@@ -54,6 +54,7 @@ DATA_PATH = os_path.join(HERE, 'data')
 class FileCorruptedError(Exception):
     pass
 
+
 class rrCache:
     """Class to generate the cache
 

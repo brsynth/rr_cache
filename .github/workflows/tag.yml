@@ -7,6 +7,7 @@ on:
       - stable
     paths:
       - '**.py'
+      - 'rr_cache/data/**'
       - '!tests/**'
 
 

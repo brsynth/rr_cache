@@ -81,7 +81,7 @@ class rrCache:
     def __init__(
         self,
         attrs: List = [],
-        cache_dir: str = None,
+        cache_dir: str = '',
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
 
@@ -90,7 +90,7 @@ class rrCache:
         self.logger.debug('New instance of rrCache')
 
         self.dirname = os_path.dirname(os_path.abspath(__file__))
-        if cache_dir is None:
+        if cache_dir == '':
             self.__cache_dir = os_path.join(self.dirname, 'cache')
         else:
             self.__cache_dir = cache_dir

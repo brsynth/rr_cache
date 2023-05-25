@@ -1,8 +1,11 @@
 from argparse  import ArgumentParser
-from typing import (
-    Callable,
-)
+from typing import Callable
+from os import path as os_path
+
 from brs_utils import add_logger_args
+
+
+here = os_path.dirname(os_path.realpath(__file__))
 
 
 def build_args_parser(
@@ -61,7 +64,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
     parser.add_argument(
         '--cache-dir',
-        default=None,
+        default=here,
         type=str,
         help='Path to the cache to generate or read from'
     )

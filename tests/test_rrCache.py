@@ -5,7 +5,7 @@ Created on Jul 15 2020
 """
 
 # import logging
-from unittest  import TestCase
+from unittest import TestCase
 from os import (
     remove as os_rm,
     path as os_path
@@ -19,8 +19,9 @@ from brs_utils import (
     check_file_size
 )
 
-HERE = os_path.dirname(os_path.abspath( __file__ ))
+HERE = os_path.dirname(os_path.abspath(__file__))
 DATA_PATH = os_path.join(HERE, 'data')
+
 
 class Test_rrCache(TestCase):
 
@@ -135,4 +136,3 @@ class Test_rrCache(TestCase):
             len(cache.get_list_of_reaction_rules()),
             self.metrics['rr_reactions']['length']
         )
-

@@ -33,6 +33,11 @@ from logging import (
     getLogger,
     StreamHandler
 )
+from typing import (
+    List,
+    Tuple,
+    Dict
+)
 from brs_utils  import (
     print_start,
     print_progress,
@@ -40,11 +45,8 @@ from brs_utils  import (
     download,
     check_sha
 )
-from typing import (
-    List,
-    Tuple,
-    Dict
-)
+
+from .Args import DEFAULTS
 
 
 HERE = os_path.dirname(os_path.abspath( __file__ ))
@@ -80,25 +82,31 @@ class rrCache:
     ## Cache constructor
     def __init__(
         self,
-        attrs: List = [],
-        cache_dir: str = '',
+        attrs: List = DEFAULTS['attrs'],
+        cache_dir: str = DEFAULTS['cache_dir'],
+        mnx_version: str = DEFAULTS['mnx_version'],
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
 
         self.logger = logger
-
         self.logger.debug('New instance of rrCache')
+        self.logger.debug('attrs: '+str(attrs))
+        self.logger.debug('cache_dir: '+str(cache_dir))
+        self.logger.debug('mnx_version: '+str(mnx_version))
 
-        self.dirname = os_path.dirname(os_path.abspath(__file__))
-        if cache_dir == '':
-            self.__cache_dir = os_path.join(self.dirname, 'cache')
+        self.__mnx_version = mnx_version
+        if cache_dir == DEFAULTS['cache_dir']:
+            self.__cache_dir = os_path.join(
+                HERE,
+                'cache',
+                f'mnx_{self.__mnx_version}'
+            )
         else:
             self.__cache_dir = cache_dir
-
         self.load(attrs)
 
 
-    def load(self, attrs: List = []):
+    def load(self, attrs: List = DEFAULTS['attrs']):
 
         if attrs is None:
             return
@@ -257,59 +265,69 @@ class rrCache:
 
     @staticmethod
     def generate_cache(
-        outdir: str = None,
+        outdir: str = DEFAULTS['cache_dir'],
+        mnx_version: str = DEFAULTS['mnx_version'],
         logger: Logger = getLogger(__name__)
     ) -> None:
 
-        if outdir is None:
-            outdir = os_path.dirname(os_path.abspath(__file__))
-        input_dir = os_path.join(
+        if outdir is DEFAULTS['cache_dir']:
+            outdir = HERE
+        input_cache_dir = os_path.join(
             outdir,
-            'input-cache'
+            'input-cache',
+            f'mnx_{mnx_version}'
         )
-        outdir = os_path.join(
+        cache_dir = os_path.join(
             outdir,
-            'cache'
+            'cache',
+            f'mnx_{mnx_version}'
         )
-        if not os_path.isdir(outdir):
-            makedirs(outdir)
-        if not os_path.isdir(input_dir):
-            makedirs(input_dir)
+        if not os_path.isdir(cache_dir):
+            makedirs(cache_dir)
+        if not os_path.isdir(input_cache_dir):
+            makedirs(input_cache_dir)
 
         # FETCH INPUT_CACHE FILES
         print_start(logger, 'Downloading input cache')
         for input_type, input in rrCache.__input__cache.items():
-            for filename, fingerprint in input['files'].items():
-                rrCache._download_input_cache(
-                    url=input['url'],
-                    file=filename,
-                    outdir=input_dir,
-                    fingerprint=fingerprint,
-                    logger=logger
-                )
+            # ignore MNX versions other that specified
+            if input_type.startswith('mnx_') and \
+            input_type != f'mnx_{mnx_version}':
+                pass
+            else:
+                logger.debug(f'Downloading {input_type}...')
+                for filename, fingerprint in input['files'].items():
+                    rrCache._download_input_cache(
+                        url=input['url'],
+                        file=filename,
+                        outdir=input_cache_dir,
+                        fingerprint=fingerprint,
+                        logger=logger
+                    )
+
         print_end(logger)
 
         # GENERATE CACHE FILES AND STORE THEM TO DISK
         print_start(logger, 'Generating cache')
-        deprecatedCID_cid  = rrCache._gen_deprecatedCID_cid(input_dir, outdir, logger)
+        deprecatedCID_cid  = rrCache._gen_deprecatedCID_cid(input_cache_dir, cache_dir, logger)
         print_progress(logger)
-        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_dir, outdir, deprecatedCID_cid, logger)
+        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
         print_progress(logger)
-        rrCache._gen_inchikey_cid(input_dir, outdir, cid_strc, logger)
+        rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
         print_progress(logger)
         del cid_strc, cid_name
-        cid_xref           = rrCache._gen_cid_xref(input_dir, outdir, deprecatedCID_cid, logger)
+        cid_xref           = rrCache._gen_cid_xref(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
         print_progress(logger)
-        rrCache._gen_chebi_cid(input_dir, outdir, cid_xref)
+        rrCache._gen_chebi_cid(input_cache_dir, cache_dir, cid_xref)
         print_progress(logger)
         del cid_xref
-        deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_dir, outdir, logger)
+        deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_cache_dir, cache_dir, logger)
         print_progress(logger)
-        rrCache._gen_rr_reactions(input_dir, outdir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_rr_reactions(input_cache_dir, cache_dir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
-        rrCache._gen_comp_xref_deprecatedCompID_compid(input_dir, outdir, logger)
+        rrCache._gen_comp_xref_deprecatedCompID_compid(input_cache_dir, cache_dir, logger)
         print_progress(logger)
-        rrCache._gen_template_reactions(input_dir, outdir, deprecatedRID_rid, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_template_reactions(input_cache_dir, cache_dir, deprecatedRID_rid, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
         print_progress(logger)
@@ -616,6 +634,9 @@ class rrCache:
         deprecatedRID_rid: Dict,
         logger: Logger = getLogger(__name__)
     ) -> None:
+        logger.debug('Generating template_reactions')
+        logger.debug('input_dir: '+str(input_dir))
+        logger.debug('outdir: '+str(outdir))
         attribute = 'template_reactions'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         template_reactions = None
@@ -1213,10 +1234,7 @@ class rrCache:
                         ter = StreamHandler.terminator
                         StreamHandler.terminator = "\n"
                         logger.warning(
-                            'Cannot convert stoichio coeff {coeff} in {rxn_id}'.format(
-                                coeff=spe[0],
-                                rxn_id=rxn_id
-                            )
+                            f'Cannot convert stoichio coeff {spe[0]} in {rxn_id}'
                         )
                         StreamHandler.terminator = ter
                         # Stop parsing this equation and pass the next
@@ -1228,21 +1246,23 @@ class rrCache:
         }
 
 
-    ######################## Generic functions ###############################
+    # ------------ GENERIC FUNCTIONS ------------ #
 
-    ## Convert chemical depiction to others type of depictions
+    # Convert chemical depiction to others type of depictions
     #
     # Usage example:
     # - convert_depiction(idepic='CCO', otype={'inchi', 'smiles', 'inchikey'})
-    # - convert_depiction(idepic='InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3', itype='inchi', otype={'inchi', 'smiles', 'inchikey'})
+    # - convert_depiction(
+    #       idepic='InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3',
+    #       itype='inchi',
+    #       otype={'inchi', 'smiles', 'inchikey'}
+    #   )
     #
     #  @param self The object pointer
     #  @param idepic String depiction to be converted, str
     #  @param itype type of depiction provided as input, str
     #  @param otype types of depiction to be generated, {"", "", ..}
     #  @return odepic generated depictions, {"otype1": "odepic1", ..}
-
-
     @staticmethod
     def _convert_depiction(idepic, itype='smiles', otype={'inchikey'}):
         # Import (if needed)
@@ -1251,34 +1271,39 @@ class rrCache:
         elif itype == 'inchi':
             rdmol = MolFromInchi(idepic, sanitize=True)
         else:
-            raise NotImplementedError('"{}" is not a valid input type'.format(itype))
+            raise NotImplementedError(
+                f'"{itype}" is not a valid input type'
+            )
         if rdmol is None:  # Check imprt
-            raise rrCache.DepictionError('Import error from depiction "{}" of type "{}"'.format(idepic, itype))
+            raise rrCache.DepictionError(
+                f'Import error from depiction "{idepic}" of type "{itype}"'
+            )
         # Export
         odepic = dict()
         for item in otype:
             if item == 'smiles':
-                odepic[item] = MolToSmiles(rdmol)  # MolToSmiles is tricky, one mays want to check the possible options..
+                # MolToSmiles is tricky, one mays want to check the possible options..
+                odepic[item] = MolToSmiles(rdmol)
             elif item == 'inchi':
                 odepic[item] = MolToInchi(rdmol)
             elif item == 'inchikey':
                 odepic[item] = MolToInchiKey(rdmol)
             else:
-                raise NotImplementedError('"{}" is not a valid output type'.format(otype))
+                raise NotImplementedError(f'"{otype}" is not a valid output type')
         return odepic
 
 
-    ## Function to parse the chem_xref.tsv file of MetanetX
+    # Function to parse the chem_xref.tsv file of MetanetX
     #
-    #  Generate a dictionnary of all cross references for a given chemical id (MNX) to other database id's
+    #  Generate a dictionnary of all cross references
+    #  for a given chemical id (MNX) to other database id's
     #  Structure if the return: chebi_cid['88281']: 'MXM2323'
     #
     #  @param self Object pointer
     #  @param chem_xref_path Input file path
     #  @return a The dictionnary of identifiers
-    # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
-
-
+    # TODO: save the self.deprecatedCID_cid to be used in case
+    #       there rp_paths uses an old version of MNX
     @staticmethod
     def _m_chebi_cid(cid_xref):
         chebi_cid = {}
@@ -1288,16 +1313,18 @@ class rrCache:
                     chebi_cid[c] = cid
         return chebi_cid
 
-    ## Function to build the dictionnary to find the chemical id from inchikey
+    # Function to build the dictionnary to find the chemical id from inchikey
     #
-    # @param cid_strc Dictionnary of chemical ID's to all the structure information associated with it
+    # @param cid_strc Dictionnary of chemical ID's to
+    #        all the structure information associated with it
     # @return Dictionnary of InChIKey to chemical ID
     @staticmethod
     def _m_inchikey_cid(cid_strc):
         inchikey_cid = {}
         for cid in cid_strc:
             inchikey = cid_strc[cid]['inchikey']
-            # This line is needed to put a value in 'inchikey', otherwise there are some problems in future strucutres
+            # This line is needed to put a value in 'inchikey',
+            # otherwise there are some problems in future strucutres
             if not inchikey:
                 inchikey = 'NO_INCHIKEY'
             if inchikey not in inchikey_cid:

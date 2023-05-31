@@ -77,11 +77,16 @@ def entry_point():
     cache = rrCache(
         attrs=None,
         cache_dir=args.cache_dir,
+        mnx_version=args.mnx_version,
         logger=logger
     )
 
     if args.gen_cache:
-        rrCache.generate_cache(args.cache_dir, logger)
+        rrCache.generate_cache(
+            args.cache_dir,
+            args.mnx_version,
+            logger
+        )
     elif args.reaction_rules is not None:
         print_attr(
             cache,

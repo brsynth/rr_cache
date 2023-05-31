@@ -5,8 +5,11 @@ from os import path as os_path
 from brs_utils import add_logger_args
 
 
-here = os_path.dirname(os_path.realpath(__file__))
-
+DEFAULTS = {
+    'mnx_version': '4.4',
+    'cache_dir': '',
+    'attrs': []
+}
 
 def build_args_parser(
     prog: str,
@@ -36,6 +39,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser = add_logger_args(parser)
 
     parser.add_argument(
+        '--mnx-version',
+        default=DEFAULTS['mnx_version'],
+        type=str,
+        help='Version of MetanetX to use'
+    )
+    parser.add_argument(
         '--gen-cache',
         default=None,
         action='store_true',
@@ -64,7 +73,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
     parser.add_argument(
         '--cache-dir',
-        default=here,
+        default=DEFAULTS['cache_dir'],
         type=str,
         help='Path to the cache to generate or read from'
     )
@@ -78,7 +87,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             'comp_xref',
             'all'
         ],
-        default=[],
+        default=DEFAULTS['attrs'],
         nargs='+',
         help='Name(s) of attributes to load, all if not given (default).'
     )

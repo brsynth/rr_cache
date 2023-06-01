@@ -1,26 +1,4 @@
 {
-    "deprecatedCID_cid": {
-        "deps": {
-            "attr_deps": [],
-            "file_deps": ["chem_xref.tsv.gz", "MNXM_replacement_20190524.csv"]
-        },
-        "file": {
-            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
-            "name": "deprecatedCID_cid.json.gz",
-            "fingerprint": "72b8919a8402fba900f485394a0e2c764635313e1c4632152378b0d3cd052d64ad78c32427c0d205a9b274c4bb917082160763e1f36983cfc5e09c7621092890"
-        }
-    },
-    "deprecatedRID_rid": {
-        "deps": {
-            "attr_deps": [],
-            "file_deps": []
-        },
-        "file": {
-            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
-            "name": "deprecatedRID_rid.json.gz",
-            "fingerprint": "ee0b3f533017dc17a3a27cd7ed543f581b5e10d9a16ac02c5279b735b888a49c8fea65e911cbda77ce2a25c568ceb2d27aaa966ecb2fb84ce57bd5f2816d8778"
-        }
-    },
     "cid_strc": {
         "deps": {
             "attr_deps": ["deprecatedCID_cid"],
@@ -96,6 +74,28 @@
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
             "name": "comp_xref.json.gz",
             "fingerprint": "5c4705351a6649f86e275ba3093c3e87ad68f92e4a6cd1da9832e541d42247a309438e4382104cf141e0abd6781f04e0b6d4cadedd148ceae629d1537dcce338"
+        }
+    },
+    "deprecatedCID_cid": {
+        "deps": {
+            "attr_deps": [],
+            "file_deps": ["chem_xref.tsv.gz", "MNXM_replacement_20190524.csv"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
+            "name": "deprecatedCID_cid.json.gz",
+            "fingerprint": "72b8919a8402fba900f485394a0e2c764635313e1c4632152378b0d3cd052d64ad78c32427c0d205a9b274c4bb917082160763e1f36983cfc5e09c7621092890"
+        }
+    },
+    "deprecatedRID_rid": {
+        "deps": {
+            "attr_deps": [],
+            "file_deps": []
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
+            "name": "deprecatedRID_rid.json.gz",
+            "fingerprint": "ee0b3f533017dc17a3a27cd7ed543f581b5e10d9a16ac02c5279b735b888a49c8fea65e911cbda77ce2a25c568ceb2d27aaa966ecb2fb84ce57bd5f2816d8778"
         }
     },
     "deprecatedCompID_compid": {

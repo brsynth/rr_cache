@@ -270,6 +270,8 @@ class rrCache:
         logger: Logger = getLogger(__name__)
     ) -> None:
 
+        print(f'Generating cache using MetaNetX version {mnx_version}')
+
         if outdir is DEFAULTS['cache_dir']:
             outdir = HERE
         input_cache_dir = os_path.join(
@@ -309,19 +311,19 @@ class rrCache:
 
         # GENERATE CACHE FILES AND STORE THEM TO DISK
         print_start(logger, 'Generating cache')
-        deprecatedCID_cid  = rrCache._gen_deprecatedCID_cid(input_cache_dir, cache_dir, logger)
+        deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(input_cache_dir, cache_dir, logger)
         print_progress(logger)
         cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
         print_progress(logger)
         rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
         print_progress(logger)
         del cid_strc, cid_name
-        cid_xref           = rrCache._gen_cid_xref(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
+        cid_xref = rrCache._gen_cid_xref(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
         print_progress(logger)
         rrCache._gen_chebi_cid(input_cache_dir, cache_dir, cid_xref)
         print_progress(logger)
         del cid_xref
-        deprecatedRID_rid  = rrCache._gen_deprecatedRID_rid(input_cache_dir, cache_dir, logger)
+        deprecatedRID_rid = rrCache._gen_deprecatedRID_rid(input_cache_dir, cache_dir, logger)
         print_progress(logger)
         rrCache._gen_rr_reactions(input_cache_dir, cache_dir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
@@ -421,7 +423,6 @@ class rrCache:
             'attr': cid_name,
             'file': f_cid_name
         }
-
 
     @staticmethod
     def _gen_inchikey_cid(
@@ -893,18 +894,26 @@ class rrCache:
             cid_strc[tmp['cid']] = tmp
 
         with open(chem_prop_path, 'rt') as f:
+            # read CSV with both tab and space as delimiters
             c = csv_reader(f, delimiter='\t')
             for row in c:
-                if not row[0][0] == '#':
+                if row[0].startswith('#'):
+                    header = row
+                else:
+                    for i in range(len(header)):
+                        # remove '#' from column field and
+                        # convert to lower case
+                        field = header[i].replace('#', '').lower()
+                        tmp[field] = row[i]
                     mnxm = rrCache._checkCIDdeprecated(row[0], deprecatedCID_cid)
-                    tmp = {
-                        'formula':  row[2],
-                        'smiles': row[6],
-                        'inchi': row[5],
-                        'inchikey': row[8],
-                        'cid': mnxm,
-                        'name': row[1]
-                    }
+                    # tmp = {
+                    #     'formula':  row[2],
+                    #     'smiles': row[6],
+                    #     'inchi': row[5],
+                    #     'inchikey': row[8],
+                    #     'cid': mnxm,
+                    #     'name': row[1]
+                    # }
                     for i in tmp:
                         if tmp[i] == '' or tmp[i] == 'NA':
                             tmp[i] = None
@@ -927,6 +936,8 @@ class rrCache:
                         if not tmp['inchi']:
                             otype.add('inchi')
                         itype = ''
+                        # Check if the current compound has
+                        # InChI or SMILES description
                         if tmp['inchi']:
                             itype = 'inchi'
                         elif tmp['smiles']:

@@ -94,6 +94,7 @@ class rrCache:
         self.logger.debug('mnx_version: '+str(mnx_version))
 
         self.__mnx_version = mnx_version
+        self.logger.info(f'Using MetaNetX {self.__mnx_version}')
         if cache_dir == DEFAULTS['cache_dir']:
             self.__cache_dir = os_path.join(
                 HERE,
@@ -268,8 +269,6 @@ class rrCache:
         mnx_version: str = DEFAULTS['mnx_version'],
         logger: Logger = getLogger(__name__)
     ) -> None:
-
-        print(f'Generating cache using MetaNetX version {mnx_version}')
 
         if outdir is DEFAULTS['cache_dir']:
             outdir = HERE

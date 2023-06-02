@@ -1,6 +1,5 @@
 from os import (
     path as os_path,
-    mkdir as os_mkdir,
     makedirs
 )
 from tempfile import NamedTemporaryFile
@@ -176,7 +175,7 @@ class rrCache:
                 logger.debug("Downloading "+filename+"...")
                 # start_time = time_time()
                 if not os_path.isdir(cache_dir):
-                    os_mkdir(cache_dir)
+                    makedirs(cache_dir, exist_ok=True)
                 download(
                     rrCache.__cache[attr]['file']['url']+filename,
                     full_filename
@@ -703,7 +702,7 @@ class rrCache:
         logger: Logger = getLogger(__name__)
     ):
         if not os_path.isdir(outdir):
-            os_mkdir(outdir)
+            makedirs(outdir, exist_ok=True)
         filename = os_path.join(outdir, file)
         if (
             not os_path.isfile(filename)
@@ -739,7 +738,7 @@ class rrCache:
     ):
 
         if not os_path.isdir(outdir):
-            os_mkdir(outdir)
+            makedirs(outdir ,exist_ok=True)
 
         logger.debug(f'Downloading {file} from {url}')
         download(url+file, os_path.join(outdir, file))

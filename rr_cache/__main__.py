@@ -39,7 +39,7 @@ def init(
         # RDLogger.DisableLog('rdApp.*')
 
     # Create logger
-    logger = create_logger(parser.prog, args.log)
+    logger = create_logger(parser.prog, args.log, 'rr_cache.log')
 
     logger.info(
         '{color}{typo}rr_cache {version}{rst}{color}{rst}\n'.format(

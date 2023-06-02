@@ -382,6 +382,7 @@ class rrCache:
         cid_name = None
         f_cid_strc = os_path.join(outdir, rrCache.__cache['cid_strc']['file']['name'])
         f_cid_name = os_path.join(outdir, rrCache.__cache['cid_name']['file']['name'])
+        f_warnings = os_path.join(outdir, 'warnings.json.gz')
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_cid_strc) and check_sha(
@@ -399,7 +400,7 @@ class rrCache:
                 deprecatedCID_cid = rrCache._load_cache_from_file(deprecatedCID_cid['file'])
                 # print_OK()
             logger.debug("   Generating data...")
-            cid_strc, cid_name = rrCache._m_mnxm_strc(
+            cid_strc, cid_name, warnings = rrCache._m_mnxm_strc(
                 os_path.join(input_dir, 'compounds.tsv.gz'),
                 os_path.join(input_dir, 'chem_prop.tsv'),
                 deprecatedCID_cid['attr']
@@ -415,6 +416,7 @@ class rrCache:
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_strc, f_cid_strc)
             rrCache._store_cache_to_file(cid_name, f_cid_name)
+            rrCache._store_cache_to_file(warnings, f_warnings)
 
         return {
             'attr': cid_strc,
@@ -893,6 +895,11 @@ class rrCache:
                 logger.warning(e)
             cid_strc[tmp['cid']] = tmp
 
+        # logger.addHandler(
+        #     FileHandler(
+        #         os_path.join('warnings.log'), 'w'
+        #     )
+        # )
         with open(chem_prop_path, 'rt') as f:
             # read CSV with both tab and space as delimiters
             c = csv_reader(f, delimiter='\t')
@@ -945,20 +952,22 @@ class rrCache:
                         else:
                             ter = StreamHandler.terminator
                             StreamHandler.terminator = "\n"
-                            logger.warning('No valid entry for the convert_depiction function')
+                            logger.warning('No InChI or SMILES for '+str(tmp))
                             StreamHandler.terminator = ter
                             continue
+                        ter = StreamHandler.terminator
+                        StreamHandler.terminator = "\n"
                         try:
                             resConv = rrCache._convert_depiction(idepic=tmp[itype], itype=itype, otype=otype)
                             for i in resConv:
                                 tmp[i] = resConv[i]
+                            logger.warning('Sructure conversion OK: '+str(tmp))
                         except rrCache.DepictionError as e:
-                            ter = StreamHandler.terminator
-                            StreamHandler.terminator = "\n"
-                            logger.warning('Could not convert some of the structures: '+str(tmp))
+                            logger.warning('Structure conversion FAILED: '+str(tmp))
                             logger.warning(e)
-                            StreamHandler.terminator = ter
+                        # StreamHandler.terminator = ter
                         cid_strc[tmp['cid']] = tmp
+        # logger.removeHandler(logger.handlers[-1])
 
         return cid_strc, cid_name
 

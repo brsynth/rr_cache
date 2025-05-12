@@ -52,6 +52,21 @@ HERE = os_path.dirname(os_path.abspath( __file__ ))
 DATA_PATH = os_path.join(HERE, 'data')
 
 
+def ask_user_input():
+    # Ask the user for input
+    user_input = input("Press Enter to continue, 's' to stop, or 'c' to continue without prompting: ")
+    # Check the user's input
+    if user_input.lower() == 's':
+        print("Stopping the program.")
+        exit()
+    elif user_input.lower() == 'c':
+        print("Continuing without prompting.")
+        return False
+    else:
+        print("Continuing...")
+    return True
+
+
 class FileCorruptedError(Exception):
     pass
 
@@ -145,7 +160,7 @@ class rrCache:
     ) -> None:
         logger.debug('cache_dir: '+str(cache_dir))
         logger.debug('attributes: '+str(attributes_list))
-
+        exit()
         print_start(logger, 'Downloading cache')
 
         for attr in attributes_list:
@@ -402,6 +417,7 @@ class rrCache:
                 os_path.join(input_dir, 'chem_prop.tsv'),
                 deprecatedCID_cid['attr']
             )
+            print(cid_strc['MNXM1106057'])
             # Replace compound IDs that have no structure with one that has.
             # Done from a manually built file
             with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
@@ -873,6 +889,7 @@ class rrCache:
         cid_strc = {}
         cid_name = {}
 
+        # Parse the compounds.tsv file from RetroRules
         for row in csv_DictReader(gzip_open(rr_compounds_path, 'rt'), delimiter='\t'):
             tmp = {
                 'formula':  None,
@@ -891,19 +908,32 @@ class rrCache:
                 logger.warning(e)
             cid_strc[tmp['cid']] = tmp
 
+        # Parse the chem_prop.tsv file from MetanetX
+        ask_user = True
         with open(chem_prop_path, 'rt') as f:
+            tmp = {}
             # read CSV with both tab and space as delimiters
             c = csv_reader(f, delimiter='\t')
             for row in c:
                 if row[0].startswith('#'):
                     header = row
                 else:
+                    # Set 'tmp' in a generic way
                     for i in range(len(header)):
                         # remove '#' from column field and
                         # convert to lower case
                         field = header[i].replace('#', '').lower()
+                        if field == 'id':
+                            field = 'cid'
                         tmp[field] = row[i]
+                    if ask_user:
+                        print()
+                        print("======================")
+                        print()
+                        print(tmp)
                     mnxm = rrCache._checkCIDdeprecated(row[0], deprecatedCID_cid)
+                    if ask_user:
+                        print(f'Converted into {mnxm}') 
                     # tmp = {
                     #     'formula':  row[2],
                     #     'smiles': row[6],
@@ -917,14 +947,22 @@ class rrCache:
                             tmp[i] = None
                     if mnxm not in cid_name and tmp['name']:
                         cid_name[mnxm] = tmp['name']
+                    # Compound already in the dictionnary
                     if mnxm in cid_strc:
+                        # # If the ID has been converted, then create a link
+                        # if mnxm != row[0]:
+                        #     cid_strc[mnxm] = cid_strc[row[0]]
+                        if ask_user:
+                            print('already in cid_strc')
                         cid_strc[mnxm]['formula'] = row[2]
                         cid_strc[mnxm]['name'] = row[1]
                         if not cid_strc[mnxm]['smiles'] and tmp['smiles']:
                             cid_strc[mnxm]['smiles'] = tmp['smiles']
                         if not cid_strc[mnxm]['inchikey'] and tmp['inchikey']:
                             cid_strc[mnxm]['inchikey'] = tmp['inchikey']
-                    else:
+                    else:  # Compound not in the dictionnary
+                        if ask_user:
+                            print('not yet in cid_strc')
                         # check to see if the inchikey is valid or not
                         otype = set({})
                         if not tmp['inchikey']:
@@ -945,21 +983,24 @@ class rrCache:
                             StreamHandler.terminator = "\n"
                             logger.warning('No InChI or SMILES for '+str(tmp))
                             StreamHandler.terminator = ter
-                            continue
                         ter = StreamHandler.terminator
                         StreamHandler.terminator = "\n"
-                        try:
-                            resConv = rrCache._convert_depiction(idepic=tmp[itype], itype=itype, otype=otype)
-                            for i in resConv:
-                                tmp[i] = resConv[i]
-                            logger.debug('Sructure conversion OK: '+str(tmp))
-                        except rrCache.DepictionError as e:
-                            logger.warning('Structure conversion FAILED: '+str(tmp))
-                            logger.warning(e)
+                        if itype:
+                            try:
+                                resConv = rrCache._convert_depiction(idepic=tmp[itype], itype=itype, otype=otype)
+                                for i in resConv:
+                                    tmp[i] = resConv[i]
+                                logger.debug('Sructure conversion OK: '+str(tmp))
+                            except rrCache.DepictionError as e:
+                                logger.warning('Structure conversion FAILED: '+str(tmp))
+                                logger.warning(e)
                         # StreamHandler.terminator = ter
-                        cid_strc[tmp['cid']] = tmp
+                        cid_strc[mnxm] = dict(tmp)
+                    if ask_user:
+                        print(cid_strc[mnxm])
+                        ask_user = ask_user_input()
         # logger.removeHandler(logger.handlers[-1])
-
+        print("*************************")
         return cid_strc, cid_name
 
 

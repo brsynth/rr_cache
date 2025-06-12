@@ -2,7 +2,7 @@
     "cid_strc": {
         "deps": {
             "attr_deps": ["deprecatedCID_cid"],
-            "file_deps": ["compounds.tsv.gz", "chem_prop.tsv.gz"]
+            "file_deps": ["compounds.tsv.gz", "chem_prop.tsv"]
         },
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
@@ -13,7 +13,7 @@
     "cid_name": {
         "deps": {
             "attr_deps": ["deprecatedCID_cid"],
-            "file_deps": ["compounds.tsv.gz", "chem_prop.tsv.gz"]
+            "file_deps": ["compounds.tsv.gz", "chem_prop.tsv"]
         },
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
@@ -68,7 +68,7 @@
     "comp_xref": {
         "deps": {
             "attr_deps": [],
-            "file_deps": ["comp_xref.tsv.gz"]
+            "file_deps": ["comp_xref.tsv"]
         },
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
@@ -79,7 +79,7 @@
     "deprecatedCID_cid": {
         "deps": {
             "attr_deps": [],
-            "file_deps": ["chem_xref.tsv.gz", "MNXM_replacement_20190524.csv"]
+            "file_deps": ["chem_xref.tsv", "MNXM_replacement_20190524.csv"]
         },
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",
@@ -101,7 +101,7 @@
     "deprecatedCompID_compid": {
         "deps": {
             "attr_deps": [],
-            "file_deps": ["comp_xref.tsv.gz"]
+            "file_deps": ["comp_xref.tsv"]
         },
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/",

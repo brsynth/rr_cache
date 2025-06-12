@@ -4,11 +4,17 @@ from os import path as os_path
 
 from brs_utils import add_logger_args
 
+HERE = os_path.dirname(os_path.abspath( __file__ ))
+DATA_PATH = os_path.join(HERE, 'data')
 
+# Default values for the arguments
 DEFAULTS = {
     'mnx_version': '4.4',
     'cache_dir': '',
-    'attrs': []
+    'input_cache_dir': '',
+    'attrs': [],
+    'input_cache_file': os_path.join(DATA_PATH, 'input_cache.json'),
+    'cache_file': os_path.join(DATA_PATH, 'cache.json')
 }
 
 def build_args_parser(
@@ -76,6 +82,20 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=DEFAULTS['cache_dir'],
         type=str,
         help='Path to the cache to generate or read from'
+    )
+    # input_cache file
+    parser.add_argument(
+        '--input-cache-file',
+        default=DEFAULTS['input_cache_file'],
+        type=str,
+        help='Path to the input cache file, if not given, the default cache will be considered'
+    )
+    # cache file
+    parser.add_argument(
+        '--cache-file',
+        default=DEFAULTS['cache_file'],
+        type=str,
+        help='Path to the cache file, if not given, the default cache will be considered'
     )
     parser.add_argument(
         '--attrs',

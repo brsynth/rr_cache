@@ -78,39 +78,49 @@ def entry_point():
         attrs=None,
         cache_dir=args.cache_dir,
         mnx_version=args.mnx_version,
+        input_cache_file=args.input_cache_file,
+        cache_file=args.cache_file,
         logger=logger
     )
 
-    if args.gen_cache:
-        rrCache.generate_cache(
-            args.cache_dir,
-            args.mnx_version,
-            logger
+    try:
+        if args.gen_cache:
+            rrCache.generate_cache(
+                args.cache_dir,
+                cache.get_input_cache_dir(),
+                args.mnx_version,
+                logger
+            )
+        elif args.reaction_rules is not None:
+            print_attr(
+                cache,
+                'rr_reactions',
+                args.reaction_rules,
+                logger
+            )
+        elif args.reactions is not None:
+            print_attr(
+                cache,
+                'template_reactions',
+                args.reactions,
+                logger
+            )
+        elif args.compounds is not None:
+            print_attr(
+                cache,
+                'cid_strc',
+                args.compounds,
+                logger
+            )
+        else:
+            cache.load(args.attrs)
+    except Exception as e:
+        logger.debug(f"Exception type: {type(e).__name__}")
+        logger.error(
+            '\n*** An error occurred:\n{error}'.format(error=str(e))
         )
-    elif args.reaction_rules is not None:
-        print_attr(
-            cache,
-            'rr_reactions',
-            args.reaction_rules,
-            logger
-        )
-    elif args.reactions is not None:
-        print_attr(
-            cache,
-            'template_reactions',
-            args.reactions,
-            logger
-        )
-    elif args.compounds is not None:
-        print_attr(
-            cache,
-            'cid_strc',
-            args.compounds,
-            logger
-        )
-    else:
-        cache.load(args.attrs)
-
+        logger.error('\nExiting...\n')
+        exit(1)
 
 def print_attr(
     cache: 'rrCache',

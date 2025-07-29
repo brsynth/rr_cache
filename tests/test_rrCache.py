@@ -48,7 +48,7 @@ class Test_rrCache(TestCase):
         Method: Load a full rrCache in 'file' store mode. Then, for each
         attribute, compare its length with it is supposed to be.
         """
-        cache = rrCache(logger=self.logger)
+        cache = rrCache(ask_user=False, logger=self.logger)
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
@@ -63,7 +63,7 @@ class Test_rrCache(TestCase):
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
-                cache = rrCache([attr], logger=self.logger)
+                cache = rrCache([attr], ask_user=False, logger=self.logger)
                 self.assertEqual(len(cache.get(attr)), length)
 
     def test_generate_cache(self):
@@ -73,7 +73,7 @@ class Test_rrCache(TestCase):
         with it is supposed to be.
         """
         self.skipTest("Too long, not in standard tests")
-        rrCache.generate_cache(self.outdir, logger=self.logger)
+        rrCache.generate_cache(self.outdir, ask_user=False, logger=self.logger)
         for name in self.metrics:
             filepath = os_path.join(self.outdir, f'{name}.json.gz')
             outfile = extract_gz(filepath, self.outdir)
@@ -87,14 +87,14 @@ class Test_rrCache(TestCase):
             os_rm(outfile)
 
     def test_get_compound(self):
-        cache = rrCache(attrs=None)
+        cache = rrCache(attrs=None, ask_user=False)
         self.assertDictEqual(
             cache.get_compound('MNXM2'),
             self.compounds['MNXM2']
         )
 
     def test_get_list_of_compounds(self):
-        cache = rrCache(attrs=None)
+        cache = rrCache(attrs=None, ask_user=False)
         self.assertTrue(
             'MNXM2' in cache.get_list_of_compounds()
         )
@@ -104,14 +104,14 @@ class Test_rrCache(TestCase):
         )
 
     def test_get_reaction(self):
-        cache = rrCache(attrs=None)
+        cache = rrCache(attrs=None, ask_user=False)
         self.assertDictEqual(
             cache.get_reaction('MNXR94688'),
             self.reactions['MNXR94688']
         )
 
     def test_get_list_of_reactions(self):
-        cache = rrCache(attrs=None)
+        cache = rrCache(attrs=None, ask_user=False)
         self.assertTrue(
             'MNXR94688' in cache.get_list_of_reactions()
         )
@@ -121,14 +121,14 @@ class Test_rrCache(TestCase):
         )
 
     def test_get_reaction_rule(self):
-        cache = rrCache(attrs=None)
+        cache = rrCache(attrs=None, ask_user=False)
         self.assertDictEqual(
             cache.get_reaction_rule('RR-02-f85f00f767901186-16-F'),
             self.retrorules['RR-02-f85f00f767901186-16-F']
         )
 
     def test_get_list_of_reaction_rules(self):
-        cache = rrCache(attrs=None)
+        cache = rrCache(attrs=None, ask_user=False)
         self.assertTrue(
             'RR-02-f85f00f767901186-16-F' in cache.get_list_of_reaction_rules()
         )

@@ -14,7 +14,8 @@ DEFAULTS = {
     'input_cache_dir': '',
     'attrs': [],
     'input_cache_file': os_path.join(DATA_PATH, 'input_cache.json'),
-    'cache_file': os_path.join(DATA_PATH, 'cache.json')
+    'cache_file': os_path.join(DATA_PATH, 'cache.json'),
+    'ask_user': True,
 }
 
 def build_args_parser(
@@ -110,6 +111,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=DEFAULTS['attrs'],
         nargs='+',
         help='Name(s) of attributes to load, all if not given (default).'
+    )
+    parser.add_argument(
+        '--no-ask-user',
+        default=DEFAULTS['ask_user'],
+        action='store_false',
+        dest='ask_user',
+        help='Do not ask user for confirmation when loading cache'
     )
 
     return parser

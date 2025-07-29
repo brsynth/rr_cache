@@ -88,6 +88,7 @@ class rrCache:
         mnx_version: str = DEFAULTS['mnx_version'],
         input_cache_file: str = DEFAULTS['input_cache_file'],
         cache_file: str = DEFAULTS['cache_file'],
+        ask_user: bool = DEFAULTS['ask_user'],
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
 
@@ -132,13 +133,16 @@ class rrCache:
             )
         else:
             self.__cache_dir = cache_dir
-        self.load(attrs)
+        self.load(attrs, ask_user=ask_user)
 
 
-    def load(self, attrs: List = DEFAULTS['attrs']):
+    def load(self, attrs: List = DEFAULTS['attrs'], ask_user: bool = DEFAULTS['ask_user']) -> None:
         """Load the cache attributes into memory
         Args:
             attrs (List): List of attributes to load, if None, all attributes are loaded
+            ask_user (bool): Whether to ask the user for confirmation before loading the cache
+        Returns:
+            None
         """
         self.logger.debug('Loading attributes: '+str(attrs))
 
@@ -168,7 +172,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            rrCache.generate_cache(self.__cache_dir, self.__input__cache_dir)
+            rrCache.generate_cache(self.__cache_dir, self.__input__cache_dir, ask_user=ask_user)
             self._check_or_load_cache()
 
 
@@ -306,6 +310,7 @@ class rrCache:
         cache_dir: str = DEFAULTS['cache_dir'],
         input_cache_dir: str = DEFAULTS['input_cache_dir'],
         mnx_version: str = DEFAULTS['mnx_version'],
+        ask_user: bool = DEFAULTS['ask_user'],
         logger: Logger = getLogger(__name__)
     ) -> None:
         """Generate the cache files and store them to disk.
@@ -313,6 +318,7 @@ class rrCache:
             cache_dir (str): Directory to store the cache files.
             input_cache_dir (str): Directory to store the input cache files.
             mnx_version (str): Version of MetaNetX to use.
+            ask_user (bool): Whether to ask the user for confirmation before overwriting existing files.
             logger (Logger): Logger instance for logging messages.
         """
         logger.debug('Generating cache')
@@ -372,7 +378,7 @@ class rrCache:
             logger.debug(f'{e} not found in input cache, skipping generation')
             deprecatedCID_cid = None
         print_progress(logger)
-        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
+        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, ask_user=ask_user, logger=logger)
         print_progress(logger)
         rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
         print_progress(logger)
@@ -445,6 +451,7 @@ class rrCache:
         input_dir: str,
         outdir: str,
         deprecatedCID_cid: Dict,
+        ask_user: bool = DEFAULTS['ask_user'],
         logger: Logger = getLogger(__name__)
     ) -> Dict:
 
@@ -478,7 +485,7 @@ class rrCache:
                 deprecatedCID_cid = {'attr': {}}
             logger.debug("   Generating data...")
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache['cid_strc']['deps']['file_deps']]
-            cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, deprecatedCID_cid['attr'], logger=logger)
+            cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, deprecatedCID_cid['attr'], ask_user=ask_user, logger=logger)
 
             if deprecatedCID_cid['attr'] != {}:
                 # print(cid_strc['MNXM1106057'])
@@ -977,6 +984,7 @@ class rrCache:
     def _m_mnxm_strc(
         paths: List[str],
         deprecatedCID_cid: Dict = None,
+        ask_user: bool = DEFAULTS['ask_user'],
         logger: Logger = getLogger(__name__)
     ) -> Tuple[Dict, Dict]:
 
@@ -1027,7 +1035,6 @@ class rrCache:
 
         if chem_prop_path and deprecatedCID_cid:
             # Parse the chem_prop.tsv file from MetanetX
-            ask_user = True
             with open(chem_prop_path, 'rt') as f:
                 tmp = {}
                 # read CSV with both tab and space as delimiters

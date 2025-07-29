@@ -80,6 +80,7 @@ def entry_point():
         mnx_version=args.mnx_version,
         input_cache_file=args.input_cache_file,
         cache_file=args.cache_file,
+        ask_user=args.ask_user,
         logger=logger
     )
 

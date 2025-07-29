@@ -2,6 +2,7 @@
 _exclude_*
 cache
 input-cache
+EXCLUDE
 
 # Generic
 __pycache__

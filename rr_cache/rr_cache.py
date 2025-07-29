@@ -160,11 +160,11 @@ class rrCache:
         for attr in self.__attributes_list:
             setattr(self, '__'+attr, None)
 
-        # rrCache._check_or_download_cache_to_disk(
-        #     self.__cache_dir,
-        #     self.__attributes_list,
-        #     self.logger
-        # )
+        rrCache._check_or_download_cache_to_disk(
+            self.__cache_dir,
+            self.__attributes_list,
+            self.logger
+        )
 
         try:
             self._check_or_load_cache()
@@ -198,29 +198,36 @@ class rrCache:
             filename = rrCache.__cache[attr]['file']['name']
             full_filename = os_path.join(cache_dir, filename)
 
-#            try:
-            if os_path.exists(full_filename):
-                fingerprint = rrCache.__cache[attr]['file']['fingerprint']
-                if check_sha(
-                    full_filename,
-                    fingerprint
-                ):
-                    logger.debug(filename+" already downloaded and fingerprint ok")
-                else:  # sha not ok
-                    # logger.debug(
-                    #     '\nfilename: ' + filename
-                    # + '\nlocation: ' + cache_dir
-                    # + '\nsha (computed): ' + sha512(Path(full_filename).read_bytes()).hexdigest()
-                    # + '\nsha (expected): ' + fingerprint
-                    # )
-                    raise FingerprintError(
-                        '\nfilename: ' + filename
-                    + '\nlocation: ' + cache_dir
-                    + '\nsha (computed): ' + sha512(Path(full_filename).read_bytes()).hexdigest()
-                    + '\nsha (expected): ' + fingerprint
-                    )
-            else:
-                raise FileNotFoundError(f'File {filename} not found in cache directory {cache_dir}')
+            try:
+                if os_path.exists(full_filename):
+                    fingerprint = rrCache.__cache[attr]['file']['fingerprint']
+                    if check_sha(
+                        full_filename,
+                        fingerprint
+                    ):
+                        logger.debug(filename+" already downloaded")
+                    else:  # sha not ok
+                        logger.debug(
+                            '\nfilename: ' + filename
+                        + '\nlocation: ' + cache_dir
+                        + '\nsha (computed): ' + sha512(Path(full_filename).read_bytes()).hexdigest()
+                        + '\nsha (expected): ' + fingerprint
+                        )
+                        raise FileNotFoundError
+                else:
+                    raise FileNotFoundError
+
+            except FileNotFoundError:
+                logger.debug("Downloading "+filename+"...")
+                # start_time = time_time()
+                if not os_path.isdir(cache_dir):
+                    makedirs(cache_dir, exist_ok=True)
+                download(
+                    rrCache.__cache[attr]['file']['url']+filename,
+                    full_filename
+                )
+                # rrCache.__cache[attr] = True
+                # end_time = time_time()
 
             # except FileNotFoundError:
             #     rrCache.__download_input_cache(rrCache.__cache[attr]['file']['url'], filename, cache_dir)
@@ -992,6 +999,7 @@ class rrCache:
         Args:
             paths (List[str]): List of paths to the input files (rr_compounds_path first, then chem_prop_path).
             deprecatedCID_cid (Dict): Dictionary of deprecated CID to cid.
+            ask_user (bool): Whether to ask the user for confirmation before overwriting existing files.
         Returns:
             Tuple[Dict, Dict]: Tuple containing two dictionaries:
                 - cid_strc: Dictionary of compounds with their structures.
@@ -1015,6 +1023,7 @@ class rrCache:
                 'cid':      row['cid'],
                 'name':     None
             }
+            logger.debug(f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}')
             try:
                 tmp['smiles'] = row['smiles']
             except KeyError:

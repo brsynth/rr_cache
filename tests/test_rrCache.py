@@ -26,6 +26,7 @@ DATA_PATH = os_path.join(HERE, 'data')
 class Test_rrCache(TestCase):
 
     outdir = 'cache-3.1'
+    cache = rrCache(attrs=None, ask_user=False)
 
     # Not possible to compare hashes since
     # files contain dict that have to be sorted
@@ -87,52 +88,58 @@ class Test_rrCache(TestCase):
             os_rm(outfile)
 
     def test_get_compound(self):
-        cache = rrCache(attrs=None, ask_user=False)
         self.assertDictEqual(
-            cache.get_compound('MNXM2'),
+            self.cache.get_compound('MNXM2'),
             self.compounds['MNXM2']
         )
 
     def test_get_list_of_compounds(self):
-        cache = rrCache(attrs=None, ask_user=False)
         self.assertTrue(
-            'MNXM2' in cache.get_list_of_compounds()
+            'MNXM2' in self.cache.get_list_of_compounds()
         )
         self.assertEqual(
-            len(cache.get_list_of_compounds()),
+            len(self.cache.get_list_of_compounds()),
             self.metrics['cid_strc']['length']
         )
 
     def test_get_reaction(self):
-        cache = rrCache(attrs=None, ask_user=False)
         self.assertDictEqual(
-            cache.get_reaction('MNXR94688'),
+            self.cache.get_reaction('MNXR94688'),
+            self.reactions['MNXR94688']
+        )
+        self.assertDictEqual(
+            self.cache.get_reaction('MNXR94688'),
             self.reactions['MNXR94688']
         )
 
     def test_get_list_of_reactions(self):
-        cache = rrCache(attrs=None, ask_user=False)
         self.assertTrue(
-            'MNXR94688' in cache.get_list_of_reactions()
+            'MNXR94688' in self.cache.get_list_of_reactions()
         )
         self.assertEqual(
-            len(cache.get_list_of_reactions()),
+            len(self.cache.get_list_of_reactions()),
+            self.metrics['template_reactions']['length']
+        )
+
+        self.assertTrue(
+            'MNXR94688' in self.cache.get_list_of_reactions()
+        )
+        self.assertEqual(
+            len(self.cache.get_list_of_reactions()),
             self.metrics['template_reactions']['length']
         )
 
     def test_get_reaction_rule(self):
-        cache = rrCache(attrs=None, ask_user=False)
         self.assertDictEqual(
-            cache.get_reaction_rule('RR-02-f85f00f767901186-16-F'),
+            self.cache.get_reaction_rule('RR-02-f85f00f767901186-16-F'),
             self.retrorules['RR-02-f85f00f767901186-16-F']
         )
 
     def test_get_list_of_reaction_rules(self):
-        cache = rrCache(attrs=None, ask_user=False)
         self.assertTrue(
-            'RR-02-f85f00f767901186-16-F' in cache.get_list_of_reaction_rules()
+            'RR-02-f85f00f767901186-16-F' in self.cache.get_list_of_reaction_rules()
         )
         self.assertEqual(
-            len(cache.get_list_of_reaction_rules()),
+            len(self.cache.get_list_of_reaction_rules()),
             self.metrics['rr_reactions']['length']
         )

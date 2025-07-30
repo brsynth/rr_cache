@@ -7,7 +7,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "cid_strc.json.gz",
-            "fingerprint": "1bebec6cb9a30497c1b1ce4ac095f00c111035b6b2b82aa33678f11ef545efcc0b1f0408c83e82e4c89ce0da890f09fa5ffb1938ca3fc99085412e34b54a4bd8"
+            "fingerprint": "3f832b86c3cb154748f504a365e227b8b12d6020bcc8649815b78a41cd7c3e53f8ed45c6742bbf5ab6b6968aa530f6b70b091c84d93dd79bd7b85a28f64886a5"
         }
     },
     "cid_name": {
@@ -18,7 +18,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "cid_name.json.gz",
-            "fingerprint": "0e40e9ac29770911c90b00feda4b86d91e214b9d6b5a61b065d55da6e43270e063759347b2b70702ffb75882b631146d89fe21558120474c0e0e21a4927a0f35"
+            "fingerprint": "2393323d9ceb0a68a5bb512903a223a9924e02058805c308d48d066411a590ade41de6613d113cbe742cdf060859ec67f655f483accaf62b276b0d924d75f23c"
         }
     },
     "cid_xref": {
@@ -29,7 +29,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "cid_xref.json.gz",
-            "fingerprint": "afdc4f8aa3ec32d14204ef3e13f8330c4a761cdcb319de733130e5191d1e73c40a28758c14c08c7316f76eea9315bc277265cb565642bf9c6a0c031081bebc70"
+            "fingerprint": "a81c5217769bb1d83ebe8d1905cfec453f23837ad85c22a30710629d434ffcc878431cc3cc7f48a3cf70f9cf45647361a9e45cd89dca7403d1254663a82de6bc"
         }
     },
     "chebi_cid": {
@@ -40,7 +40,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "chebi_cid.json.gz",
-            "fingerprint": "7d433c00a5a2e7ac1c3faf22cccfd1c2cff3693bea63ff9b611a19f51684fdd8da34fd77bb53b620d3cb15fe24e02eea8f604046357c0260b312f0a2cbf3f6ed"
+            "fingerprint": "eb0b65094b2c453d71b9996e0d0533b6b6768665b7c7142363c8d7d4c7b7f85fdc6731c54047bb6418a1ce559fb5b67300760aba4c5f5155967bdd3f06c67c68"
         }
     },
     "rr_reactions": {
@@ -51,7 +51,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "rr_reactions.json.gz",
-            "fingerprint": "6b435f284b957506230e1c318d0ec32a38e20b38c112b24fa4d1d3f145937b8a96830a1a3ae28224bc054ba647e75525c338874744524c1f324f4db51a2d4f8c"
+            "fingerprint": "aefdd1752e0628a4c9830381feb7736dffc25392e65ee54e11ee24ddfe090388a5ce71d8b18a23ebd26aae620c5ee973232612d3d829cb5f9a3f6f9afa106729"
         }
     },
     "inchikey_cid": {
@@ -62,7 +62,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "inchikey_cid.json.gz",
-            "fingerprint": "bcdc441c6b14641ad0516e2704bd3f9267e28ff83fb7fdff6d9a5af0218872c2dcff2c06093800910ad84e4cb07cbfd2e380777ce6268ca09e784428a6388efd"
+            "fingerprint": "efaa75efbaaed1629593bacf676003eafef5a8e75598fc84d281e7d8735f2f0db50fdb6556f269a27c383da5b5d08ec509cfe5df68816c1f29d52302fe62e490"
         }
     },
     "comp_xref": {
@@ -73,7 +73,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "comp_xref.json.gz",
-            "fingerprint": "22fd66c053d137d8afa56cbf844ef187ecff27e618dec6ce1396096fe3384e68b69607dd412e3f524a5893ce8b266e1778f2a946dab092ec4174d75b8cae8de9"
+            "fingerprint": "fe3036a082b0e5f2239e46496c0b421a5ac96e5d411114af5a1e0442aed1f41c8566f8b499adc48d80dbbbdfacee066e49205daf4327c13f263d6166be4502ac"
         }
     },
     "deprecatedCID_cid": {
@@ -84,7 +84,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "deprecatedCID_cid.json.gz",
-            "fingerprint": "7bb9d921a7db3507ad34d228e0357934ba5c9e7c613148247c30a5534d32ba61a860686a1737bc08eb1005e3a077b7c1f9a467cb0ff3552791ac0ed4dde58aed"
+            "fingerprint": "f272ad7491a103cd1f7f45261a4eadf30b7e0974da165db2230c0546174cc17634b7ce5be8990c6ea50a6c74e5df26a69aab9af96d7e66af72c3328d19a7a857"
         }
     },
     "deprecatedRID_rid": {
@@ -95,7 +95,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "deprecatedRID_rid.json.gz",
-            "fingerprint": "e1ad41d15f4456f4670c62adeccbc13bf8a90e6be2719e71994064b80618adc49a8a6d8ddadfbbe1a7a1c62e8a3dfadaa593b30c16557beb14deee7b0e273449"
+            "fingerprint": "eca85927ac250632bcd08d015080f57bf11c1906e5599aadd9168cea55053a231551709423ff990837c4d549101cb2a0378367c3d12a54aabcb6657360610910"
         }
     },
     "deprecatedCompID_compid": {
@@ -106,7 +106,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "deprecatedCompID_compid.json.gz",
-            "fingerprint": "2cac53e89f9e349b9afbf7f67e36b44bd614ce1dfcdcab0d66fcb1284a53ddd1080df9e40171befcbb60007fb2f40c961012e2286d2466524ff55007a0907fa5"
+            "fingerprint": "af88f7ea64fc74100883c5dbc8559d5758169a5c76f42bfb65e94558530fc08c66cef101246c96643cc0d1195e8eddc04df001b650949d2b9c6a59a5a3044440"
         }
     },
     "template_reactions": {
@@ -117,7 +117,7 @@
         "file": {
             "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
             "name": "template_reactions.json.gz",
-            "fingerprint": "5466054797619d450bebb51ec2ade543f2eade90990ef423bb57f8b70c4e479c13637f50a04b1c314b8505f1bf263268d9d73bd73934c1a5120eb0849ef0aaea"
+            "fingerprint": "3c5639ef9eeedddfe755e6b6700c68270cd1d984a62477e8d3529a7cd3017ca6061b2acba895ed4a28bd67944f71b13df987f45a7fbbc339b4fa9fe0df0b2e42"
         }
     }
 }

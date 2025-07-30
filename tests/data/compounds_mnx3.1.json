@@ -1,7 +1,7 @@
 {
     "MNXM2": {
         "formula": "H2O",
-        "smiles": "O",
+        "smiles": "[H]O[H]",
         "inchi": "InChI=1S/H2O/h1H2",
         "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
         "cid": "MNXM2",

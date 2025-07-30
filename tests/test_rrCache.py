@@ -25,7 +25,7 @@ DATA_PATH = os_path.join(HERE, 'data')
 
 class Test_rrCache(TestCase):
 
-    mnx_version = '4.4'
+    mnx_version = '3.1'
     outdir = f'cache-{mnx_version}'
     cache = rrCache(attrs=None, mnx_version=mnx_version, interactive=False)
 

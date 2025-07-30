@@ -31,7 +31,7 @@
         }
     },
     "misc": {
-        "url": "https://gitlab.com/breakthewall/rrcache-data/-/raw/master/",
+        "url": "https://gitlab.com/breakthewall/rrcache-data/-/raw/master/input_cache/mnx_3.1/",
         "files": {
             "MNXM_replacement_20190524.csv": "0ffd5da832f9be057b19ca6a813a5ed3f53d7b6c247513f117450a63f5b34deb86de68ecbb5ed765ac6c3417f8976c4e39590a4dd18275351a076de863e6bfa9"
         }

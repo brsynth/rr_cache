@@ -33,6 +33,8 @@ conda env create -f environment.yaml
 
 All cache data are stored into files on disk and loaded in memory each time the tool is used. Memory fingerprint is equal to the size of cache files loaded in memory multiplied by the number of processes which are running at the same time.
 
+If the cache is present in the current working directory, it will be used. Otherwise, it will be downloaded from the remote repository. If it not possible to download the cache, either because it is not possible to reach it remotely or because the option `--do-not-dwnl-cache` is set, it will be generated from scratch.
+
 ### Load rrCache in memory
 ```python
 from rr_cache import rrCache

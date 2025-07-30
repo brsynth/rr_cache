@@ -10,7 +10,7 @@ DATA_PATH = os_path.join(HERE, 'data')
 
 # Default values for the arguments
 DEFAULTS = {
-    'mnx_version': '4.4',
+    'mnx_version': '3.1',
     'cache_dir': '',
     'input_cache_dir': '',
     'attrs': [],

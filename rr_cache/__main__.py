@@ -81,6 +81,7 @@ def entry_point():
         input_cache_file=args.input_cache_file,
         cache_file=args.cache_file,
         ask_user=args.ask_user,
+        do_not_dwnl_cache=args.do_not_dwnl_cache,
         logger=logger
     )
 

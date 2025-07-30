@@ -14,9 +14,11 @@ DEFAULTS = {
     'input_cache_dir': '',
     'attrs': [],
     'input_cache_file': os_path.join(DATA_PATH, 'input_cache.json'),
-    'cache_file': os_path.join(DATA_PATH, 'cache.json'),
     'ask_user': True,
+    'do_not_dwnl_cache': False,
 }
+DEFAULTS['cache_file'] =  os_path.join(DATA_PATH, f'cache_mnx{DEFAULTS["mnx_version"]}.json')
+
 
 def build_args_parser(
     prog: str,
@@ -118,6 +120,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_false',
         dest='ask_user',
         help='Do not ask user for confirmation when loading cache'
+    )
+    parser.add_argument(
+        '--do-not-dwnl-cache',
+        default=DEFAULTS['do_not_dwnl_cache'],
+        action='store_true',
+        help='Do not download the cache from the remote repository'
     )
 
     return parser

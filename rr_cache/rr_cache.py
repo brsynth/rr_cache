@@ -89,6 +89,7 @@ class rrCache:
         input_cache_file: str = DEFAULTS['input_cache_file'],
         cache_file: str = DEFAULTS['cache_file'],
         ask_user: bool = DEFAULTS['ask_user'],
+        do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
 
@@ -133,10 +134,10 @@ class rrCache:
             )
         else:
             self.__cache_dir = cache_dir
-        self.load(attrs, ask_user=ask_user)
+        self.load(attrs, ask_user=ask_user, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
-    def load(self, attrs: List = DEFAULTS['attrs'], ask_user: bool = DEFAULTS['ask_user']) -> None:
+    def load(self, attrs: List = DEFAULTS['attrs'], ask_user: bool = DEFAULTS['ask_user'], do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']) -> None:
         """Load the cache attributes into memory
         Args:
             attrs (List): List of attributes to load, if None, all attributes are loaded
@@ -160,11 +161,12 @@ class rrCache:
         for attr in self.__attributes_list:
             setattr(self, '__'+attr, None)
 
-        rrCache._check_or_download_cache_to_disk(
-            self.__cache_dir,
-            self.__attributes_list,
-            self.logger
-        )
+        if not do_not_dwnl_cache:
+            rrCache._check_or_download_cache_to_disk(
+                self.__cache_dir,
+                self.__attributes_list,
+                self.logger
+            )
 
         try:
             self._check_or_load_cache()
@@ -1079,8 +1081,12 @@ class rrCache:
                         for i in tmp:
                             if tmp[i] == '' or tmp[i] == 'NA':
                                 tmp[i] = None
-                        if mnxm not in cid_name and tmp['name']:
-                            cid_name[mnxm] = tmp['name']
+                        try: # in MetaNetX 3.1, there is no name field
+                            if mnxm not in cid_name and tmp['name']:
+                                cid_name[mnxm] = tmp['name']
+                        except KeyError:
+                            # If the name is not present
+                            logger.debug('No name in chem_prop.tsv for '+str(mnxm)+', setting to None')
                         # Compound already in the dictionnary
                         if mnxm in cid_strc:
                             # # If the ID has been converted, then create a link

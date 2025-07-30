@@ -25,8 +25,9 @@ DATA_PATH = os_path.join(HERE, 'data')
 
 class Test_rrCache(TestCase):
 
-    outdir = 'cache-3.1'
-    cache = rrCache(attrs=None, ask_user=False)
+    mnx_version = '4.4'
+    outdir = f'cache-{mnx_version}'
+    cache = rrCache(attrs=None, mnx_version=mnx_version, ask_user=False)
 
     # Not possible to compare hashes since
     # files contain dict that have to be sorted
@@ -39,8 +40,11 @@ class Test_rrCache(TestCase):
         else:
             self.logger = logger
         # Set attributes from data files
-        for elem in ['compounds', 'reactions', 'retrorules', 'metrics']:
+        for elem in ['reactions', 'retrorules']:
             with open(os_path.join(DATA_PATH, f'{elem}.json'), 'r') as f:
+                setattr(self, f'{elem}', json_load(f))
+        for elem in ['compounds', 'metrics']:
+            with open(os_path.join(DATA_PATH, f'{elem}_mnx{self.mnx_version}.json'), 'r') as f:
                 setattr(self, f'{elem}', json_load(f))
 
     def test_all_attr(self):
@@ -49,7 +53,7 @@ class Test_rrCache(TestCase):
         Method: Load a full rrCache in 'file' store mode. Then, for each
         attribute, compare its length with it is supposed to be.
         """
-        cache = rrCache(ask_user=False, logger=self.logger)
+        cache = rrCache(mnx_version=self.mnx_version, ask_user=False, logger=self.logger)
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
@@ -64,7 +68,7 @@ class Test_rrCache(TestCase):
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
-                cache = rrCache([attr], ask_user=False, logger=self.logger)
+                cache = rrCache([attr], mnx_version=self.mnx_version, ask_user=False, logger=self.logger)
                 self.assertEqual(len(cache.get(attr)), length)
 
     def test_generate_cache(self):

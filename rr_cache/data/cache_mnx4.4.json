@@ -1,0 +1,123 @@
+{
+    "cid_strc": {
+        "deps": {
+            "attr_deps": ["deprecatedCID_cid"],
+            "file_deps": ["compounds.tsv.gz", "chem_prop.tsv"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "cid_strc.json.gz",
+            "fingerprint": "1bebec6cb9a30497c1b1ce4ac095f00c111035b6b2b82aa33678f11ef545efcc0b1f0408c83e82e4c89ce0da890f09fa5ffb1938ca3fc99085412e34b54a4bd8"
+        }
+    },
+    "cid_name": {
+        "deps": {
+            "attr_deps": ["deprecatedCID_cid"],
+            "file_deps": ["compounds.tsv.gz", "chem_prop.tsv"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "cid_name.json.gz",
+            "fingerprint": "0e40e9ac29770911c90b00feda4b86d91e214b9d6b5a61b065d55da6e43270e063759347b2b70702ffb75882b631146d89fe21558120474c0e0e21a4927a0f35"
+        }
+    },
+    "cid_xref": {
+        "deps": {
+            "attr_deps": ["deprecatedCID_cid"],
+            "file_deps": []
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "cid_xref.json.gz",
+            "fingerprint": "afdc4f8aa3ec32d14204ef3e13f8330c4a761cdcb319de733130e5191d1e73c40a28758c14c08c7316f76eea9315bc277265cb565642bf9c6a0c031081bebc70"
+        }
+    },
+    "chebi_cid": {
+        "deps": {
+            "attr_deps": ["cid_xref"],
+            "file_deps": []
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "chebi_cid.json.gz",
+            "fingerprint": "7d433c00a5a2e7ac1c3faf22cccfd1c2cff3693bea63ff9b611a19f51684fdd8da34fd77bb53b620d3cb15fe24e02eea8f604046357c0260b312f0a2cbf3f6ed"
+        }
+    },
+    "rr_reactions": {
+        "deps": {
+            "attr_deps": ["deprecatedCID_cid", "deprecatedRID_rid"],
+            "file_deps": ["retrorules_rr02_flat_all.tsv.gz"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "rr_reactions.json.gz",
+            "fingerprint": "6b435f284b957506230e1c318d0ec32a38e20b38c112b24fa4d1d3f145937b8a96830a1a3ae28224bc054ba647e75525c338874744524c1f324f4db51a2d4f8c"
+        }
+    },
+    "inchikey_cid": {
+        "deps": {
+            "attr_deps": ["cid_strc"],
+            "file_deps": []
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "inchikey_cid.json.gz",
+            "fingerprint": "bcdc441c6b14641ad0516e2704bd3f9267e28ff83fb7fdff6d9a5af0218872c2dcff2c06093800910ad84e4cb07cbfd2e380777ce6268ca09e784428a6388efd"
+        }
+    },
+    "comp_xref": {
+        "deps": {
+            "attr_deps": [],
+            "file_deps": ["comp_xref.tsv"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "comp_xref.json.gz",
+            "fingerprint": "22fd66c053d137d8afa56cbf844ef187ecff27e618dec6ce1396096fe3384e68b69607dd412e3f524a5893ce8b266e1778f2a946dab092ec4174d75b8cae8de9"
+        }
+    },
+    "deprecatedCID_cid": {
+        "deps": {
+            "attr_deps": [],
+            "file_deps": ["chem_xref.tsv", "MNXM_replacement_20190524.csv"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "deprecatedCID_cid.json.gz",
+            "fingerprint": "7bb9d921a7db3507ad34d228e0357934ba5c9e7c613148247c30a5534d32ba61a860686a1737bc08eb1005e3a077b7c1f9a467cb0ff3552791ac0ed4dde58aed"
+        }
+    },
+    "deprecatedRID_rid": {
+        "deps": {
+            "attr_deps": [],
+            "file_deps": []
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "deprecatedRID_rid.json.gz",
+            "fingerprint": "e1ad41d15f4456f4670c62adeccbc13bf8a90e6be2719e71994064b80618adc49a8a6d8ddadfbbe1a7a1c62e8a3dfadaa593b30c16557beb14deee7b0e273449"
+        }
+    },
+    "deprecatedCompID_compid": {
+        "deps": {
+            "attr_deps": [],
+            "file_deps": ["comp_xref.tsv"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "deprecatedCompID_compid.json.gz",
+            "fingerprint": "2cac53e89f9e349b9afbf7f67e36b44bd614ce1dfcdcab0d66fcb1284a53ddd1080df9e40171befcbb60007fb2f40c961012e2286d2466524ff55007a0907fa5"
+        }
+    },
+    "template_reactions": {
+        "deps": {
+            "attr_deps": ["deprecatedCID_cid", "deprecatedRID_rid"],
+            "file_deps": ["rxn_recipes.tsv.gz"]
+        },
+        "file": {
+            "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+            "name": "template_reactions.json.gz",
+            "fingerprint": "5466054797619d450bebb51ec2ade543f2eade90990ef423bb57f8b70c4e479c13637f50a04b1c314b8505f1bf263268d9d73bd73934c1a5120eb0849ef0aaea"
+        }
+    }
+}

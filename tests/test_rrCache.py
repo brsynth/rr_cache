@@ -27,7 +27,7 @@ class Test_rrCache(TestCase):
 
     mnx_version = '4.4'
     outdir = f'cache-{mnx_version}'
-    cache = rrCache(attrs=None, mnx_version=mnx_version, ask_user=False)
+    cache = rrCache(attrs=None, mnx_version=mnx_version, interactive=False)
 
     # Not possible to compare hashes since
     # files contain dict that have to be sorted
@@ -53,7 +53,7 @@ class Test_rrCache(TestCase):
         Method: Load a full rrCache in 'file' store mode. Then, for each
         attribute, compare its length with it is supposed to be.
         """
-        cache = rrCache(mnx_version=self.mnx_version, ask_user=False, logger=self.logger)
+        cache = rrCache(mnx_version=self.mnx_version, interactive=False, logger=self.logger)
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
@@ -68,7 +68,7 @@ class Test_rrCache(TestCase):
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
-                cache = rrCache([attr], mnx_version=self.mnx_version, ask_user=False, logger=self.logger)
+                cache = rrCache([attr], mnx_version=self.mnx_version, interactive=False, logger=self.logger)
                 self.assertEqual(len(cache.get(attr)), length)
 
     def test_generate_cache(self):
@@ -78,7 +78,7 @@ class Test_rrCache(TestCase):
         with it is supposed to be.
         """
         self.skipTest("Too long, not in standard tests")
-        rrCache.generate_cache(self.outdir, ask_user=False, logger=self.logger)
+        rrCache.generate_cache(self.outdir, interactive=False, logger=self.logger)
         for name in self.metrics:
             filepath = os_path.join(self.outdir, f'{name}.json.gz')
             outfile = extract_gz(filepath, self.outdir)

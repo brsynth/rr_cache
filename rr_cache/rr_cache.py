@@ -174,7 +174,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            rrCache.generate_cache(self.__cache_dir, self.__input__cache_dir, interactive=interactive)
+            rrCache.generate_cache(cache_dir=self.__cache_dir, input_cache_dir=self.__input__cache_dir, interactive=interactive)
             self._check_or_load_cache()
 
 

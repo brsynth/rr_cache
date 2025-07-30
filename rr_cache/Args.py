@@ -15,7 +15,7 @@ DEFAULTS = {
     'input_cache_dir': '',
     'attrs': [],
     'input_cache_file': os_path.join(DATA_PATH, 'input_cache.json'),
-    'ask_user': True,
+    'interactive': False,
     'do_not_dwnl_cache': False,
 }
 DEFAULTS['cache_file'] =  os_path.join(DATA_PATH, f'cache_mnx{DEFAULTS["mnx_version"]}.json')
@@ -116,10 +116,10 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Name(s) of attributes to load, all if not given (default).'
     )
     parser.add_argument(
-        '--no-ask-user',
-        default=DEFAULTS['ask_user'],
-        action='store_false',
-        dest='ask_user',
+        '--interactive',
+        default=DEFAULTS['interactive'],
+        action='store_true',
+        dest='interactive',
         help='Do not ask user for confirmation when loading cache'
     )
     parser.add_argument(

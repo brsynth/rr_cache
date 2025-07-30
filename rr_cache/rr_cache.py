@@ -88,7 +88,7 @@ class rrCache:
         mnx_version: str = DEFAULTS['mnx_version'],
         input_cache_file: str = DEFAULTS['input_cache_file'],
         cache_file: str = DEFAULTS['cache_file'],
-        ask_user: bool = DEFAULTS['ask_user'],
+        interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
@@ -134,14 +134,14 @@ class rrCache:
             )
         else:
             self.__cache_dir = cache_dir
-        self.load(attrs, ask_user=ask_user, do_not_dwnl_cache=do_not_dwnl_cache)
+        self.load(attrs, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
-    def load(self, attrs: List = DEFAULTS['attrs'], ask_user: bool = DEFAULTS['ask_user'], do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']) -> None:
+    def load(self, attrs: List = DEFAULTS['attrs'], interactive: bool = DEFAULTS['interactive'], do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']) -> None:
         """Load the cache attributes into memory
         Args:
             attrs (List): List of attributes to load, if None, all attributes are loaded
-            ask_user (bool): Whether to ask the user for confirmation before loading the cache
+            interactive (bool): Whether to ask the user for confirmation before loading the cache
         Returns:
             None
         """
@@ -174,7 +174,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            rrCache.generate_cache(self.__cache_dir, self.__input__cache_dir, ask_user=ask_user)
+            rrCache.generate_cache(self.__cache_dir, self.__input__cache_dir, interactive=interactive)
             self._check_or_load_cache()
 
 
@@ -319,7 +319,7 @@ class rrCache:
         cache_dir: str = DEFAULTS['cache_dir'],
         input_cache_dir: str = DEFAULTS['input_cache_dir'],
         mnx_version: str = DEFAULTS['mnx_version'],
-        ask_user: bool = DEFAULTS['ask_user'],
+        interactive: bool = DEFAULTS['interactive'],
         logger: Logger = getLogger(__name__)
     ) -> None:
         """Generate the cache files and store them to disk.
@@ -327,7 +327,7 @@ class rrCache:
             cache_dir (str): Directory to store the cache files.
             input_cache_dir (str): Directory to store the input cache files.
             mnx_version (str): Version of MetaNetX to use.
-            ask_user (bool): Whether to ask the user for confirmation before overwriting existing files.
+            interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             logger (Logger): Logger instance for logging messages.
         """
         logger.debug('Generating cache')
@@ -387,7 +387,7 @@ class rrCache:
             logger.debug(f'{e} not found in input cache, skipping generation')
             deprecatedCID_cid = None
         print_progress(logger)
-        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, ask_user=ask_user, logger=logger)
+        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, interactive=interactive, logger=logger)
         print_progress(logger)
         rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
         print_progress(logger)
@@ -460,7 +460,7 @@ class rrCache:
         input_dir: str,
         outdir: str,
         deprecatedCID_cid: Dict,
-        ask_user: bool = DEFAULTS['ask_user'],
+        interactive: bool = DEFAULTS['interactive'],
         logger: Logger = getLogger(__name__)
     ) -> Dict:
 
@@ -494,7 +494,7 @@ class rrCache:
                 deprecatedCID_cid = {'attr': {}}
             logger.debug("   Generating data...")
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache['cid_strc']['deps']['file_deps']]
-            cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, deprecatedCID_cid['attr'], ask_user=ask_user, logger=logger)
+            cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, deprecatedCID_cid['attr'], interactive=interactive, logger=logger)
 
             if deprecatedCID_cid['attr'] != {}:
                 # print(cid_strc['MNXM1106057'])
@@ -993,7 +993,7 @@ class rrCache:
     def _m_mnxm_strc(
         paths: List[str],
         deprecatedCID_cid: Dict = None,
-        ask_user: bool = DEFAULTS['ask_user'],
+        interactive: bool = DEFAULTS['interactive'],
         logger: Logger = getLogger(__name__)
     ) -> Tuple[Dict, Dict]:
 
@@ -1001,7 +1001,7 @@ class rrCache:
         Args:
             paths (List[str]): List of paths to the input files (rr_compounds_path first, then chem_prop_path).
             deprecatedCID_cid (Dict): Dictionary of deprecated CID to cid.
-            ask_user (bool): Whether to ask the user for confirmation before overwriting existing files.
+            interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
         Returns:
             Tuple[Dict, Dict]: Tuple containing two dictionaries:
                 - cid_strc: Dictionary of compounds with their structures.
@@ -1062,14 +1062,14 @@ class rrCache:
                             if field == 'id':
                                 field = 'cid'
                             tmp[field] = row[i]
-                        if ask_user:
+                        if interactive:
                             print()
                             print("======================")
                             print()
                             print(tmp)
                         mnxm = rrCache._checkCIDdeprecated(row[0], deprecatedCID_cid)
-                        if ask_user:
-                            print(f'Converted into {mnxm}') 
+                        if interactive:
+                            print(f'Converted into {mnxm}')
                         # tmp = {
                         #     'formula':  row[2],
                         #     'smiles': row[6],
@@ -1092,7 +1092,7 @@ class rrCache:
                             # # If the ID has been converted, then create a link
                             # if mnxm != row[0]:
                             #     cid_strc[mnxm] = cid_strc[row[0]]
-                            if ask_user:
+                            if interactive:
                                 print('already in cid_strc')
                             cid_strc[mnxm]['formula'] = row[2]
                             cid_strc[mnxm]['name'] = row[1]
@@ -1101,7 +1101,7 @@ class rrCache:
                             if not cid_strc[mnxm]['inchikey'] and tmp['inchikey']:
                                 cid_strc[mnxm]['inchikey'] = tmp['inchikey']
                         else:  # Compound not in the dictionnary
-                            if ask_user:
+                            if interactive:
                                 print('not yet in cid_strc')
                             # check to see if the inchikey is valid or not
                             otype = set({})
@@ -1138,9 +1138,9 @@ class rrCache:
                             # if mnxm == 'MNXM1106057':
                             #     print(tmp)
                             cid_strc[mnxm] = dict(tmp)
-                        if ask_user:
+                        if interactive:
                             print(cid_strc[mnxm])
-                            ask_user = ask_user_input()
+                            interactive = ask_user_input()
         else:
             logger.debug('No chem_prop.tsv or deprecatedCID_cid provided, skipping structure parsing')
         # logger.removeHandler(logger.handlers[-1])

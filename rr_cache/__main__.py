@@ -76,11 +76,7 @@ def entry_point():
 
     cache = rrCache(
         attrs=None,
-        cache_dir=args.cache_dir,
-        input_cache_dir=args.input_cache_dir,
-        mnx_version=args.mnx_version,
-        input_cache_file=args.input_cache_file,
-        cache_file=args.cache_file,
+        data_type=args.data_type,
         interactive=args.interactive,
         do_not_dwnl_cache=args.do_not_dwnl_cache,
         logger=logger
@@ -88,10 +84,8 @@ def entry_point():
 
     # try:
     if args.gen_cache:
-        rrCache.generate_cache(
-            cache_dir=args.cache_dir,
-            input_cache_dir=cache.get_input_cache_dir(),
-            mnx_version=args.mnx_version,
+        cache.generate_cache(
+            data_type=args.data_type,
             interactive=args.interactive,
             logger=logger
         )

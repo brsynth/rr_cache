@@ -10,15 +10,11 @@ DATA_PATH = os_path.join(HERE, 'data')
 
 # Default values for the arguments
 DEFAULTS = {
-    'mnx_version': '3.1',
-    'cache_dir': '',
-    'input_cache_dir': '',
+    'data_type': 'mnx3.1',
     'attrs': [],
-    'input_cache_file': os_path.join(DATA_PATH, 'input_cache.json'),
     'interactive': False,
     'do_not_dwnl_cache': False,
 }
-DEFAULTS['cache_file'] =  os_path.join(DATA_PATH, f'cache_mnx{DEFAULTS["mnx_version"]}.json')
 
 
 def build_args_parser(
@@ -49,10 +45,10 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser = add_logger_args(parser)
 
     parser.add_argument(
-        '--mnx-version',
-        default=DEFAULTS['mnx_version'],
+        '--data-type',
+        default=DEFAULTS['data_type'],
         type=str,
-        help='Version of MetanetX to use'
+        help='Type of data to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
     )
     parser.add_argument(
         '--gen-cache',
@@ -80,46 +76,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         nargs='*',
         help='print out specified compound(s), all if nothing specified'
-    )
-    parser.add_argument(
-        '--cache-dir',
-        default=DEFAULTS['cache_dir'],
-        type=str,
-        help='Path to the cache to generate or read from'
-    )
-    parser.add_argument(
-        '--input-cache-dir',
-        default=DEFAULTS['input_cache_dir'],
-        type=str,
-        help='Path to the input cache directory, if not given, the default cache will be considered'
-    )
-    # input_cache file
-    parser.add_argument(
-        '--input-cache-file',
-        default=DEFAULTS['input_cache_file'],
-        type=str,
-        help='Path to the input cache file, if not given, the default cache will be considered'
-    )
-    # cache file
-    parser.add_argument(
-        '--cache-file',
-        default=DEFAULTS['cache_file'],
-        type=str,
-        help='Path to the cache file, if not given, the default cache will be considered'
-    )
-    parser.add_argument(
-        '--attrs',
-        type=str,
-        choices=[
-            'deprecatedCID_cid', 'deprecatedRID_rid', 'deprecatedCompID_compid',
-            'cid_strc', 'cid_name', 'cid_xref', 'chebi_cid', 'inchikey_cid',
-            'rr_reactions', 'template_reactions',
-            'comp_xref',
-            'all'
-        ],
-        default=DEFAULTS['attrs'],
-        nargs='+',
-        help='Name(s) of attributes to load, all if not given (default).'
     )
     parser.add_argument(
         '--interactive',

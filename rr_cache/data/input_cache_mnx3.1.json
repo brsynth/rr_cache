@@ -8,15 +8,6 @@
             "comp_xref.tsv":    "85900c2a86abe997bb08e39981d6ae8300a8e8bffeec140dd37d54e8e18323a0afdb9057f421c3b917fb6f352fedd27e7168565f6777de120c49b7e840f349b2"
         }
     },
-    "mnx_4.4": {
-        "url": "https://www.metanetx.org/ftp/4.4/",
-        "files": {
-            "chem_xref.tsv":    "c97d54829daafdaa5c021421fcceea9146ff57485bf366401ebb23ba3ebb3af22596ba32efee0c8f4fad08553d0422d9bccedfc431e4643a26b25ad1fb81fac9",
-            "reac_xref.tsv":    "7ef690dbbda81347decaad57348d908088871c39757ed3057e5bc5e1300a072beea637e4b5c7d49a80d3a913cf608b40f1ce3da64bc3c660fe85dfda602054e9",
-            "chem_prop.tsv":    "9ed46523f35521831304d7accd13c16e1641a6fb0c3146cece0edeb4cd179a89aa363693ff69572b85023096ea2f63acc1b1a24a63c5cc979e9e8287a1db4876",
-            "comp_xref.tsv":    "df0611a048837ea0c63f77b61429172fa279fb55875d191ef3a96736f98cd5bac9a8a35b756cd0d3d6e439f9e4e867bba211cb77060fae03ba31794f7e23f446"
-        }
-    },
     "rr2": {
         "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/retrorules_rr02_rp3_hs/",
         "files": {

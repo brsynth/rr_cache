@@ -88,11 +88,7 @@ class rrCache:
     def __init__(
         self,
         attrs: List = DEFAULTS['attrs'],
-        cache_dir: str = DEFAULTS['cache_dir'],
-        input_cache_dir: str = DEFAULTS['input_cache_dir'],
-        mnx_version: str = DEFAULTS['mnx_version'],
-        input_cache_file: str = DEFAULTS['input_cache_file'],
-        cache_file: str = DEFAULTS['cache_file'],
+        data_type: str = DEFAULTS['data_type'],
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
         logger: Logger = getLogger(__name__)
@@ -101,56 +97,47 @@ class rrCache:
         self.logger = logger
         self.logger.debug('New instance of rrCache')
         self.logger.debug('attrs: '+str(attrs))
-        self.logger.debug('cache_dir: '+str(cache_dir))
-        self.logger.debug('input_cache_dir: '+str(input_cache_dir))
-        self.logger.debug('mnx_version: '+str(mnx_version))
-        self.logger.debug('input_cache_file: '+str(input_cache_file))
-        self.logger.debug('cache_file: '+str(cache_file))
+        self.logger.debug('data_type: '+str(data_type))
         self.logger.debug('interactive: '+str(interactive))
         self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
 
-        # Input cache file
-        # self.__input__cache_dir = os_path.join(
-        #     HERE,
-        #     'input-cache',
-        #     f'mnx_{mnx_version}'
-        # )
+        self.__data_type = data_type
 
-        with open(input_cache_file, 'r') as f:
-            rrCache.__input__cache = json_load(f)
+        # Input cache file
+        input_cache_file = os_path.join(
+            DATA_PATH,
+            f'input_cache_{self.__data_type}.json'
+        )
+        try:
+            with open(input_cache_file, 'r') as f:
+                rrCache.__input__cache = json_load(f)
+        except FileNotFoundError:
+            logger.error(f'Input cache file {input_cache_file} not found, please check the data_type argument')
+            logger.error('Exiting...')
+            exit(1)
 
         # Cache file
+        cache_file = os_path.join(
+            DATA_PATH,
+            f'cache_{self.__data_type}.json'
+        )
         with open(cache_file, 'r') as f:
             rrCache.__cache = json_load(f)
         # Attributes with dependencies (other attributes + input_cache files)
         rrCache.__attributes_list = list(rrCache.__cache.keys())
 
         # static attribues
-        try:
-            convert_fln = os_path.join(DATA_PATH, 'convert.json')
-            with open(convert_fln, 'r') as f:
-                rrCache.__convertMNXM = json_load(f)
-        except FileNotFoundError:
-            rrCache.__convertMNXM = {}
+        if self.__data_type.startswith('mnx'):
+            try:
+                convert_fln = os_path.join(DATA_PATH, 'convert.json')
+                with open(convert_fln, 'r') as f:
+                    rrCache.__convertMNXM = json_load(f)
+            except FileNotFoundError:
+                rrCache.__convertMNXM = {}
 
-        self.__mnx_version = mnx_version
-        self.logger.info(f'Using MetaNetX {self.__mnx_version}')
-        if input_cache_dir == DEFAULTS['input_cache_dir']:
-            self.__input__cache_dir = os_path.join(
-                HERE,
-                'input-cache',
-                f'mnx_{self.__mnx_version}'
-            )
-        else:
-            self.__input__cache_dir = os_path.abspath(input_cache_dir)
-        if cache_dir == DEFAULTS['cache_dir']:
-            self.__cache_dir = os_path.join(
-                HERE,
-                'cache',
-                f'mnx_{self.__mnx_version}'
-            )
-        else:
-            self.__cache_dir = os_path.abspath(cache_dir)
+        self.logger.info(f'Using {self.__data_type}')
+        self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__data_type)
+        self.__cache_dir = os_path.join(HERE, 'cache', self.__data_type)
         self.load(attrs=attrs, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
@@ -201,7 +188,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            rrCache.generate_cache(cache_dir=self.__cache_dir, input_cache_dir=self.__input__cache_dir, interactive=interactive)
+            self.generate_cache(interactive=interactive)
             self._check_or_load_cache()
 
 
@@ -341,109 +328,85 @@ class rrCache:
             # self.expression = expression
             self.message = message
 
-    @staticmethod
+#    @staticmethod
     def generate_cache(
-        cache_dir: str = DEFAULTS['cache_dir'],
-        input_cache_dir: str = DEFAULTS['input_cache_dir'],
-        mnx_version: str = DEFAULTS['mnx_version'],
+        self,
         interactive: bool = DEFAULTS['interactive'],
         logger: Logger = getLogger(__name__)
     ) -> None:
         """Generate the cache files and store them to disk.
         Args:
-            cache_dir (str): Directory to store the cache files.
-            input_cache_dir (str): Directory to store the input cache files.
-            mnx_version (str): Version of MetaNetX to use.
+            data_type (str): Version of MetaNetX to use.
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             logger (Logger): Logger instance for logging messages.
         """
-        logger.debug('Generating cache')
-        logger.debug(f'cache_dir: {cache_dir}')
-        logger.debug(f'input_cache_dir: {input_cache_dir}')
-        logger.debug(f'mnx_version: {mnx_version}')
+        logger.debug('interactive: '+str(interactive))
 
         # CACHE
-        if cache_dir is DEFAULTS['cache_dir']:
-            cache_dir = os_path.join(
-                HERE,
-                'cache',
-                f'mnx_{mnx_version}'
-            )
-        if os_path.isdir(cache_dir):
-            logger.warning(f'Cache directory {cache_dir} already exists, data might be overwritten')
+        if os_path.isdir(self.__cache_dir):
+            logger.warning(f'Cache directory {self.__cache_dir} already exists, data might be overwritten')
         else:
-            makedirs(cache_dir)
+            makedirs(self.__cache_dir)
 
         # INPUT_CACHE
-        if input_cache_dir is DEFAULTS['input_cache_dir']:
-            input_cache_dir = os_path.join(
-                HERE,
-                'input-cache',
-                f'mnx_{mnx_version}'
-            )
-        if os_path.isdir(input_cache_dir):
-            logger.warning(f'Input cache directory {input_cache_dir} already exists, existing data can be used, remove the directory to download new data')
+        if os_path.isdir(self.__input__cache_dir):
+            logger.warning(f'Input cache directory {self.__input__cache_dir} already exists, existing data can be used, remove the directory to download new data')
         else:
-            makedirs(input_cache_dir)
+            makedirs(self.__input__cache_dir)
 
         # FETCH INPUT_CACHE FILES
         print_start(logger, 'Checking input cache')
         for input_type, input in rrCache.__input__cache.items():
-            # ignore MNX versions other that specified
-            if input_type.startswith('mnx_') and \
-            input_type != f'mnx_{mnx_version}':
-                pass
-            else:
-                logger.debug(f'Checking {input_type}...')
-                for filename, fingerprint in input['files'].items():
-                    rrCache._download_input_cache(
-                        url=input['url'],
-                        file=filename,
-                        outdir=input_cache_dir,
-                        fingerprint=fingerprint,
-                        logger=logger
-                    )
+            logger.debug(f'Checking {input_type}...')
+            for filename, fingerprint in input['files'].items():
+                rrCache._download_input_cache(
+                    url=input['url'],
+                    file=filename,
+                    outdir=self.__input__cache_dir,
+                    fingerprint=fingerprint,
+                    logger=logger
+                )
 
         print_end(logger)
 
         # GENERATE CACHE FILES AND STORE THEM TO DISK
         print_start(logger, 'Generating cache')
         try:
-            deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(input_cache_dir, cache_dir, logger)
+            deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(self.__input__cache_dir, self.__cache_dir, logger)
         except KeyError as e:
             logger.debug(f'{e} not found in input cache, skipping generation')
             deprecatedCID_cid = None
         print_progress(logger)
-        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, interactive=interactive, logger=logger)
+        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(self.__input__cache_dir, self.__cache_dir, deprecatedCID_cid, interactive=interactive, logger=logger)
         print_progress(logger)
         try:
-            rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
+            rrCache._gen_inchikey_cid(self.__input__cache_dir, self.__cache_dir, cid_strc, logger)
         except KeyError as e:
             logger.debug(f'{e} not found in input cache, skipping generation')
         print_progress(logger)
         del cid_strc, cid_name
         try:
-            cid_xref = rrCache._gen_cid_xref(input_cache_dir, cache_dir, deprecatedCID_cid, logger)
+            cid_xref = rrCache._gen_cid_xref(self.__input__cache_dir, self.__cache_dir, deprecatedCID_cid, logger)
             print_progress(logger)
-            rrCache._gen_chebi_cid(input_cache_dir, cache_dir, cid_xref)
+            rrCache._gen_chebi_cid(self.__input__cache_dir, self.__cache_dir, cid_xref)
             print_progress(logger)
             del cid_xref
         except KeyError as e:
             logger.debug(f'{e} not found in input cache, skipping generation')
         try:
-            deprecatedRID_rid = rrCache._gen_deprecatedRID_rid(input_cache_dir, cache_dir, logger)
+            deprecatedRID_rid = rrCache._gen_deprecatedRID_rid(self.__input__cache_dir, self.__cache_dir, logger)
         except KeyError as e:
             deprecatedRID_rid = None
             logger.debug(f'{e} not found in input cache, skipping generation')
         print_progress(logger)
-        rrCache._gen_rr_reactions(input_cache_dir, cache_dir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_rr_reactions(self.__input__cache_dir, self.__cache_dir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         try:
-            rrCache._gen_comp_xref_deprecatedCompID_compid(input_cache_dir, cache_dir, logger)
+            rrCache._gen_comp_xref_deprecatedCompID_compid(self.__input__cache_dir, self.__cache_dir, logger)
         except KeyError as e:
             logger.debug(f'{e} not found in input cache, skipping generation')
         print_progress(logger)
-        rrCache._gen_template_reactions(input_cache_dir, cache_dir, deprecatedRID_rid, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        rrCache._gen_template_reactions(self.__input__cache_dir, self.__cache_dir, deprecatedRID_rid, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
         print_progress(logger)
         del deprecatedCID_cid, deprecatedRID_rid
         print_progress(logger)

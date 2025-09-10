@@ -21,6 +21,8 @@ from typing import (
     List,
 )
 
+from .Args import DATA_PATH
+
 
 def init(
     parser: 'ArgumentParser',
@@ -73,6 +75,26 @@ def entry_point():
     args  = parser.parse_args()
 
     logger = init(parser, args)
+
+    if args.list_data_types:
+        # list conifg_*.json files in DATA_PATH
+        import os
+        files = os.listdir(DATA_PATH)
+        data_types = []
+        for file in files:
+            if file.startswith('config_') and file.endswith('.json'):
+                data_types.append(file[len('config_'):-len('.json')])
+        print(
+            '{color}{typo}Available data types:{rst}{color}{rst}\n'.format(
+                color=fg('white'),
+                typo=attr('bold'),
+                rst=attr('reset')
+            )
+        )
+        for dt in data_types:
+            print(f'- {dt}')
+        print()
+        exit(0)
 
     cache = rrCache(
         data_type=args.data_type,

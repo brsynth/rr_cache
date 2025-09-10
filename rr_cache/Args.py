@@ -49,6 +49,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Type of data to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
     )
     parser.add_argument(
+        '--list-data-types',
+        default=None,
+        action='store_true',
+        help='list available data types and exits'
+    )
+    parser.add_argument(
         '--gen-cache',
         default=None,
         action='store_true',

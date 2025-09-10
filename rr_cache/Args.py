@@ -7,7 +7,6 @@ from brs_utils import add_logger_args
 
 HERE = os_path.dirname(os_path.abspath( __file__ ))
 DATA_PATH = os_path.join(HERE, 'data')
-
 # Default values for the arguments
 DEFAULTS = {
     'data_type': 'mnx3.1',

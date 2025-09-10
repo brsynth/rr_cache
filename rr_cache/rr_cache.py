@@ -17,9 +17,13 @@ from csv import (
 )
 from json import (
     dump as json_dump,
+    dumps as json_dumps,
     load as json_load
 )
-from gzip       import open as gzip_open
+from gzip import (
+    open as gzip_open,
+    GzipFile
+)
 from re         import findall as re_findall
 # from time       import time as time_time
 from requests   import exceptions as r_exceptions
@@ -100,6 +104,8 @@ class rrCache:
         self.logger.debug('mnx_version: '+str(mnx_version))
         self.logger.debug('input_cache_file: '+str(input_cache_file))
         self.logger.debug('cache_file: '+str(cache_file))
+        self.logger.debug('interactive: '+str(interactive))
+        self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
 
         # Input cache file
         self.__input__cache_dir = os_path.join(
@@ -134,10 +140,15 @@ class rrCache:
             )
         else:
             self.__cache_dir = cache_dir
-        self.load(attrs, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
+        self.load(attrs=attrs, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
-    def load(self, attrs: List = DEFAULTS['attrs'], interactive: bool = DEFAULTS['interactive'], do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']) -> None:
+    def load(
+        self,
+        attrs: List = DEFAULTS['attrs'],
+        interactive: bool = DEFAULTS['interactive'],
+        do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']
+    ) -> None:
         """Load the cache attributes into memory
         Args:
             attrs (List): List of attributes to load, if None, all attributes are loaded
@@ -146,6 +157,8 @@ class rrCache:
             None
         """
         self.logger.debug('Loading attributes: '+str(attrs))
+        self.logger.debug('interactive: '+str(interactive))
+        self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
 
         if attrs is None:
             return
@@ -389,7 +402,10 @@ class rrCache:
         print_progress(logger)
         cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(input_cache_dir, cache_dir, deprecatedCID_cid, interactive=interactive, logger=logger)
         print_progress(logger)
-        rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
+        try:
+            rrCache._gen_inchikey_cid(input_cache_dir, cache_dir, cid_strc, logger)
+        except KeyError as e:
+            logger.debug(f'{e} not found in input cache, skipping generation')
         print_progress(logger)
         del cid_strc, cid_name
         try:
@@ -447,7 +463,7 @@ class rrCache:
                 os_path.join(input_dir, 'chem_xref.tsv')
             )
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid)
+            rrCache._store_cache_to_file(deprecatedCID_cid, f_deprecatedCID_cid, logger=logger)
 
         return {
             'attr': deprecatedCID_cid,
@@ -509,9 +525,9 @@ class rrCache:
                                 cid_strc[row[0]] = cid_strc[row[1]]
 
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(cid_strc, f_cid_strc)
+            rrCache._store_cache_to_file(cid_strc, f_cid_strc, logger=logger)
             if cid_name:
-                rrCache._store_cache_to_file(cid_name, f_cid_name)
+                rrCache._store_cache_to_file(cid_name, f_cid_name, logger=logger)
             else:
                 logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
 
@@ -548,7 +564,7 @@ class rrCache:
             logger.debug("   Generating data...")
             inchikey_cid = rrCache._m_inchikey_cid(cid_strc['attr'])
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(inchikey_cid, f_inchikey_cid)
+            rrCache._store_cache_to_file(inchikey_cid, f_inchikey_cid, logger=logger)
             del inchikey_cid
 
 
@@ -581,7 +597,7 @@ class rrCache:
                 deprecatedCID_cid['attr']
             )
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(cid_xref, f_cid_xref)
+            rrCache._store_cache_to_file(cid_xref, f_cid_xref, logger=logger)
 
         return {
             'attr': cid_xref,
@@ -612,7 +628,7 @@ class rrCache:
             chebi_cid = rrCache._m_chebi_cid(cid_xref['attr'])
             # print_OK()
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(chebi_cid, f_chebi_cid)
+            rrCache._store_cache_to_file(chebi_cid, f_chebi_cid, logger=logger)
             del chebi_cid
             # print_OK()
 
@@ -641,7 +657,7 @@ class rrCache:
                 os_path.join(input_dir, 'reac_xref.tsv')
             )
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(deprecatedRID_rid, f_deprecatedRID_rid)
+            rrCache._store_cache_to_file(deprecatedRID_rid, f_deprecatedRID_rid, logger=logger)
 
         return {
             'attr': deprecatedRID_rid,
@@ -686,7 +702,7 @@ class rrCache:
             )
             # del deprecatedRID_rid
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(rr_reactions, f_rr_reactions)
+            rrCache._store_cache_to_file(rr_reactions, f_rr_reactions, logger=logger)
             del rr_reactions
 
 
@@ -719,11 +735,11 @@ class rrCache:
             )
             # print_OK()
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(comp_xref, f_comp_xref)
+            rrCache._store_cache_to_file(comp_xref, f_comp_xref, logger=logger)
             # print_OK()
             del comp_xref
             logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(deprecatedCompID_compid, f_deprecatedCompID_compid)
+            rrCache._store_cache_to_file(deprecatedCompID_compid, f_deprecatedCompID_compid, logger=logger)
             # print_OK()
             del deprecatedCompID_compid
 
@@ -762,7 +778,7 @@ class rrCache:
                 except KeyError as key:
                     logger.warning(f'Reaction ID {key} not found in {dep_files[0]}')
         logger.debug("   Writing data to file...")
-        rrCache._store_cache_to_file(template_reactions, f_template_reactions)
+        rrCache._store_cache_to_file(template_reactions, f_template_reactions, logger=logger)
         del template_reactions
 
 
@@ -775,6 +791,7 @@ class rrCache:
 
 
     def _check_or_load_cache(self):
+        self.logger.debug('Checking cache...')
         print_start(self.logger, 'Loading cache in memory')
         for attribute in self.__attributes_list:
             filename = rrCache.__cache[attribute]['file']['name']
@@ -897,12 +914,21 @@ class rrCache:
     #  @param data Data to write into file
     #  @param filename File to write data into
     @staticmethod
-    def _store_cache_to_file(data, filename):
+    def _store_cache_to_file(data, filename, logger: Logger = getLogger(__name__)):
+        logger.debug(filename)
         if filename.endswith('.gz') or filename.endswith('.zip'):
-            fp = gzip_open(filename, 'wt', encoding='ascii')
+            # Create the JSON string with sorted keys and no extra spaces
+            # This ensures that the output is consistent for the same input data
+            # which is important for reproducibility and caching
+            json_bytes = json_dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            # fp = gzip_open(filename, 'wt', encoding='ascii', mtime=0)
+            # Write JSON into gzip file with reproducible output
+            with open(filename, "wb") as raw:
+                with GzipFile(fileobj=raw, mode="wb", mtime=0) as f:
+                    f.write(json_bytes)
         else:
             fp = open(filename, 'w')
-        json_dump(data, fp)
+            json_dump(data, fp)
 
     ## Function to create a dictionnary of old to new chemical id's
     #
@@ -1008,6 +1034,11 @@ class rrCache:
                 - cid_name: Dictionary of compound names.
         """
 
+        logger.debug('Parsing compounds.tsv and chem_prop.tsv files')
+        logger.debug(f'paths: {paths}')
+        logger.debug(f'deprecatedCID_cid: {deprecatedCID_cid}')
+        logger.debug(f'interactive: {interactive}')
+
         rr_compounds_path = paths[0]
         chem_prop_path = paths[1] if len(paths) > 1 else ""
 
@@ -1030,7 +1061,7 @@ class rrCache:
                 tmp['smiles'] = row['smiles']
             except KeyError:
                 # If the smiles is not present, set it to None
-                logger.debug('No smiles in RetroRules compounds.tsv for '+str(row['cid'])+', setting to None')
+                logger.debug(f'No smiles in RetroRules {rr_compounds_path} for '+str(row['cid'])+', setting to None')
                 tmp['smiles'] = None
 
             # try:

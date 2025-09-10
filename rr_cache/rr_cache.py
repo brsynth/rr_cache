@@ -136,7 +136,7 @@ class rrCache:
         self.logger.info(f'Using {self.__data_type}')
         self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__data_type)
         self.__cache_dir = os_path.join(HERE, 'cache', self.__data_type)
-        self.load(interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
+#        self.load(attrs=[], interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
     def load(

@@ -77,6 +77,7 @@ def entry_point():
     cache = rrCache(
         attrs=None,
         cache_dir=args.cache_dir,
+        input_cache_dir=args.input_cache_dir,
         mnx_version=args.mnx_version,
         input_cache_file=args.input_cache_file,
         cache_file=args.cache_file,
@@ -85,53 +86,57 @@ def entry_point():
         logger=logger
     )
 
-    try:
-        if args.gen_cache:
-            rrCache.generate_cache(
-                cache_dir=args.cache_dir,
-                input_cache_dir=cache.get_input_cache_dir(),
-                mnx_version=args.mnx_version,
-                interactive=args.interactive,
-                logger=logger
-            )
-        elif args.reaction_rules is not None:
-            print_attr(
-                cache,
-                'rr_reactions',
-                args.reaction_rules,
-                logger
-            )
-        elif args.reactions is not None:
-            print_attr(
-                cache,
-                'template_reactions',
-                args.reactions,
-                logger
-            )
-        elif args.compounds is not None:
-            print_attr(
-                cache,
-                'cid_strc',
-                args.compounds,
-                logger
-            )
-        else:
-            cache.load(args.attrs)
-    except Exception as e:
-        logger.debug(f"Exception type: {type(e).__name__}")
-        logger.error(
-            '\n*** An error occurred:\n{error}'.format(error=str(e))
+    # try:
+    if args.gen_cache:
+        rrCache.generate_cache(
+            cache_dir=args.cache_dir,
+            input_cache_dir=cache.get_input_cache_dir(),
+            mnx_version=args.mnx_version,
+            interactive=args.interactive,
+            logger=logger
         )
-        logger.error('\nExiting...\n')
-        exit(1)
+    elif args.reaction_rules is not None:
+        print_attr(
+            cache,
+            'rr_reactions',
+            args.reaction_rules,
+            args.do_not_dwnl_cache,
+            logger
+        )
+    elif args.reactions is not None:
+        print_attr(
+            cache,
+            'template_reactions',
+            args.reactions,
+            args.do_not_dwnl_cache,
+            logger
+        )
+    elif args.compounds is not None:
+        print_attr(
+            cache,
+            'cid_strc',
+            args.compounds,
+            args.do_not_dwnl_cache,
+            logger
+        )
+    else:
+        cache.load(attrs=args.attrs, interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache)
+    # except Exception as e:
+    #     logger.debug(f"Exception type: {type(e).__name__}")
+    #     logger.error(
+    #         '\n*** An error occurred:\n{error}'.format(error=str(e))
+    #     )
+    #     logger.error('\nExiting...\n')
+    #     exit(1)
 
 def print_attr(
     cache: 'rrCache',
     attr: str,
     attr_lst: List,
+    do_not_dwnl_cache: bool,
     logger: Logger = getLogger(__file__)
 ) -> None:
-    cache.load([attr])
+    cache.load(attrs=[attr], do_not_dwnl_cache=do_not_dwnl_cache)
     if attr_lst == []:
         print(
             dumps(

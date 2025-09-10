@@ -87,6 +87,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Path to the cache to generate or read from'
     )
+    parser.add_argument(
+        '--input-cache-dir',
+        default=DEFAULTS['input_cache_dir'],
+        type=str,
+        help='Path to the input cache directory, if not given, the default cache will be considered'
+    )
     # input_cache file
     parser.add_argument(
         '--input-cache-file',
@@ -120,7 +126,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=DEFAULTS['interactive'],
         action='store_true',
         dest='interactive',
-        help='Do not ask user for confirmation when loading cache'
+        help='Ask user for confirmation when loading cache'
     )
     parser.add_argument(
         '--do-not-dwnl-cache',

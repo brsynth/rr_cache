@@ -89,6 +89,7 @@ class rrCache:
         self,
         attrs: List = DEFAULTS['attrs'],
         cache_dir: str = DEFAULTS['cache_dir'],
+        input_cache_dir: str = DEFAULTS['input_cache_dir'],
         mnx_version: str = DEFAULTS['mnx_version'],
         input_cache_file: str = DEFAULTS['input_cache_file'],
         cache_file: str = DEFAULTS['cache_file'],
@@ -101,6 +102,7 @@ class rrCache:
         self.logger.debug('New instance of rrCache')
         self.logger.debug('attrs: '+str(attrs))
         self.logger.debug('cache_dir: '+str(cache_dir))
+        self.logger.debug('input_cache_dir: '+str(input_cache_dir))
         self.logger.debug('mnx_version: '+str(mnx_version))
         self.logger.debug('input_cache_file: '+str(input_cache_file))
         self.logger.debug('cache_file: '+str(cache_file))
@@ -108,11 +110,12 @@ class rrCache:
         self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
 
         # Input cache file
-        self.__input__cache_dir = os_path.join(
-            HERE,
-            'input-cache',
-            f'mnx_{mnx_version}'
-        )
+        # self.__input__cache_dir = os_path.join(
+        #     HERE,
+        #     'input-cache',
+        #     f'mnx_{mnx_version}'
+        # )
+
         with open(input_cache_file, 'r') as f:
             rrCache.__input__cache = json_load(f)
 
@@ -132,6 +135,14 @@ class rrCache:
 
         self.__mnx_version = mnx_version
         self.logger.info(f'Using MetaNetX {self.__mnx_version}')
+        if input_cache_dir == DEFAULTS['input_cache_dir']:
+            self.__input__cache_dir = os_path.join(
+                HERE,
+                'input-cache',
+                f'mnx_{self.__mnx_version}'
+            )
+        else:
+            self.__input__cache_dir = os_path.abspath(input_cache_dir)
         if cache_dir == DEFAULTS['cache_dir']:
             self.__cache_dir = os_path.join(
                 HERE,
@@ -139,7 +150,7 @@ class rrCache:
                 f'mnx_{self.__mnx_version}'
             )
         else:
-            self.__cache_dir = cache_dir
+            self.__cache_dir = os_path.abspath(cache_dir)
         self.load(attrs=attrs, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 

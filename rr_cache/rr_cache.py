@@ -84,6 +84,7 @@ class rrCache:
 
     # __input__cache_url = 'ftp://ftp.vital-it.ch/databases/metanetx/MNXref/3.2/'
 
+
     ## Cache constructor
     def __init__(
         self,

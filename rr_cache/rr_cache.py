@@ -175,11 +175,14 @@ class rrCache:
             setattr(self, '__'+attr, None)
 
         if not do_not_dwnl_cache:
-            rrCache._check_or_download_cache_to_disk(
-                self.__cache_dir,
-                self.__attributes_list,
-                self.logger
-            )
+            try:
+                rrCache._check_or_download_cache_to_disk(
+                    self.__cache_dir,
+                    self.__attributes_list,
+                    self.logger
+                )
+            except r_exceptions.MissingSchema:
+                self.logger.warning('Error in the URL, trying to generate the cache')
 
         try:
             self._check_or_load_cache()

@@ -27,7 +27,7 @@ class Test_rrCache(TestCase):
 
     data_type = 'mnx3.1'
     outdir = f'cache-{data_type}'
-    cache = rrCache(attrs=None, data_type=data_type, interactive=False)
+    cache = rrCache(data_type=data_type, interactive=False)
 
     # Not possible to compare hashes since
     # files contain dict that have to be sorted
@@ -68,7 +68,7 @@ class Test_rrCache(TestCase):
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
-                cache = rrCache([attr], data_type=self.data_type, interactive=False, logger=self.logger)
+                cache = rrCache(data_type=self.data_type, interactive=False, logger=self.logger)
                 self.assertEqual(len(cache.get(attr)), length)
 
     def test_generate_cache(self):

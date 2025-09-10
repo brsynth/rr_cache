@@ -10,7 +10,6 @@ DATA_PATH = os_path.join(HERE, 'data')
 # Default values for the arguments
 DEFAULTS = {
     'data_type': 'mnx3.1',
-    'attrs': [],
     'interactive': False,
     'do_not_dwnl_cache': False,
 }

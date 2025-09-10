@@ -75,7 +75,6 @@ def entry_point():
     logger = init(parser, args)
 
     cache = rrCache(
-        attrs=None,
         data_type=args.data_type,
         interactive=args.interactive,
         do_not_dwnl_cache=args.do_not_dwnl_cache,
@@ -85,7 +84,6 @@ def entry_point():
     # try:
     if args.gen_cache:
         cache.generate_cache(
-            data_type=args.data_type,
             interactive=args.interactive,
             logger=logger
         )
@@ -114,7 +112,7 @@ def entry_point():
             logger
         )
     else:
-        cache.load(attrs=args.attrs, interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache)
+        cache.load(interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache)
     # except Exception as e:
     #     logger.debug(f"Exception type: {type(e).__name__}")
     #     logger.error(

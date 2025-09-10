@@ -87,7 +87,6 @@ class rrCache:
     ## Cache constructor
     def __init__(
         self,
-        attrs: List = DEFAULTS['attrs'],
         data_type: str = DEFAULTS['data_type'],
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
@@ -96,7 +95,6 @@ class rrCache:
 
         self.logger = logger
         self.logger.debug('New instance of rrCache')
-        self.logger.debug('attrs: '+str(attrs))
         self.logger.debug('data_type: '+str(data_type))
         self.logger.debug('interactive: '+str(interactive))
         self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
@@ -138,12 +136,12 @@ class rrCache:
         self.logger.info(f'Using {self.__data_type}')
         self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__data_type)
         self.__cache_dir = os_path.join(HERE, 'cache', self.__data_type)
-        self.load(attrs=attrs, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
+        self.load(interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
     def load(
         self,
-        attrs: List = DEFAULTS['attrs'],
+        attrs: List = [],
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']
     ) -> None:

@@ -21,7 +21,7 @@ from typing import (
     List,
 )
 
-from .Args import DATA_PATH
+from .Args import CONFIG_PATH
 
 
 def init(
@@ -77,9 +77,9 @@ def entry_point():
     logger = init(parser, args)
 
     if args.list_data_types:
-        # list conifg_*.json files in DATA_PATH
+        # list config_*.json files in CONFIG_PATH
         import os
-        files = os.listdir(DATA_PATH)
+        files = os.listdir(CONFIG_PATH)
         data_types = []
         for file in files:
             if file.startswith('config_') and file.endswith('.json'):

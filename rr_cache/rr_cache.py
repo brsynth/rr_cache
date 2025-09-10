@@ -50,7 +50,7 @@ from brs_utils  import (
     check_sha
 )
 
-from .Args import DEFAULTS, HERE, DATA_PATH
+from .Args import DEFAULTS, HERE, CONFIG_PATH
 
 
 def ask_user_input():
@@ -102,33 +102,27 @@ class rrCache:
 
         self.__data_type = data_type
 
-        # Input cache file
-        input_cache_file = os_path.join(
-            DATA_PATH,
-            f'input_cache_{self.__data_type}.json'
+        # Cache config
+        cache_cfg_file = os_path.join(
+            CONFIG_PATH, f'config_{self.__data_type}.json'
         )
         try:
-            with open(input_cache_file, 'r') as f:
-                rrCache.__input__cache = json_load(f)
+            with open(cache_cfg_file, 'r') as f:
+                cache_cfg = json_load(f)
+                rrCache.__cache_sources = cache_cfg['sources']
+                rrCache.__cache = cache_cfg['cache']
         except FileNotFoundError:
-            logger.error(f'Input cache file {input_cache_file} not found, please check the data_type argument')
+            logger.error(f'Cache config file {cache_cfg_file} not found, please check the data_type argument')
             logger.error('Exiting...')
             exit(1)
 
-        # Cache file
-        cache_file = os_path.join(
-            DATA_PATH,
-            f'cache_{self.__data_type}.json'
-        )
-        with open(cache_file, 'r') as f:
-            rrCache.__cache = json_load(f)
-        # Attributes with dependencies (other attributes + input_cache files)
+        # Cache elements list
         rrCache.__attributes_list = list(rrCache.__cache.keys())
 
         # static attribues
-        if self.__data_type.startswith('mnx'):
+        if 'static' in cache_cfg:
             try:
-                convert_fln = os_path.join(DATA_PATH, 'convert.json')
+                convert_fln = os_path.join(CONFIG_PATH, cache_cfg['static'])
                 with open(convert_fln, 'r') as f:
                     rrCache.__convertMNXM = json_load(f)
             except FileNotFoundError:
@@ -355,7 +349,7 @@ class rrCache:
 
         # FETCH INPUT_CACHE FILES
         print_start(logger, 'Checking input cache')
-        for input_type, input in rrCache.__input__cache.items():
+        for input_type, input in rrCache.__cache_sources.items():
             logger.debug(f'Checking {input_type}...')
             for filename, fingerprint in input['files'].items():
                 rrCache._download_input_cache(

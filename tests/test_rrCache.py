@@ -53,8 +53,7 @@ class Test_rrCache(TestCase):
         Method: Load a full rrCache in 'file' store mode. Then, for each
         attribute, compare its length with it is supposed to be.
         """
-        cache = rrCache(data_type=self.data_type, interactive=False, logger=self.logger)
-        cache.load(interactive=False)
+        cache = rrCache(data_type=self.data_type, interactive=False, load=True, logger=self.logger)
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
@@ -69,8 +68,7 @@ class Test_rrCache(TestCase):
         for attr in self.metrics:
             length = self.metrics[attr]['length']
             with self.subTest(attr=attr, length=length):
-                cache = rrCache(data_type=self.data_type, interactive=False, logger=self.logger)
-                cache.load(attrs=[attr], interactive=False)
+                cache = rrCache(data_type=self.data_type, interactive=False, load=True, logger=self.logger)
                 self.assertEqual(len(cache.get(attr)), length)
 
     def test_generate_cache(self):

@@ -100,12 +100,13 @@ def entry_point():
         data_type=args.data_type,
         interactive=args.interactive,
         do_not_dwnl_cache=args.do_not_dwnl_cache,
+        load=False,
         logger=logger
     )
 
     # try:
-    if args.gen_cache:
-        cache.generate_cache(
+    if args.build_cache:
+        cache.Build(
             interactive=args.interactive,
             logger=logger
         )
@@ -134,7 +135,7 @@ def entry_point():
             logger
         )
     else:
-        cache.load(interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache)
+        cache.Load(interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache)
     # except Exception as e:
     #     logger.debug(f"Exception type: {type(e).__name__}")
     #     logger.error(
@@ -150,7 +151,7 @@ def print_attr(
     do_not_dwnl_cache: bool,
     logger: Logger = getLogger(__file__)
 ) -> None:
-    cache.load(attrs=[attr], do_not_dwnl_cache=do_not_dwnl_cache)
+    cache.Load(attrs=[attr], do_not_dwnl_cache=do_not_dwnl_cache)
     if attr_lst == []:
         print(
             dumps(

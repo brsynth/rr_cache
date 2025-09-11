@@ -91,14 +91,24 @@ class rrCache:
         data_type: str = DEFAULTS['data_type'],
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
+        load: bool = False,
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
+        """Constructor for the class
+        Args:
+            data_type (str): Version of MetaNetX to use.
+            interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
+            do_not_dwnl_cache (bool): Whether to download the cache files from the internet.
+            load (bool): Whether to load the cache files into memory.
+            logger (Logger): Logger instance for logging messages.
+        """
 
         self.logger = logger
         self.logger.debug('New instance of rrCache')
         self.logger.debug('data_type: '+str(data_type))
         self.logger.debug('interactive: '+str(interactive))
         self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
+        self.logger.debug('load: '+str(load))
 
         self.__data_type = data_type
 
@@ -131,10 +141,11 @@ class rrCache:
         self.logger.info(f'Using {self.__data_type}')
         self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__data_type)
         self.__cache_dir = os_path.join(HERE, 'cache', self.__data_type)
-#        self.load(attrs=[], interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
+        if load:
+            self.Load(attrs=rrCache.__attributes_list, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
 
-    def load(
+    def Load(
         self,
         attrs: List = [],
         interactive: bool = DEFAULTS['interactive'],
@@ -181,7 +192,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            self.generate_cache(interactive=interactive)
+            self.Build(interactive=interactive)
             self._check_or_load_cache()
 
 
@@ -276,7 +287,7 @@ class rrCache:
     def __get_object(self, attr: str, id: str):
         try:
             if not self.__hasattr(attr):
-                self.load(attrs=[attr])
+                self.Load(attrs=[attr])
             return self.get(attr)[id]
         except Exception as e:
             self.logger.error(str(e))
@@ -284,7 +295,7 @@ class rrCache:
     def __get_list_of_objects(self, attr: str):
         try:
             if not self.__hasattr(attr):
-                self.load(attrs=[attr])
+                self.Load(attrs=[attr])
             return self.get(attr).keys()
         except Exception as e:
             self.logger.error(str(e))
@@ -322,7 +333,7 @@ class rrCache:
             self.message = message
 
 #    @staticmethod
-    def generate_cache(
+    def Build(
         self,
         interactive: bool = DEFAULTS['interactive'],
         logger: Logger = getLogger(__name__)

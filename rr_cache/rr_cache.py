@@ -91,7 +91,7 @@ class rrCache:
         data_type: str = DEFAULTS['data_type'],
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
-        load: bool = False,
+        load: bool = True,
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
         """Constructor for the class

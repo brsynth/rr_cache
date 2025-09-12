@@ -105,7 +105,7 @@ def entry_point():
     )
 
     # try:
-    if args.build_cache:
+    if args.build:
         cache.Build(
             interactive=args.interactive,
             logger=logger

@@ -55,7 +55,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='list available data types and exits'
     )
     parser.add_argument(
-        '--build-cache',
+        '--build',
         default=None,
         action='store_true',
         help='build the cache and exits. If the cache already exists, it will be overwritten. If other arguments are provided, they will be ignored.'

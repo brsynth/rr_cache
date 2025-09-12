@@ -377,8 +377,8 @@ class rrCache:
 
         print_end(logger)
 
-        # GENERATE CACHE FILES AND STORE THEM TO DISK
-        print_start(logger, 'Generating cache')
+        # BUILD CACHE FILES AND STORE THEM TO DISK
+        print_start(logger, 'Building the cache')
         try:
             deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(self.__input__cache_dir, self.__cache_dir, logger)
         except KeyError as e:

@@ -259,9 +259,13 @@ class rrCache:
         self.logger.debug(f'Getting attribute: {attr}')
         try:
             return getattr(self, '__'+attr)
-        except Exception as e:
-            self.logger.error(str(e))
-            return None
+        except AttributeError: # Try class attribute
+            try:
+                mangled = f"_{self.__class__.__name__}__{attr}"
+                return getattr(self, mangled)
+            except Exception as e:
+                self.logger.error(str(e))
+                return None
 
     def __hasattr(self, attr: str):
         return hasattr(self, '__'+attr)

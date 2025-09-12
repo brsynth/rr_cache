@@ -67,17 +67,22 @@ python -m rr_cache --compounds <CmpdID_1> <CmpdID_2>...
 ```
 If `CmpdID_i` is(are) set, prints out the compound(s) or all compounds if nothing is specified.
 
-### (Re-)generate the cache
+```sh
+python -m rr_cache --data-type <DataType>
+```
+If `DataType` is set, set the data type of the cache (default is `mnx3.1`).
+
+### (Re-)build the cache
 **From Python code**
 ```python
 from rr_cache import rrCache
 
-rrCache.generate_cache(outdir)
+rrCache.Build(outdir)
 ```
 
 **From CLI**
 ```sh
-python -m rr_cache --gen_cache <folder>
+python -m rr_cache --build <folder>
 ```
 
 

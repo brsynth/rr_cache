@@ -49,7 +49,6 @@ from brs_utils  import (
     download,
     check_sha
 )
-
 from .Args import DEFAULTS, HERE, CONFIG_PATH
 
 

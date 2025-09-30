@@ -86,7 +86,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=DEFAULTS['interactive'],
         action='store_true',
         dest='interactive',
-        help='Ask user for confirmation when loading cache'
+        help='Ask user for confirmation when loading cache (default: %(default)s)'
     )
     parser.add_argument(
         '--do-not-dwnl-cache',

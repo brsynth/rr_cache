@@ -20,7 +20,6 @@ from json import dumps
 from typing import (
     List,
 )
-
 from .Args import CONFIG_PATH
 
 

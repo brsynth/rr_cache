@@ -76,28 +76,28 @@ def entry_point():
 
     logger = init(parser, args)
 
-    if args.list_data_types:
+    if args.list_chemical_spaces:
         # list config_*.json files in CONFIG_PATH
         import os
         files = os.listdir(CONFIG_PATH)
-        data_types = []
+        cspaces = []
         for file in files:
             if file.startswith('config_') and file.endswith('.json'):
-                data_types.append(file[len('config_'):-len('.json')])
+                cspaces.append(file[len('config_'):-len('.json')])
         print(
-            '{color}{typo}Available data types:{rst}{color}{rst}\n'.format(
+            '{color}{typo}Available chemical spaces:{rst}{color}{rst}\n'.format(
                 color=fg('white'),
                 typo=attr('bold'),
                 rst=attr('reset')
             )
         )
-        for dt in data_types:
+        for dt in cspaces:
             print(f'- {dt}')
         print()
         exit(0)
 
     cache = rrCache(
-        data_type=args.data_type,
+        cspace=args.cspace,
         interactive=args.interactive,
         do_not_dwnl_cache=args.do_not_dwnl_cache,
         load=False,

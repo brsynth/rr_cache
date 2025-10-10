@@ -9,7 +9,7 @@ HERE = os_path.dirname(os_path.abspath( __file__ ))
 CONFIG_PATH = os_path.join(HERE, 'config')
 # Default values for the arguments
 DEFAULTS = {
-    'data_type': 'mnx3.1',
+    'cspace': 'mnx3.1',
     'interactive': False,
     'do_not_dwnl_cache': False,
 }
@@ -43,16 +43,17 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser = add_logger_args(parser)
 
     parser.add_argument(
-        '--data-type',
-        default=DEFAULTS['data_type'],
+        '--chemical-space',
+        dest='cspace',
+        default=DEFAULTS['cspace'],
         type=str,
-        help='Type of data to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
+        help='chemical space to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
     )
     parser.add_argument(
-        '--list-data-types',
+        '--list-chemical-spaces',
         default=None,
         action='store_true',
-        help='list available data types and exits'
+        help='list available chemical spaces and exits'
     )
     parser.add_argument(
         '--build',

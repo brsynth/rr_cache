@@ -87,7 +87,7 @@ class rrCache:
     ## Cache constructor
     def __init__(
         self,
-        data_type: str = DEFAULTS['data_type'],
+        cspace: str = DEFAULTS['cspace'],
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
         load: bool = True,
@@ -95,7 +95,7 @@ class rrCache:
     ) -> 'rrCache':
         """Constructor for the class
         Args:
-            data_type (str): Version of MetaNetX to use.
+            cspace (str): Chemical space to use (e.g. mnx3.1, mnx4.4...).
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             do_not_dwnl_cache (bool): Whether to download the cache files from the internet.
             load (bool): Whether to load the cache files into memory.
@@ -104,16 +104,16 @@ class rrCache:
 
         self.logger = logger
         self.logger.debug('New instance of rrCache')
-        self.logger.debug('data_type: '+str(data_type))
+        self.logger.debug('cspace: '+str(cspace))
         self.logger.debug('interactive: '+str(interactive))
         self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
         self.logger.debug('load: '+str(load))
 
-        self.__data_type = data_type
+        self.__cspace = cspace
 
         # Cache config
         cache_cfg_file = os_path.join(
-            CONFIG_PATH, f'config_{self.__data_type}.json'
+            CONFIG_PATH, f'config_{self.__cspace}.json'
         )
         try:
             with open(cache_cfg_file, 'r') as f:
@@ -121,7 +121,7 @@ class rrCache:
                 rrCache.__cache_sources = cache_cfg['sources']
                 rrCache.__cache = cache_cfg['cache']
         except FileNotFoundError:
-            logger.error(f'Cache config file {cache_cfg_file} not found, please check the data_type argument')
+            logger.error(f'Cache config file {cache_cfg_file} not found, please check the --chemical-space argument')
             logger.error('Exiting...')
             exit(1)
 
@@ -137,9 +137,9 @@ class rrCache:
             except FileNotFoundError:
                 rrCache.__convertMNXM = {}
 
-        self.logger.info(f'Using {self.__data_type}')
-        self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__data_type)
-        self.__cache_dir = os_path.join(HERE, 'cache', self.__data_type)
+        self.logger.info(f'Using {self.__cspace}')
+        self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__cspace)
+        self.__cache_dir = os_path.join(HERE, 'cache', self.__cspace)
         if load:
             self.Load(attrs=rrCache.__attributes_list, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
@@ -343,7 +343,6 @@ class rrCache:
     ) -> None:
         """Generate the cache files and store them to disk.
         Args:
-            data_type (str): Version of MetaNetX to use.
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             logger (Logger): Logger instance for logging messages.
         """

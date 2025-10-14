@@ -255,7 +255,7 @@ class rrCache:
         # print_end(logger)
 
     def get(self, attr: str):
-        self.logger.debug(f'Getting attribute: {attr}')
+        # self.logger.debug(f'Getting attribute: {attr}')
         try:
             return getattr(self, '__'+attr)
         except AttributeError: # Try class attribute

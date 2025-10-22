@@ -686,7 +686,7 @@ class rrCache:
             logger.debug("   Generating data...")
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
             rr_reactions = rrCache._m_rr_reactions(
-                os_path.join(input_dir, dep_files[0]),
+                dep_files[0],
                 logger=logger
                 # deprecatedCID_cid,
                 # deprecatedRID_rid
@@ -758,9 +758,7 @@ class rrCache:
         # else:
         logger.debug("   Generating data...")
         dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
-        template_reactions = rrCache._m_template_reactions(
-            os_path.join(input_dir, dep_files[0]),
-        )
+        template_reactions = rrCache._m_template_reactions(dep_files[0])
         if deprecatedRID_rid:
             # Handle deprecated reaction IDs
             for depRID, newRID in deprecatedRID_rid['attr'].items():
@@ -1296,7 +1294,7 @@ class rrCache:
         rr_reactions = {}
 
         if not os_path.exists(rules_rall_path):
-            logger.error('Could not read the rules_rall file ('+str(rules_rall_path)+')')
+            logger.error('Could not read the rules file ('+str(rules_rall_path)+')')
             return None
 
         for row in csv_DictReader(gzip_open(rules_rall_path, 'rt'), delimiter='\t'):

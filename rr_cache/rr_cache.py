@@ -114,19 +114,23 @@ class rrCache:
 
         self.__cspace = cspace
 
-        # Cache config
-        cache_cfg_file = os_path.join(
-            CONFIG_PATH, f'config_{self.__cspace}.json'
-        )
+        # Config file
+        # Search first in install_dir,
+        # then in default config path
+        cache_cfg_fln = os_path.join(install_dir, 'config', f'config_{self.__cspace}.json')
+        if not os_path.exists(cache_cfg_fln):
+            cache_cfg_fln = os_path.join(CONFIG_PATH, f'config_{self.__cspace}.json')
+
         try:
-            with open(cache_cfg_file, 'r') as f:
+            with open(cache_cfg_fln, 'r') as f:
                 cache_cfg = json_load(f)
                 rrCache.__cache_sources = cache_cfg['sources']
                 rrCache.__cache = cache_cfg['cache']
         except FileNotFoundError:
-            logger.error(f'Cache config file {cache_cfg_file} not found, please check the --chemical-space argument')
+            logger.error(f'Cache config file {cache_cfg_fln} not found, please check the --chemical-space argument')
             logger.error('Exiting...')
             exit(1)
+
 
         # Cache elements list
         rrCache.__attributes_list = list(rrCache.__cache.keys())
@@ -1034,6 +1038,10 @@ class rrCache:
 
         # Parse the compounds.tsv file from RetroRules
         for row in csv_DictReader(gzip_open(rr_compounds_path, 'rt', encoding='utf-8-sig'), delimiter='\t'):
+            row = {k.lower(): v for k, v in row.items()}  # normalize keys to lowercase
+            if 'cid' not in row:
+                # convert into 'id'
+                row['cid'] = row.pop('id')
             tmp = {
                 'formula':  None,
                 'inchi':    row['inchi'],

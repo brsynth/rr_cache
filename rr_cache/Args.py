@@ -12,6 +12,8 @@ DEFAULTS = {
     'cspace': 'mnx3.1',
     'interactive': False,
     'do_not_dwnl_cache': False,
+    # default OS tmpdir, writable by the user who installs the cache, and readable by all users
+    'install_dir': HERE,
 }
 
 
@@ -94,6 +96,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=DEFAULTS['do_not_dwnl_cache'],
         action='store_true',
         help='Do not download the cache from the remote repository'
+    )
+    parser.add_argument(
+        '--install-dir',
+        default=DEFAULTS['install_dir'],
+        type=str,
+        help='Directory to install the cache (default: %(default)s)'
     )
 
     return parser

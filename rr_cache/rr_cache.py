@@ -91,6 +91,7 @@ class rrCache:
         interactive: bool = DEFAULTS['interactive'],
         do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
         load: bool = True,
+        install_dir: str = DEFAULTS['install_dir'],
         logger: Logger = getLogger(__name__)
     ) -> 'rrCache':
         """Constructor for the class
@@ -99,6 +100,7 @@ class rrCache:
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             do_not_dwnl_cache (bool): Whether to download the cache files from the internet.
             load (bool): Whether to load the cache files into memory.
+            install_dir (str): Directory to install the cache.
             logger (Logger): Logger instance for logging messages.
         """
 
@@ -108,6 +110,7 @@ class rrCache:
         self.logger.debug('interactive: '+str(interactive))
         self.logger.debug('do_not_dwnl_cache: '+str(do_not_dwnl_cache))
         self.logger.debug('load: '+str(load))
+        self.logger.debug('install_dir: '+str(install_dir))
 
         self.__cspace = cspace
 
@@ -138,8 +141,8 @@ class rrCache:
                 rrCache.__convertMNXM = {}
 
         self.logger.info(f'Using {self.__cspace}')
-        self.__input__cache_dir = os_path.join(HERE, 'input-cache', self.__cspace)
-        self.__cache_dir = os_path.join(HERE, 'cache', self.__cspace)
+        self.__input__cache_dir = os_path.join(install_dir, 'input-cache', self.__cspace)
+        self.__cache_dir = os_path.join(install_dir, 'cache', self.__cspace)
         if load:
             self.Load(attrs=rrCache.__attributes_list, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
 
@@ -240,6 +243,7 @@ class rrCache:
                 logger.debug("Downloading "+filename+"...")
                 # start_time = time_time()
                 if not os_path.isdir(cache_dir):
+                    # cache_dir = '/mnx4.4'
                     makedirs(cache_dir, exist_ok=True)
                 download(
                     rrCache.__cache[attr]['file']['url']+filename,

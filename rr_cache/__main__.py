@@ -101,6 +101,7 @@ def entry_point():
         interactive=args.interactive,
         do_not_dwnl_cache=args.do_not_dwnl_cache,
         load=False,
+        install_dir=args.install_dir,
         logger=logger
     )
 

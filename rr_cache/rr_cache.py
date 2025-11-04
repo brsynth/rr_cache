@@ -373,14 +373,35 @@ class rrCache:
         for input_type, input in rrCache.__cache_sources.items():
             logger.debug(f'Checking {input_type}...')
             for filename, fingerprint in input['files'].items():
-                rrCache._download_input_cache(
-                    url=input['url'],
-                    file=filename,
-                    outdir=self.__input__cache_dir,
-                    fingerprint=fingerprint,
-                    logger=logger
-                )
-
+                # Download if not exists or corrupted
+                if not os_path.exists(os_path.join(self.__input__cache_dir, filename)):
+                    logger.debug(f'{filename} not found in input cache, downloading...')
+                    rrCache._download_input_cache(
+                        url=input['url'],
+                        file=filename,
+                        outdir=self.__input__cache_dir,
+                        fingerprint=fingerprint,
+                        logger=logger
+                    )
+                else:
+                    if not check_sha(
+                        os_path.join(self.__input__cache_dir, filename),
+                        {
+                            'file': {
+                                'fingerprint': fingerprint
+                            }
+                        }
+                    ):
+                        logger.debug(f'{filename} found in input cache but corrupted, re-downloading...')
+                        rrCache._download_input_cache(
+                            url=input['url'],
+                            file=filename,
+                            outdir=self.__input__cache_dir,
+                            fingerprint=fingerprint,
+                            logger=logger
+                        )
+                    else:
+                        logger.debug(f'{filename} found in input cache and valid, skipping download')
         print_end(logger)
 
         # BUILD CACHE FILES AND STORE THEM TO DISK

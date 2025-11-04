@@ -1462,7 +1462,11 @@ class rrCache:
         # 0 = left, 1 = right
         for side in [0, 1]:
             rxn[side] = {}
-            for spe in re_findall(r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+', eq.split('=')[side]):
+            if '@' in eq:
+                regex_str = r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)@\w+'
+            else:
+                regex_str = r'(\(n-1\)|\d+|4n|3n|2n|n|\(n\)|\(N\)|\(2n\)|\(x\)|N|m|q|\(n\-2\)|\d+\.\d+) ([\w\d]+)'
+            for spe in re_findall(regex_str, eq.split('=')[side]):
                 # 1) try to rescue if its one of the values
                 try:
                     # rxn[side][rrCache._checkCIDdeprecated(spe[1], deprecatedCID_cid)] = DEFAULT_STOICHIO_RESCUE[spe[0]]

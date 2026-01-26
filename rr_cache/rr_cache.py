@@ -42,6 +42,10 @@ from typing import (
     Tuple,
     Dict
 )
+from collections import (
+    defaultdict,
+    Counter
+)
 from brs_utils  import (
     print_start,
     print_progress,
@@ -126,6 +130,7 @@ class rrCache:
                 cache_cfg = json_load(f)
                 rrCache.__cache_sources = cache_cfg['sources']
                 rrCache.__cache = cache_cfg['cache']
+                rrCache.__type = cache_cfg.get('type', 'legacy')
         except FileNotFoundError:
             logger.error(f'Cache config file {cache_cfg_fln} not found, please check the --chemical-space argument')
             logger.error('Exiting...')
@@ -148,14 +153,20 @@ class rrCache:
         self.__input__cache_dir = os_path.join(install_dir, 'input-cache', self.__cspace)
         self.__cache_dir = os_path.join(install_dir, 'cache', self.__cspace)
         if load:
-            self.Load(attrs=rrCache.__attributes_list, interactive=interactive, do_not_dwnl_cache=do_not_dwnl_cache)
+            self.Load(
+                attrs=rrCache.__attributes_list,
+                interactive=interactive,
+                do_not_dwnl_cache=do_not_dwnl_cache,
+                type=rrCache.__type
+            )
 
 
     def Load(
         self,
         attrs: List = [],
         interactive: bool = DEFAULTS['interactive'],
-        do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache']
+        do_not_dwnl_cache: bool = DEFAULTS['do_not_dwnl_cache'],
+        type: str = 'legacy'
     ) -> None:
         """Load the cache attributes into memory
         Args:
@@ -198,7 +209,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            self.Build(interactive=interactive)
+            self.Build(interactive=interactive, type=type)
             self._check_or_load_cache()
 
 
@@ -346,42 +357,41 @@ class rrCache:
 #    @staticmethod
     def Build(
         self,
-        interactive: bool = DEFAULTS['interactive'],
-        logger: Logger = getLogger(__name__)
+        interactive: bool = DEFAULTS['interactive']
     ) -> None:
         """Generate the cache files and store them to disk.
         Args:
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             logger (Logger): Logger instance for logging messages.
         """
-        logger.debug('interactive: '+str(interactive))
+        self.logger.debug('interactive: '+str(interactive))
 
         # CACHE
         if os_path.isdir(self.__cache_dir):
-            logger.warning(f'Cache directory {self.__cache_dir} already exists, data might be overwritten')
+            self.logger.warning(f'Cache directory {self.__cache_dir} already exists, data might be overwritten')
         else:
             makedirs(self.__cache_dir)
 
         # INPUT_CACHE
         if os_path.isdir(self.__input__cache_dir):
-            logger.warning(f'Input cache directory {self.__input__cache_dir} already exists, existing data can be used, remove the directory to download new data')
+            self.logger.warning(f'Input cache directory {self.__input__cache_dir} already exists, existing data can be used, remove the directory to download new data')
         else:
             makedirs(self.__input__cache_dir)
 
         # FETCH INPUT_CACHE FILES
-        print_start(logger, 'Checking input cache')
+        print_start(self.logger, 'Checking input cache')
         for input_type, input in rrCache.__cache_sources.items():
-            logger.debug(f'Checking {input_type}...')
+            self.logger.debug(f'Checking {input_type}...')
             for filename, fingerprint in input['files'].items():
                 # Download if not exists or corrupted
                 if not os_path.exists(os_path.join(self.__input__cache_dir, filename)):
-                    logger.debug(f'{filename} not found in input cache, downloading...')
+                    self.logger.debug(f'{filename} not found in input cache, downloading...')
                     rrCache._download_input_cache(
                         url=input['url'],
                         file=filename,
                         outdir=self.__input__cache_dir,
                         fingerprint=fingerprint,
-                        logger=logger
+                        logger=self.logger
                     )
                 else:
                     if not check_sha(
@@ -392,61 +402,59 @@ class rrCache:
                             }
                         }
                     ):
-                        logger.debug(f'{filename} found in input cache but corrupted, re-downloading...')
+                        self.logger.debug(f'{filename} found in input cache but corrupted, re-downloading...')
                         rrCache._download_input_cache(
                             url=input['url'],
                             file=filename,
                             outdir=self.__input__cache_dir,
                             fingerprint=fingerprint,
-                            logger=logger
+                            logger=self.logger
                         )
                     else:
-                        logger.debug(f'{filename} found in input cache and valid, skipping download')
-        print_end(logger)
-
+                        self.logger.debug(f'{filename} found in input cache and valid, skipping download')
+        print_end(self.logger)
         # BUILD CACHE FILES AND STORE THEM TO DISK
-        print_start(logger, 'Building the cache')
+        print_start(self.logger, 'Building the cache')
+        # try:
+        #     deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(self.__input__cache_dir, self.__cache_dir, self.logger)
+        # except KeyError as e:
+        #     self.logger.debug(f'{e} not found in input cache, skipping generation')
+        #     deprecatedCID_cid = None
+        # print_progress(self.logger)
+        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(self.__input__cache_dir, self.__cache_dir, interactive=interactive, type=rrCache.__type, logger=self.logger)
+        print_progress(self.logger)
         try:
-            deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(self.__input__cache_dir, self.__cache_dir, logger)
+            rrCache._gen_inchikey_cid(self.__input__cache_dir, self.__cache_dir, cid_strc, self.logger)
         except KeyError as e:
-            logger.debug(f'{e} not found in input cache, skipping generation')
-            deprecatedCID_cid = None
-        print_progress(logger)
-        cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(self.__input__cache_dir, self.__cache_dir, deprecatedCID_cid, interactive=interactive, logger=logger)
-        print_progress(logger)
-        try:
-            rrCache._gen_inchikey_cid(self.__input__cache_dir, self.__cache_dir, cid_strc, logger)
-        except KeyError as e:
-            logger.debug(f'{e} not found in input cache, skipping generation')
-        print_progress(logger)
+            self.logger.debug(f'{e} not found in input cache, skipping generation')
+        print_progress(self.logger)
         del cid_strc, cid_name
         try:
-            cid_xref = rrCache._gen_cid_xref(self.__input__cache_dir, self.__cache_dir, deprecatedCID_cid, logger)
-            print_progress(logger)
+            cid_xref = rrCache._gen_cid_xref(self.__input__cache_dir, self.__cache_dir, self.logger)
+            print_progress(self.logger)
             rrCache._gen_chebi_cid(self.__input__cache_dir, self.__cache_dir, cid_xref)
-            print_progress(logger)
+            print_progress(self.logger)
             del cid_xref
         except KeyError as e:
-            logger.debug(f'{e} not found in input cache, skipping generation')
+            self.logger.debug(f'{e} not found in input cache, skipping generation')
+        # try:
+        #     deprecatedRID_rid = rrCache._gen_deprecatedRID_rid(self.__input__cache_dir, self.__cache_dir, self.logger)
+        # except KeyError as e:
+        #     deprecatedRID_rid = None
+        #     self.logger.debug(f'{e} not found in input cache, skipping generation')
+        # print_progress(self.logger)
+        rrCache._gen_rr_reactions(self.__input__cache_dir, self.__cache_dir, type=rrCache.__type, logger=self.logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        print_progress(self.logger)
         try:
-            deprecatedRID_rid = rrCache._gen_deprecatedRID_rid(self.__input__cache_dir, self.__cache_dir, logger)
+            rrCache._gen_comp_xref_deprecatedCompID_compid(self.__input__cache_dir, self.__cache_dir, self.logger)
         except KeyError as e:
-            deprecatedRID_rid = None
-            logger.debug(f'{e} not found in input cache, skipping generation')
-        print_progress(logger)
-        rrCache._gen_rr_reactions(self.__input__cache_dir, self.__cache_dir, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
-        print_progress(logger)
-        try:
-            rrCache._gen_comp_xref_deprecatedCompID_compid(self.__input__cache_dir, self.__cache_dir, logger)
-        except KeyError as e:
-            logger.debug(f'{e} not found in input cache, skipping generation')
-        print_progress(logger)
-        rrCache._gen_template_reactions(self.__input__cache_dir, self.__cache_dir, deprecatedRID_rid, logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
-        print_progress(logger)
-        del deprecatedCID_cid, deprecatedRID_rid
-        print_progress(logger)
-        print_end(logger)
-
+            self.logger.debug(f'{e} not found in input cache, skipping generation')
+        print_progress(self.logger)
+        rrCache._gen_template_reactions(self.__input__cache_dir, self.__cache_dir, type=rrCache.__type, logger=self.logger)  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        print_progress(self.logger)
+        # del deprecatedCID_cid, deprecatedRID_rid
+        print_progress(self.logger)
+        print_end(self.logger)
 
     @staticmethod
     def _gen_deprecatedCID_cid(
@@ -487,68 +495,68 @@ class rrCache:
     def _gen_cid_strc_cid_name(
         input_dir: str,
         outdir: str,
-        deprecatedCID_cid: Dict,
         interactive: bool = DEFAULTS['interactive'],
+        type: str = 'legacy',
         logger: Logger = getLogger(__name__)
     ) -> Dict:
 
         attribute = 'cid_strc, cid_name'
         logger.debug(c_attr('bold')+attribute+c_attr('reset'))
         cid_strc = None
-        cid_name = None
+        # cid_name = None
         f_cid_strc = os_path.join(outdir, rrCache.__cache['cid_strc']['file']['name'])
-        try:
-            f_cid_name = os_path.join(outdir, rrCache.__cache['cid_name']['file']['name'])
-        except KeyError:
-            f_cid_name = ""
-            logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
+        # try:
+        #     f_cid_name = os_path.join(outdir, rrCache.__cache['cid_name']['file']['name'])
+        # except KeyError:
+        #     f_cid_name = ""
+        #     logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_cid_strc) and check_sha(
             f_cid_strc,
             rrCache.__cache['cid_strc']
-        ) and os_path.exists(f_cid_name) and check_sha(
-            f_cid_name,
-            rrCache.__cache['cid_name']
-        ):
+        ): #and os_path.exists(f_cid_name) and check_sha(
+        #     f_cid_name,
+        #     rrCache.__cache['cid_name']
+        # ):
             cid_strc = rrCache._load_json(f_cid_strc)
             logger.debug("   Cache file already exists")
         else:
-            if deprecatedCID_cid:
-                if not deprecatedCID_cid['attr']:
-                    logger.debug("   Loading input data from file...")
-                    deprecatedCID_cid = rrCache._load_json(deprecatedCID_cid['file'])
-            else:
-                deprecatedCID_cid = {'attr': {}}
+            # if deprecatedCID_cid:
+            #     if not deprecatedCID_cid['attr']:
+            #         logger.debug("   Loading input data from file...")
+            #         deprecatedCID_cid = rrCache._load_json(deprecatedCID_cid['file'])
+            # else:
+            #     deprecatedCID_cid = {'attr': {}}
             logger.debug("   Generating data...")
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache['cid_strc']['deps']['file_deps']]
-            cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, deprecatedCID_cid['attr'], interactive=interactive, logger=logger)
+            cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, interactive=interactive, logger=logger)
 
-            if deprecatedCID_cid['attr'] != {}:
-                # print(cid_strc['MNXM1106057'])
-                # Replace compound IDs that have no structure with one that has.
-                # Done from a manually built file
-                with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
-                    reader = csv_reader(csv_file, delimiter=' ')
-                    for row in reader:
-                        if not row[0].startswith('#') and len(row) > 1:
-                            if row[1] != 'R_group':
-                                # print(row)
-                                cid_strc[row[0]] = cid_strc[row[1]]
+            # if deprecatedCID_cid['attr'] != {}:
+            #     # print(cid_strc['MNXM1106057'])
+            #     # Replace compound IDs that have no structure with one that has.
+            #     # Done from a manually built file
+            #     with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
+            #         reader = csv_reader(csv_file, delimiter=' ')
+            #         for row in reader:
+            #             if not row[0].startswith('#') and len(row) > 1:
+            #                 if row[1] != 'R_group':
+            #                     # print(row)
+            #                     cid_strc[row[0]] = cid_strc[row[1]]
 
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_strc, f_cid_strc, logger=logger)
-            if cid_name:
-                rrCache._store_cache_to_file(cid_name, f_cid_name, logger=logger)
-            else:
-                logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
+            # if cid_name:
+            #     rrCache._store_cache_to_file(cid_name, f_cid_name, logger=logger)
+            # else:
+            #     logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
 
         return {
             'attr': cid_strc,
             'file': f_cid_strc
         }, {
-            'attr': cid_name,
-            'file': f_cid_name
+            # 'attr': cid_name,
+            # 'file': f_cid_name
         }
 
     @staticmethod
@@ -584,7 +592,7 @@ class rrCache:
     def _gen_cid_xref(
         input_dir: str,
         outdir: str,
-        deprecatedCID_cid: Dict,
+        # deprecatedCID_cid: Dict,
         logger: Logger = getLogger(__name__)
     ) -> Dict:
         attribute = 'cid_xref'
@@ -600,13 +608,13 @@ class rrCache:
             cid_xref = rrCache._load_json(f_cid_xref)
             logger.debug("   Cache file already exists")
         else:
-            if not deprecatedCID_cid['attr']:
-                logger.debug("   Loading input data from file...")
-                deprecatedCID_cid['attr'] = rrCache._load_json(deprecatedCID_cid['file'])
+            # if not deprecatedCID_cid['attr']:
+            #     logger.debug("   Loading input data from file...")
+            #     deprecatedCID_cid['attr'] = rrCache._load_json(deprecatedCID_cid['file'])
             logger.debug("   Generating data...")
             cid_xref = rrCache._m_mnxm_xref(
                 os_path.join(input_dir, 'chem_xref.tsv'),
-                deprecatedCID_cid['attr']
+                # deprecatedCID_cid['attr']
             )
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_xref, f_cid_xref, logger=logger)
@@ -681,8 +689,7 @@ class rrCache:
     def _gen_rr_reactions(
         input_dir: str,
         outdir: str,
-        # deprecatedCID_cid: Dict,
-        # deprecatedRID_rid: Dict,
+        type: str = 'legacy',
         logger: Logger = getLogger(__name__)
     ) -> None:
         attribute = 'rr_reactions'
@@ -697,24 +704,23 @@ class rrCache:
         ):
             logger.debug("   Cache file already exists")
         else:
-            # if not deprecatedCID_cid['attr']:
-            #     logger.debug("   Loading input data from file...")
-            #     deprecatedCID_cid['attr'] = rrCache._load_json(deprecatedCID_cid['file'])
-            # if not deprecatedRID_rid['attr']:
-            #     logger.debug("   Loading input data from file...")
-            #     deprecatedRID_rid['attr'] = rrCache._load_json(deprecatedRID_rid['file'])
-            #     print_OK()
             logger.debug("   Generating data...")
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
-            rr_reactions = rrCache._m_rr_reactions(
-                dep_files[0],
-                logger=logger
-                # deprecatedCID_cid,
-                # deprecatedRID_rid
-            )
-            # del deprecatedRID_rid
+            if type == 'legacy':
+                rr_reactions = rrCache._m_rr_reactions_legacy(
+                    dep_files[0],
+                    logger=logger
+                )
+            else:
+                rr_reactions = rrCache._m_rr_reactions(
+                    dep_files[0],
+                    logger=logger
+                )
+
             logger.debug("   Writing data to file...")
+
             rrCache._store_cache_to_file(rr_reactions, f_rr_reactions, logger=logger)
+
             del rr_reactions
 
 
@@ -760,7 +766,8 @@ class rrCache:
     def _gen_template_reactions(
         input_dir: str,
         outdir: str,
-        deprecatedRID_rid: Dict,
+        # deprecatedRID_rid: Dict,
+        type: str = 'legacy',
         logger: Logger = getLogger(__name__)
     ) -> None:
         logger.debug('Generating template_reactions')
@@ -778,17 +785,25 @@ class rrCache:
         #     logger.debug("   Cache file already exists")
         # else:
         logger.debug("   Generating data...")
+
         dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
-        template_reactions = rrCache._m_template_reactions(dep_files[0])
-        if deprecatedRID_rid:
-            # Handle deprecated reaction IDs
-            for depRID, newRID in deprecatedRID_rid['attr'].items():
-                try:
-                    template_reactions[depRID] = template_reactions[newRID]
-                except KeyError as key:
-                    logger.warning(f'Reaction ID {key} not found in {dep_files[0]}')
+
+        if type == 'legacy':
+            template_reactions = rrCache._m_template_reactions_legacy(dep_files[0], logger=logger)
+            # if deprecatedRID_rid:
+            #     # Handle deprecated reaction IDs
+            #     for depRID, newRID in deprecatedRID_rid['attr'].items():
+            #         try:
+            #             template_reactions[depRID] = template_reactions[newRID]
+            #         except KeyError as key:
+            #             logger.warning(f'Reaction ID {key} not found in {dep_files[0]}')
+        else:
+            template_reactions = rrCache._m_template_reactions(dep_files[0], logger=logger)
+
         logger.debug("   Writing data to file...")
+
         rrCache._store_cache_to_file(template_reactions, f_template_reactions, logger=logger)
+
         del template_reactions
 
 
@@ -937,8 +952,11 @@ class rrCache:
                 with GzipFile(fileobj=raw, mode="wb", mtime=0) as f:
                     f.write(json_bytes)
         else:
-            fp = open(filename, 'w')
-            json_dump(data, fp)
+            try:
+                fp = open(filename, 'w')
+                json_dump(data, fp)
+            except FileNotFoundError as e:
+                logger.error(str(e))
 
     ## Function to create a dictionnary of old to new chemical id's
     #
@@ -1015,6 +1033,7 @@ class rrCache:
     def _m_deprecatedMNXR(reac_xref_path):
         return rrCache._deprecatedMNX(reac_xref_path)
 
+
     ## Function to parse the chemp_prop.tsv file from MetanetX and compounds.tsv from RetroRules. Uses the InchIkey as key to the dictionnary
     #
     #  Generate a dictionnary gaving the formula, smiles, inchi and inchikey for the components
@@ -1028,7 +1047,7 @@ class rrCache:
     @staticmethod
     def _m_mnxm_strc(
         paths: List[str],
-        deprecatedCID_cid: Dict = None,
+        # deprecatedCID_cid: Dict = None,
         interactive: bool = DEFAULTS['interactive'],
         logger: Logger = getLogger(__name__)
     ) -> Tuple[Dict, Dict]:
@@ -1044,9 +1063,8 @@ class rrCache:
                 - cid_name: Dictionary of compound names.
         """
 
-        logger.debug('Parsing compounds.tsv and chem_prop.tsv files')
         logger.debug(f'paths: {paths}')
-        logger.debug(f'deprecatedCID_cid: {deprecatedCID_cid}')
+        # logger.debug(f'deprecatedCID_cid: {deprecatedCID_cid}')
         logger.debug(f'interactive: {interactive}')
 
         rr_compounds_path = paths[0]
@@ -1057,39 +1075,31 @@ class rrCache:
 
         # Parse the compounds.tsv file from RetroRules
         for row in csv_DictReader(gzip_open(rr_compounds_path, 'rt', encoding='utf-8-sig'), delimiter='\t'):
+            if row.get('VALID', 'True').lower() != 'true':
+                logger.debug('Skipping invalid compound entry: '+str(row))
+                continue  # skip invalid entries
             row = {k.lower(): v for k, v in row.items()}  # normalize keys to lowercase
             if 'cid' not in row:
                 # convert into 'id'
                 row['cid'] = row.pop('id')
             tmp = {
-                'formula':  None,
-                'inchi':    row['inchi'],
-#                'inchikey': None,
-                'inchikey': row['inchikey'],
-#                'cid':      rrCache._checkCIDdeprecated(row['cid'], deprecatedCID_cid),
-                'cid':      row['cid'],
-                'name':     None
+                'formula':  row.get('formula', None),
+                'inchi':    row.get('inchi', None),
+                'inchikey': row.get('inchikey', None),
+                'cid':      row.get('cid', row.get('ID', None)),
+                'name':     row.get('name', None),
+                'smiles':   row.get('smiles', row.get('SMILES', None))
             }
             logger.debug(f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}')
-            try:
-                tmp['smiles'] = row['smiles']
-            except KeyError:
-                # If the smiles is not present, set it to None
-                logger.debug(f'No smiles in RetroRules {rr_compounds_path} for '+str(row['cid'])+', setting to None')
-                tmp['smiles'] = None
+            # for key in tmp.keys():
+            #     try:
+            #         tmp[key] = row[key]
+            #     except KeyError:
+            #         logger.debug(f'No {key} in RetroRules {rr_compounds_path} for '+str(row['cid'])+', setting to None')
 
-            # try:
-            #     resConv = rrCache._convert_depiction(idepic=tmp['inchi'], itype='inchi', otype={'smiles', 'inchikey'})
-            #     for i in resConv:
-            #         tmp[i] = resConv[i]
-            # except rrCache.DepictionError as e:
-            #     logger.warning('Could not convert some of the structures: '+str(tmp))
-            #     logger.warning(e)
             cid_strc[tmp['cid']] = tmp
-            # print(f'cid_strc[{tmp["cid"]}] = {tmp}')
-            # exit()
 
-        if chem_prop_path and deprecatedCID_cid:
+        if chem_prop_path:
             # Parse the chem_prop.tsv file from MetanetX
             with open(chem_prop_path, 'rt') as f:
                 tmp = {}
@@ -1112,7 +1122,8 @@ class rrCache:
                             print("======================")
                             print()
                             print(tmp)
-                        mnxm = rrCache._checkCIDdeprecated(row[0], deprecatedCID_cid)
+                        # mnxm = rrCache._checkCIDdeprecated(row[0], deprecatedCID_cid)
+                        mnxm = row[0]
                         if interactive:
                             print(f'Converted into {mnxm}')
                         # tmp = {
@@ -1141,56 +1152,53 @@ class rrCache:
                                 print('already in cid_strc')
                             cid_strc[mnxm]['formula'] = row[2]
                             cid_strc[mnxm]['name'] = row[1]
-                            if not cid_strc[mnxm]['smiles'] and tmp['smiles']:
-                                cid_strc[mnxm]['smiles'] = tmp['smiles']
-                            if not cid_strc[mnxm]['inchikey'] and tmp['inchikey']:
-                                cid_strc[mnxm]['inchikey'] = tmp['inchikey']
-                        else:  # Compound not in the dictionnary
-                            if interactive:
-                                print('not yet in cid_strc')
-                            # check to see if the inchikey is valid or not
-                            otype = set({})
-                            if not tmp['inchikey']:
-                                otype.add('inchikey')
-                            if not tmp['smiles']:
-                                otype.add('smiles')
-                            if not tmp['inchi']:
-                                otype.add('inchi')
-                            itype = ''
-                            # Check if the current compound has
-                            # InChI or SMILES description
-                            if tmp['inchi']:
-                                itype = 'inchi'
-                            elif tmp['smiles']:
-                                itype = 'smiles'
-                            else:
-                                ter = StreamHandler.terminator
-                                StreamHandler.terminator = "\n"
-                                logger.warning('No InChI or SMILES for '+str(tmp))
-                                StreamHandler.terminator = ter
-                            ter = StreamHandler.terminator
-                            StreamHandler.terminator = "\n"
-                            if itype:
-                                try:
-                                    resConv = rrCache._convert_depiction(idepic=tmp[itype], itype=itype, otype=otype)
-                                    for i in resConv:
-                                        tmp[i] = resConv[i]
-                                    logger.debug('Sructure conversion OK: '+str(tmp))
-                                except rrCache.DepictionError as e:
-                                    logger.warning('Structure conversion FAILED: '+str(tmp))
-                                    logger.warning(e)
-                            # StreamHandler.terminator = ter
-                            # if mnxm == 'MNXM1106057':
-                            #     print(tmp)
-                            cid_strc[mnxm] = dict(tmp)
+                            for key in ['inchi', 'inchikey', 'smiles']:
+                                if not cid_strc[mnxm][key] and tmp[key]:
+                                    cid_strc[mnxm][key] = tmp[key]
+                        # else:  # Compound not in the dictionnary
+                        #     if interactive:
+                        #         print('not yet in cid_strc')
+                        #     # check to see if the inchikey is valid or not
+                        #     otype = set({})
+                        #     if not tmp['inchikey']:
+                        #         otype.add('inchikey')
+                        #     if not tmp['smiles']:
+                        #         otype.add('smiles')
+                        #     if not tmp['inchi']:
+                        #         otype.add('inchi')
+                        #     itype = ''
+                        #     # Check if the current compound has
+                        #     # InChI or SMILES description
+                        #     if tmp['inchi']:
+                        #         itype = 'inchi'
+                        #     elif tmp['smiles']:
+                        #         itype = 'smiles'
+                        #     else:
+                        #         ter = StreamHandler.terminator
+                        #         StreamHandler.terminator = "\n"
+                        #         logger.warning('No InChI or SMILES for '+str(tmp))
+                        #         StreamHandler.terminator = ter
+                        #     ter = StreamHandler.terminator
+                        #     StreamHandler.terminator = "\n"
+                        #     if itype:
+                        #         try:
+                        #             resConv = rrCache._convert_depiction(idepic=tmp[itype], itype=itype, otype=otype)
+                        #             for i in resConv:
+                        #                 tmp[i] = resConv[i]
+                        #             logger.debug('Sructure conversion OK: '+str(tmp))
+                        #         except rrCache.DepictionError as e:
+                        #             logger.warning('Structure conversion FAILED: '+str(tmp))
+                        #             logger.warning(e)
+                        #     # StreamHandler.terminator = ter
+                        #     # if mnxm == 'MNXM1106057':
+                        #     #     print(tmp)
+                        #     cid_strc[mnxm] = dict(tmp)
                         if interactive:
                             print(cid_strc[mnxm])
                             interactive = ask_user_input()
         else:
             logger.debug('No chem_prop.tsv or deprecatedCID_cid provided, skipping structure parsing')
         # logger.removeHandler(logger.handlers[-1])
-        # print("*************************")
-        # print(cid_strc['MNXM1106057'])
         return cid_strc, cid_name
 
 
@@ -1207,7 +1215,7 @@ class rrCache:
     @staticmethod
     def _m_mnxm_xref(
         chem_xref_path: str,
-        deprecatedCID_cid: Dict,
+        # deprecatedCID_cid: Dict,
         logger: Logger = getLogger(__name__)
     ) -> Dict:
         cid_xref = {}
@@ -1215,7 +1223,8 @@ class rrCache:
             c = csv_reader(f, delimiter='\t')
             for row in c:
                 if not row[0][0] == '#':
-                    mnx = rrCache._checkCIDdeprecated(row[1], deprecatedCID_cid)
+                    # mnx = rrCache._checkCIDdeprecated(row[1], deprecatedCID_cid)
+                    mnx = row[1]
                     if len(row[0].split(':')) == 1:
                         dbName = 'mnx'
                         dbId = row[0]
@@ -1304,12 +1313,44 @@ class rrCache:
     #  @param deprecatedRID_rid Dictionnary of deprecated to uniformed reaction id's
     #  @return Dictionnary describing each reaction rule
 
-
     @staticmethod
     def _m_rr_reactions(
         rules_rall_path: str,
-        # deprecatedCID_cid,
-        # deprecatedRID_rid,
+        logger: Logger = getLogger(__name__)
+    ) -> Dict:
+        rr_reactions = {}
+
+        if not os_path.exists(rules_rall_path):
+            logger.error('Could not read the rules file ('+str(rules_rall_path)+')')
+            return None
+
+        for row in csv_DictReader(gzip_open(rules_rall_path, 'rt'), delimiter='\t'):
+            if row['TEMPLATE_ID'] not in rr_reactions:
+                rr_reactions[row['TEMPLATE_ID']] = {}
+            if row['REACTION_ID'] not in rr_reactions[row['TEMPLATE_ID']]:
+                subtrates = dict(Counter([row['LEFT_IDS']] + (row['LEFT_EXCLUDED_IDS'].split('.') if row['LEFT_EXCLUDED_IDS'] else [])))
+                products = dict(Counter(row['RIGHT_IDS'].split('.') + (row['RIGHT_EXCLUDED_IDS'].split('.') if row['RIGHT_EXCLUDED_IDS'] else [])))
+                rr_reactions[row['TEMPLATE_ID']][row['REACTION_ID']] = {
+                    'rule_id': row['TEMPLATE_ID'],
+                    'rule_score': float(row['SCORE']),
+                    'reac_id': row['REACTION_ID'],
+                    'subs_id': row['LEFT_IDS'],
+                    'rel_direction': (1 if row['DIRECTION'] == 'L2R' else -1),
+                    'left': subtrates,
+                    'right': products
+                }
+            # Handle multiple reactions per rule, update direction if needed
+            else:
+                if rr_reactions[row['TEMPLATE_ID']][row['REACTION_ID']]['rel_direction'] != 0 and (1 if row['DIRECTION'] == 'L2R' else -1) != rr_reactions[row['TEMPLATE_ID']][row['REACTION_ID']]['rel_direction']:
+                    logger.debug('Updating direction for reaction '+str(row['REACTION_ID'])+' in rule '+str(row['TEMPLATE_ID'])+' from '+str(rr_reactions[row['TEMPLATE_ID']][row['REACTION_ID']]['rel_direction'])+' to bidirectional (0)')
+                    rr_reactions[row['TEMPLATE_ID']][row['REACTION_ID']]['rel_direction'] = 0  # bidirectional
+
+        return rr_reactions
+
+
+    @staticmethod
+    def _m_rr_reactions_legacy(
+        rules_rall_path: str,
         logger: Logger = getLogger(__name__)
     ) -> Dict:
         rr_reactions = {}
@@ -1325,12 +1366,7 @@ class rrCache:
             products = {}
 
             for cid in row['Product_IDs'].split('.'):
-
-                # cid = rrCache._checkCIDdeprecated(i, deprecatedCID_cid)
-                if cid not in products:
-                    products[cid] = 1
-                else:
-                    products[cid] += 1
+                products[cid] = products.get(cid, 0) + 1
 
             try:
                 # WARNING: one reaction rule can have multiple reactions associated with them
@@ -1343,12 +1379,9 @@ class rrCache:
                 rr_reactions[row['# Rule_ID']][row['Reaction_ID']] = {
                     'rule_id': row['# Rule_ID'],
                     'rule_score': float(row['Score_normalized']),
-                    # 'reac_id': rrCache._checkRIDdeprecated(row['Reaction_ID'], deprecatedRID_rid),
-                    # 'subs_id': rrCache._checkCIDdeprecated(row['Substrate_ID'], deprecatedCID_cid),
                     'reac_id': row['Reaction_ID'],
                     'subs_id': row['Substrate_ID'],
                     'rel_direction': int(row['Rule_relative_direction']),
-                    # 'left': {rrCache._checkCIDdeprecated(row['Substrate_ID'], deprecatedCID_cid): 1},
                     'left': {row['Substrate_ID']: 1},
                     'right': products
                 }
@@ -1370,9 +1403,38 @@ class rrCache:
     #  @param rxn_recipes_path Path to the recipes file
     #  @return Boolean that determines the success or failure of the function
 
-
     @staticmethod
     def _m_template_reactions(
+        metadata_path: str,
+        logger: Logger = getLogger(__name__)
+    ) -> Dict:
+
+        if not os_path.exists(metadata_path):
+            logger.error('Cannot find file: '+str(metadata_path))
+            return None
+
+        reactions = {}
+
+        for row in csv_DictReader(gzip_open(metadata_path, 'rt'), delimiter='\t'):
+            if row['REACTION_ID'] not in reactions:
+                subtrates = dict(Counter([row['LEFT_IDS']] + (row['LEFT_EXCLUDED_IDS'].split('.') if row['LEFT_EXCLUDED_IDS'] else [])))
+                products = dict(Counter(row['RIGHT_IDS'].split('.') + (row['RIGHT_EXCLUDED_IDS'].split('.') if row['RIGHT_EXCLUDED_IDS'] else [])))
+                reactions[row['REACTION_ID']] = {
+                    'left': subtrates,
+                    'right': products,
+                    'direction': (1 if row['DIRECTION'] == 'L2R' else -1),
+                    'main_left': row['LEFT_IDS'],
+                    'main_right': row['RIGHT_IDS'].split('.')[0]
+                }
+            # Handle multiple reactions per rule, update direction if needed
+            elif row['DIRECTION'] != reactions[row['REACTION_ID']]['direction']:
+                reactions[row['REACTION_ID']]['direction'] = 0  # bidirectional
+
+        return reactions
+
+
+    @staticmethod
+    def _m_template_reactions_legacy(
         rxn_recipes_path: str,
         logger: Logger = getLogger(__name__)
     ) -> Dict:

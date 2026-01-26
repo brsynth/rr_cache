@@ -106,10 +106,7 @@ def entry_point():
 
     # try:
     if args.build:
-        cache.Build(
-            interactive=args.interactive,
-            logger=logger
-        )
+        cache.Build(interactive=args.interactive)
     elif args.reaction_rules is not None:
         print_attr(
             cache,

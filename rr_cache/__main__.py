@@ -106,10 +106,7 @@ def entry_point():
 
     # try:
     if args.build:
-        cache.Build(
-            interactive=args.interactive,
-            logger=logger
-        )
+        cache.Build(interactive=args.interactive)
     elif args.reaction_rules is not None:
         print_attr(
             cache,
@@ -131,6 +128,14 @@ def entry_point():
             cache,
             'cid_strc',
             args.compounds,
+            args.do_not_dwnl_cache,
+            logger
+        )
+    elif args.chem_xref is not None:
+        print_attr(
+            cache,
+            'cid_xref',
+            args.chem_xref,
             args.do_not_dwnl_cache,
             logger
         )

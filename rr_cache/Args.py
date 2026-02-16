@@ -85,6 +85,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='print out specified compound(s), all if nothing specified'
     )
     parser.add_argument(
+        '--chem-xref',
+        default=None,
+        type=str,
+        nargs='*',
+        help='print out specified chemical cross-reference(s), all if nothing specified'
+    )
+    parser.add_argument(
         '--interactive',
         default=DEFAULTS['interactive'],
         action='store_true',

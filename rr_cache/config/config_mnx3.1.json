@@ -1,5 +1,6 @@
 {
-    "cache": {
+    "type": "legacy",
+     "cache": {
         "cid_strc": {
             "deps": {
                 "attr_deps": ["deprecatedCID_cid"],

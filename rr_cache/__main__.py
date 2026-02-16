@@ -131,6 +131,14 @@ def entry_point():
             args.do_not_dwnl_cache,
             logger
         )
+    elif args.chem_xref is not None:
+        print_attr(
+            cache,
+            'cid_xref',
+            args.chem_xref,
+            args.do_not_dwnl_cache,
+            logger
+        )
     else:
         cache.Load(interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache)
     # except Exception as e:

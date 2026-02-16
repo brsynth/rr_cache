@@ -161,6 +161,20 @@ class rrCache:
             )
 
 
+    def get_cspace(self) -> str:
+        """Get the chemical space used
+        Returns:
+            str: Chemical space
+        """
+        return self.__cspace
+    
+    def get_type(self) -> str:
+        """Get the chemical space type used
+        Returns:
+            str: Chemical space type
+        """
+        return rrCache.__type
+
     def Load(
         self,
         attrs: List = [],
@@ -200,8 +214,8 @@ class rrCache:
                     self.__attributes_list,
                     self.logger
                 )
-            except r_exceptions.MissingSchema:
-                self.logger.warning('Error in the URL, trying to generate the cache')
+            except r_exceptions.MissingSchema as e:
+                self.logger.warning(e)
 
         try:
             self._check_or_load_cache()
@@ -209,7 +223,7 @@ class rrCache:
                 r_exceptions.RequestException,
                 r_exceptions.InvalidSchema,
                 r_exceptions.ConnectionError):
-            self.Build(interactive=interactive, type=type)
+            self.Build(interactive=interactive)
             self._check_or_load_cache()
 
 
@@ -234,36 +248,40 @@ class rrCache:
             print_progress()
             filename = rrCache.__cache[attr]['file']['name']
             full_filename = os_path.join(cache_dir, filename)
+            # try:
+            if os_path.exists(full_filename):
+                fingerprint = rrCache.__cache[attr]['file']['fingerprint']
+                if check_sha(
+                    full_filename,
+                    fingerprint
+                ):
+                    logger.debug(filename+" already downloaded")
+                else:  # sha not ok
+                    logger.warning(
+                        '\nfilename: ' + filename
+                    + '\nlocation: ' + cache_dir
+                    + '\nsha (computed): ' + sha512(Path(full_filename).read_bytes()).hexdigest()
+                    + '\nsha (expected): ' + fingerprint
+                    )
+                    # raise FileNotFoundError
+            else:
+        #         raise FileNotFoundError
 
-            try:
-                if os_path.exists(full_filename):
-                    fingerprint = rrCache.__cache[attr]['file']['fingerprint']
-                    if check_sha(
-                        full_filename,
-                        fingerprint
-                    ):
-                        logger.debug(filename+" already downloaded")
-                    else:  # sha not ok
-                        logger.debug(
-                            '\nfilename: ' + filename
-                        + '\nlocation: ' + cache_dir
-                        + '\nsha (computed): ' + sha512(Path(full_filename).read_bytes()).hexdigest()
-                        + '\nsha (expected): ' + fingerprint
-                        )
-                        raise FileNotFoundError
-                else:
-                    raise FileNotFoundError
-
-            except FileNotFoundError:
+        # except FileNotFoundError:
                 logger.debug("Downloading "+filename+"...")
                 # start_time = time_time()
                 if not os_path.isdir(cache_dir):
                     # cache_dir = '/mnx4.4'
                     makedirs(cache_dir, exist_ok=True)
-                download(
-                    rrCache.__cache[attr]['file']['url']+filename,
-                    full_filename
-                )
+                if rrCache.__cache[attr]['file']['url'] == "":
+                    raise r_exceptions.MissingSchema(
+                        f'URL for {attr} is empty, cannot download cache file'
+                    )
+                else:
+                    download(
+                        rrCache.__cache[attr]['file']['url']+filename,
+                        full_filename
+                    )
                 # rrCache.__cache[attr] = True
                 # end_time = time_time()
 
@@ -383,9 +401,10 @@ class rrCache:
         for input_type, input in rrCache.__cache_sources.items():
             self.logger.debug(f'Checking {input_type}...')
             for filename, fingerprint in input['files'].items():
+                # filename = 'metanetx' + os_path.sep + filename
                 # Download if not exists or corrupted
                 if not os_path.exists(os_path.join(self.__input__cache_dir, filename)):
-                    self.logger.debug(f'{filename} not found in input cache, downloading...')
+                    self.logger.debug(f'{filename} not found in {self.__input__cache_dir}, downloading...')
                     rrCache._download_input_cache(
                         url=input['url'],
                         file=filename,
@@ -529,7 +548,9 @@ class rrCache:
             # else:
             #     deprecatedCID_cid = {'attr': {}}
             logger.debug("   Generating data...")
+            # dep_files = [os_path.join(input_dir, 'metanetx', f) for f in rrCache.__cache['cid_strc']['deps']['file_deps']]
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache['cid_strc']['deps']['file_deps']]
+            dep_files += [os_path.join(input_dir, f) for f in rrCache.__cache['cid_xref']['deps']['file_deps']]
             cid_strc, cid_name = rrCache._m_mnxm_strc(dep_files, interactive=interactive, logger=logger)
 
             # if deprecatedCID_cid['attr'] != {}:
@@ -705,6 +726,7 @@ class rrCache:
             logger.debug("   Cache file already exists")
         else:
             logger.debug("   Generating data...")
+            # dep_files = [os_path.join(input_dir, 'metanetx', f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
             if type == 'legacy':
                 rr_reactions = rrCache._m_rr_reactions_legacy(
@@ -786,8 +808,8 @@ class rrCache:
         # else:
         logger.debug("   Generating data...")
 
+        # dep_files = [os_path.join(input_dir, 'metanetx', f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
         dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
-
         if type == 'legacy':
             template_reactions = rrCache._m_template_reactions_legacy(dep_files[0], logger=logger)
             # if deprecatedRID_rid:
@@ -820,6 +842,7 @@ class rrCache:
         print_start(self.logger, 'Loading cache in memory')
         for attribute in self.__attributes_list:
             filename = rrCache.__cache[attribute]['file']['name']
+            self.logger.debug('Loading '+attribute+' from '+filename+'...')
             if self.get(attribute) is None:
                 self.set(
                     attribute,
@@ -827,6 +850,9 @@ class rrCache:
                         os_path.join(self.__cache_dir, filename)
                     )
                 )
+                dico = self._load_json(
+                        os_path.join(self.__cache_dir, filename)
+                    )
                 print_progress(self.logger)
             else:
                 self.logger.debug(attribute+" already loaded in memory")
@@ -900,7 +926,7 @@ class rrCache:
 
         # Check if the URL is empty
         if not url:
-            raise ValueError(f'URL is empty, cannot download file {file}.')
+            logger.error(f'\n\n*** URL is empty, cannot download file {file}.\n')
 
         # Check if the output directory exists, if not create it
         if not os_path.isdir(outdir):
@@ -1069,6 +1095,7 @@ class rrCache:
 
         rr_compounds_path = paths[0]
         chem_prop_path = paths[1] if len(paths) > 1 else ""
+        comp_xref_path = paths[2] if len(paths) > 2 else ""
 
         cid_strc = {}
         cid_name = {}
@@ -1198,6 +1225,19 @@ class rrCache:
                             interactive = ask_user_input()
         else:
             logger.debug('No chem_prop.tsv or deprecatedCID_cid provided, skipping structure parsing')
+
+        if comp_xref_path:
+            # Add cross references from comp_xref.tsv
+            comp_xref, _ = rrCache._m_mnxc_xref(
+                comp_xref_path,
+                logger=logger
+            )
+            for mnxc in comp_xref:
+                if mnxc in cid_strc:
+                    cid_strc[mnxc]['xref'] = comp_xref[mnxc]
+                    logger.debug(f'Added cross references for {mnxc}: {comp_xref[mnxc]}')
+        else:
+            logger.debug('No comp_xref.tsv provided, skipping cross-reference parsing')
         # logger.removeHandler(logger.handlers[-1])
         return cid_strc, cid_name
 
@@ -1328,8 +1368,8 @@ class rrCache:
             if row['TEMPLATE_ID'] not in rr_reactions:
                 rr_reactions[row['TEMPLATE_ID']] = {}
             if row['REACTION_ID'] not in rr_reactions[row['TEMPLATE_ID']]:
-                subtrates = dict(Counter([row['LEFT_IDS']] + (row['LEFT_EXCLUDED_IDS'].split('.') if row['LEFT_EXCLUDED_IDS'] else [])))
-                products = dict(Counter(row['RIGHT_IDS'].split('.') + (row['RIGHT_EXCLUDED_IDS'].split('.') if row['RIGHT_EXCLUDED_IDS'] else [])))
+                subtrates = {row['LEFT_IDS']: 1}
+                products = dict(Counter(row['RIGHT_IDS'].split('.')))
                 rr_reactions[row['TEMPLATE_ID']][row['REACTION_ID']] = {
                     'rule_id': row['TEMPLATE_ID'],
                     'rule_score': float(row['SCORE']),
@@ -1337,7 +1377,9 @@ class rrCache:
                     'subs_id': row['LEFT_IDS'],
                     'rel_direction': (1 if row['DIRECTION'] == 'L2R' else -1),
                     'left': subtrates,
-                    'right': products
+                    'right': products,
+                    'left_excluded': row['LEFT_EXCLUDED_IDS'].split('.') if row['LEFT_EXCLUDED_IDS'] else [],
+                    'right_excluded': row['RIGHT_EXCLUDED_IDS'].split('.') if row['RIGHT_EXCLUDED_IDS'] else []
                 }
             # Handle multiple reactions per rule, update direction if needed
             else:
@@ -1417,14 +1459,28 @@ class rrCache:
 
         for row in csv_DictReader(gzip_open(metadata_path, 'rt'), delimiter='\t'):
             if row['REACTION_ID'] not in reactions:
-                subtrates = dict(Counter([row['LEFT_IDS']] + (row['LEFT_EXCLUDED_IDS'].split('.') if row['LEFT_EXCLUDED_IDS'] else [])))
+                # print(row)
+                substrates = dict(Counter([row['LEFT_IDS']] + (row['LEFT_EXCLUDED_IDS'].split('.') if row['LEFT_EXCLUDED_IDS'] else [])))
                 products = dict(Counter(row['RIGHT_IDS'].split('.') + (row['RIGHT_EXCLUDED_IDS'].split('.') if row['RIGHT_EXCLUDED_IDS'] else [])))
+                # if row['REACTION_ID'] == 'MNXR182203':
+                #     print(substrates)
+                #     print(products)
+                #     exit()
+                main_left = row['LEFT_IDS']
+                main_right = row['RIGHT_IDS'].split('.')[0]
+                if row['DIRECTION'] == 'R2L':
+                    # Swap left and right if direction is R2L
+                    substrates, products = products, substrates
+                    main_left, main_right = main_right, main_left
+                    direction = -1
+                else:
+                    direction = 1
                 reactions[row['REACTION_ID']] = {
-                    'left': subtrates,
+                    'left': substrates,
                     'right': products,
-                    'direction': (1 if row['DIRECTION'] == 'L2R' else -1),
-                    'main_left': row['LEFT_IDS'],
-                    'main_right': row['RIGHT_IDS'].split('.')[0]
+                    'direction': direction,
+                    'main_left': main_left,
+                    'main_right': main_right
                 }
             # Handle multiple reactions per rule, update direction if needed
             elif row['DIRECTION'] != reactions[row['REACTION_ID']]['direction']:
@@ -1572,16 +1628,23 @@ class rrCache:
     #  @param otype types of depiction to be generated, {"", "", ..}
     #  @return odepic generated depictions, {"otype1": "odepic1", ..}
     @staticmethod
-    def _convert_depiction(idepic, itype='smiles', otype={'inchikey'}):
+    def _convert_depiction(idepic, itype='smiles', otype={'inchikey'}, logger=getLogger(__name__)):
+        def MolFrom(idepic, itype, sanitize=True):
+            if itype == 'smiles':
+                return MolFromSmiles(idepic, sanitize=sanitize)
+            elif itype == 'inchi':
+                return MolFromInchi(idepic, sanitize=sanitize)
+            else:
+                raise NotImplementedError(
+                    f'"{itype}" is not a valid input type for MolFrom'
+                )
         # Import (if needed)
-        if itype == 'smiles':
-            rdmol = MolFromSmiles(idepic, sanitize=True)
-        elif itype == 'inchi':
-            rdmol = MolFromInchi(idepic, sanitize=True)
-        else:
-            raise NotImplementedError(
-                f'"{itype}" is not a valid input type'
+        rdmol = MolFrom(idepic, itype, sanitize=True)
+        if rdmol is None:  # Check imprt
+            logger.warning(
+                f'Could not sanitize depiction "{idepic}" of type "{itype}", trying without sanitization'
             )
+            rdmol = MolFrom(idepic, itype, sanitize=False)
         if rdmol is None:  # Check imprt
             raise rrCache.DepictionError(
                 f'Import error from depiction "{idepic}" of type "{itype}"'

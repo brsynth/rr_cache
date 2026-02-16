@@ -8,27 +8,27 @@
             "file": {
                 "url": "",
                 "name": "cid_strc.json.gz",
-                "fingerprint": "1837f8af7735af938fe33f2006dc721048aa70e194fd013866bbcd5d8cca6193f715e53691ccc11429aaa9bf5530ff9d640d091d2bb21434f57dc8261b5e0588"
+                "fingerprint": "4d51044442db3a103b0540df3dd24bf946bc0f13ef0f561f5baaaaa19fd57fd450885971c7b1661f3fa410250dd86c186c899c36891ef3f86eeef51181620386"
             }
         },
         "rr_reactions": {
             "deps": {
-                "file_deps": ["metadata.csv.gz"]
+                "file_deps": ["templates.tsv.gz"]
             },
             "file": {
                 "url": "",
                 "name": "rr_reactions.json.gz",
-                "fingerprint": "f15ea78bf92d27ea2d1ee7bb47ec3658a3d3d9be1c7e42d99f2f74c56dad27923e674832f9bbc19c06aba299b7713519c499d8efb847b6a3764e019f59004c1c"
+                "fingerprint": "b6e2dbc7033bafd21e6567cef8f75de06cf7e7bd365e361d8aff346df159aeaae3ba56c6d1d543cd985587c81e3a11d3931b1d1896214d8485cc44bbf54266d1"
             }
         },
         "template_reactions": {
             "deps": {
-                "file_deps": ["metadata.csv.gz"]
+                "file_deps": ["templates.tsv.gz"]
             },
             "file": {
                 "url": "",
                 "name": "template_reactions.json.gz",
-                "fingerprint": "e0a50d8ab0a71f6557f8422234a1d6e581ce74d7a4b1cd3751c46044df6488f86633b23f95e0bc95c6dd833da988656ffef5e7dac06cd3feb9c258f14c8e0032"
+                "fingerprint": "78946fd50963c1587e43caf190a3853936b3ed18bd2e649447b7e9c936f530e52bcc2d91ae6c97cae5fb58bde47891f2e1cc85cc7fe8e82d40a03fa6e0624d50"
             }
         }
     },
@@ -36,13 +36,13 @@
         "rr2": {
             "url": "",
             "files": {
-                "metadata.csv.gz": "14d015085b4935fb28708aa4693030d451e3a1051eaf0cdbcae3bad5b4052c13f6d9634ea06b4d474ec7c9d971bcfff9c443c31bcc3084776422e0f06de7b13c"
+                "templates.tsv.gz": "ede287e7e2b08f5620d26af0d7e68e25be70fb54eb5a8657b92314d4250a869073fa6022608fb00b9147a531a81f32c31923613a9b2b0c4321da45a7d8f56a1b"
             }
         },
         "rr2more": {
             "url": "",
             "files": {
-                "chemicals.tsv.gz":  "067a896085a24a29d26aefceedd11968d2e994df10953f30c8bee68e43f1a83c5632acc4a32a619eaf9092cc2e138e0641949160f91ee841ce2c095deea25a67"
+                "chemicals.tsv.gz":  "af060a170e43e55b0ee70567d7f14ef9ae21534c7c5c2e6a58ec19f8adec82a6c05080204c1d6d43f1556cabf91b711ba85d58dc5a6b1b5cb5e892fde4d7e001"
             }
         }
     }

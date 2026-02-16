@@ -1,4 +1,5 @@
 {
+    "type": "legacy",
     "cache": {
         "cid_strc": {
             "deps": {
@@ -8,40 +9,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
                 "name": "cid_strc.json.gz",
-                "fingerprint": "3f832b86c3cb154748f504a365e227b8b12d6020bcc8649815b78a41cd7c3e53f8ed45c6742bbf5ab6b6968aa530f6b70b091c84d93dd79bd7b85a28f64886a5"
-            }
-        },
-        "cid_name": {
-            "deps": {
-                "attr_deps": ["deprecatedCID_cid"],
-                "file_deps": ["compounds.tsv.gz", "chem_prop.tsv"]
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "cid_name.json.gz",
-                "fingerprint": "2393323d9ceb0a68a5bb512903a223a9924e02058805c308d48d066411a590ade41de6613d113cbe742cdf060859ec67f655f483accaf62b276b0d924d75f23c"
-            }
-        },
-        "cid_xref": {
-            "deps": {
-                "attr_deps": ["deprecatedCID_cid"],
-                "file_deps": []
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "cid_xref.json.gz",
-                "fingerprint": "a81c5217769bb1d83ebe8d1905cfec453f23837ad85c22a30710629d434ffcc878431cc3cc7f48a3cf70f9cf45647361a9e45cd89dca7403d1254663a82de6bc"
-            }
-        },
-        "chebi_cid": {
-            "deps": {
-                "attr_deps": ["cid_xref"],
-                "file_deps": []
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "chebi_cid.json.gz",
-                "fingerprint": "eb0b65094b2c453d71b9996e0d0533b6b6768665b7c7142363c8d7d4c7b7f85fdc6731c54047bb6418a1ce559fb5b67300760aba4c5f5155967bdd3f06c67c68"
+                "fingerprint": "bc065a4fb11027c575d6b48625dd5eb15affd877107cea41b98e28681f7df2b23c9055d6b8ae6143206a38745589f325512b762a11345dfd8d005801a1ea6ce0"
             }
         },
         "rr_reactions": {
@@ -52,62 +20,18 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
                 "name": "rr_reactions.json.gz",
-                "fingerprint": "aefdd1752e0628a4c9830381feb7736dffc25392e65ee54e11ee24ddfe090388a5ce71d8b18a23ebd26aae620c5ee973232612d3d829cb5f9a3f6f9afa106729"
+                "fingerprint": "4325233ce6373de6aa01e86eb16e78c234a33180f15658213d8fd9d07f0b6f4073139a82bf132482e0a659982d091f38c84bfd66d12b0cf4917acb1177a1a64e"
             }
         },
-        "inchikey_cid": {
-            "deps": {
-                "attr_deps": ["cid_strc"],
-                "file_deps": []
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "inchikey_cid.json.gz",
-                "fingerprint": "efaa75efbaaed1629593bacf676003eafef5a8e75598fc84d281e7d8735f2f0db50fdb6556f269a27c383da5b5d08ec509cfe5df68816c1f29d52302fe62e490"
-            }
-        },
-        "comp_xref": {
+        "cid_xref": {
             "deps": {
                 "attr_deps": [],
-                "file_deps": ["comp_xref.tsv"]
+                "file_deps": ["chem_xref.tsv"]
             },
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "comp_xref.json.gz",
-                "fingerprint": "fe3036a082b0e5f2239e46496c0b421a5ac96e5d411114af5a1e0442aed1f41c8566f8b499adc48d80dbbbdfacee066e49205daf4327c13f263d6166be4502ac"
-            }
-        },
-        "deprecatedCID_cid": {
-            "deps": {
-                "attr_deps": [],
-                "file_deps": ["chem_xref.tsv", "MNXM_replacement_20190524.csv"]
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "deprecatedCID_cid.json.gz",
-                "fingerprint": "f272ad7491a103cd1f7f45261a4eadf30b7e0974da165db2230c0546174cc17634b7ce5be8990c6ea50a6c74e5df26a69aab9af96d7e66af72c3328d19a7a857"
-            }
-        },
-        "deprecatedRID_rid": {
-            "deps": {
-                "attr_deps": [],
-                "file_deps": []
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "deprecatedRID_rid.json.gz",
-                "fingerprint": "eca85927ac250632bcd08d015080f57bf11c1906e5599aadd9168cea55053a231551709423ff990837c4d549101cb2a0378367c3d12a54aabcb6657360610910"
-            }
-        },
-        "deprecatedCompID_compid": {
-            "deps": {
-                "attr_deps": [],
-                "file_deps": ["comp_xref.tsv"]
-            },
-            "file": {
-                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "deprecatedCompID_compid.json.gz",
-                "fingerprint": "af88f7ea64fc74100883c5dbc8559d5758169a5c76f42bfb65e94558530fc08c66cef101246c96643cc0d1195e8eddc04df001b650949d2b9c6a59a5a3044440"
+                "name": "cid_xref.json.gz",
+                "fingerprint": "f8a6e6ceb529abcb0223f89a92692a5031e31e2a7b35fa3f5e0b741b822544caa74b7cdc1ea137239fa6d5af81ad1d2794283157996185a20a23eed8a921b66a"
             }
         },
         "template_reactions": {
@@ -118,7 +42,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
                 "name": "template_reactions.json.gz",
-                "fingerprint": "3c5639ef9eeedddfe755e6b6700c68270cd1d984a62477e8d3529a7cd3017ca6061b2acba895ed4a28bd67944f71b13df987f45a7fbbc339b4fa9fe0df0b2e42"
+                "fingerprint": "0a4c9d10e59132652a0aee07648a1cd436259399168b6f04e0190df9b10fdc44b92a1106f761834c9ee1ba0cdc4902631e384d4bbe93ef5361f6623da68d630e"
             }
         }
     },

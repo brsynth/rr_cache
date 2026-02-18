@@ -3,12 +3,23 @@
      "cache": {
         "cid_strc": {
             "deps": {
-                "file_deps": ["chemicals.tsv.gz", "chem_prop.tsv"]
+                "file_deps": ["chemicals.tsv.gz", "chem_prop.tsv.gz"]
             },
             "file": {
                 "url": "",
                 "name": "cid_strc.json.gz",
-                "fingerprint": "4d51044442db3a103b0540df3dd24bf946bc0f13ef0f561f5baaaaa19fd57fd450885971c7b1661f3fa410250dd86c186c899c36891ef3f86eeef51181620386"
+                "fingerprint": "cb330b718fc9dfd17772c16eb01134a811cae1c2fb1d44718bfa18db17abfef698a058ed4d290a5160b39786b9cf9cd1b9794f7de1f1ab05875a02c5a9d7f9d4"
+            }
+        },
+        "cid_xref": {
+            "deps": {
+                "attr_deps": [],
+                "file_deps": ["chem_xref.tsv.gz"]
+            },
+            "file": {
+                "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
+                "name": "cid_xref.json.gz",
+                "fingerprint": "f8a6e6ceb529abcb0223f89a92692a5031e31e2a7b35fa3f5e0b741b822544caa74b7cdc1ea137239fa6d5af81ad1d2794283157996185a20a23eed8a921b66a"
             }
         },
         "rr_reactions": {
@@ -18,7 +29,7 @@
             "file": {
                 "url": "",
                 "name": "rr_reactions.json.gz",
-                "fingerprint": "b6e2dbc7033bafd21e6567cef8f75de06cf7e7bd365e361d8aff346df159aeaae3ba56c6d1d543cd985587c81e3a11d3931b1d1896214d8485cc44bbf54266d1"
+                "fingerprint": "0486138cb224575c0bb1278ad31edc10cd5add44404d355aa7ab15c46fefb7fe4aff45a830c35de44e781c6aa86c762e773828a57a2146cc1ffb9e5ab398f46f"
             }
         },
         "template_reactions": {
@@ -28,7 +39,7 @@
             "file": {
                 "url": "",
                 "name": "template_reactions.json.gz",
-                "fingerprint": "78946fd50963c1587e43caf190a3853936b3ed18bd2e649447b7e9c936f530e52bcc2d91ae6c97cae5fb58bde47891f2e1cc85cc7fe8e82d40a03fa6e0624d50"
+                "fingerprint": "26bd612214d2744ba579ad2a57973bdde94ca847c3cac17c6e912bd65aba32831a7aa6ffbc440a5941221121b3d3af2ceaa1ad7642c2ef2a11a84a192abf1b90"
             }
         }
     },
@@ -36,13 +47,13 @@
         "rr2": {
             "url": "",
             "files": {
-                "templates.tsv.gz": "ede287e7e2b08f5620d26af0d7e68e25be70fb54eb5a8657b92314d4250a869073fa6022608fb00b9147a531a81f32c31923613a9b2b0c4321da45a7d8f56a1b"
+                "templates.tsv.gz": "2974bff42eacb4beeae1c160f2b687ef8ee42b4e4dd762fbd103300636dfa0b8252e2f50a920f4199c5a4ec7e9df1b4a5e4c05167cab90bbefbcb18fde69f3f9"
             }
         },
         "rr2more": {
             "url": "",
             "files": {
-                "chemicals.tsv.gz":  "af060a170e43e55b0ee70567d7f14ef9ae21534c7c5c2e6a58ec19f8adec82a6c05080204c1d6d43f1556cabf91b711ba85d58dc5a6b1b5cb5e892fde4d7e001"
+                "chemicals.tsv.gz":  "ed9e91d63c34d963e313b7ca180e9285d2f1814dbf5bcee43f254a8db8ab385671dda20c88e71eaca50f52cd2a28d76adbfdb0bfd880c74293849650900a25e8"
             }
         }
     }

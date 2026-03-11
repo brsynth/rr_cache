@@ -3,7 +3,7 @@
      "cache": {
         "cid_strc": {
             "deps": {
-                "file_deps": ["chemicals.tsv.gz", "chem_prop.tsv.gz"]
+                "file_deps": ["chemicals.tsv.gz", "chem_prop.tsv"]
             },
             "file": {
                 "url": "",
@@ -14,7 +14,7 @@
         "cid_xref": {
             "deps": {
                 "attr_deps": [],
-                "file_deps": ["chem_xref.tsv.gz"]
+                "file_deps": ["chem_xref.tsv"]
             },
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
@@ -44,6 +44,13 @@
         }
     },
     "sources": {
+        "mnx": {
+            "url": "https://www.metanetx.org/ftp/4.4/",
+            "files": {
+                "chem_xref.tsv":    "c97d54829daafdaa5c021421fcceea9146ff57485bf366401ebb23ba3ebb3af22596ba32efee0c8f4fad08553d0422d9bccedfc431e4643a26b25ad1fb81fac9",
+                "chem_prop.tsv":    "9ed46523f35521831304d7accd13c16e1641a6fb0c3146cece0edeb4cd179a89aa363693ff69572b85023096ea2f63acc1b1a24a63c5cc979e9e8287a1db4876"
+            }
+        },
         "rr2": {
             "url": "",
             "files": {

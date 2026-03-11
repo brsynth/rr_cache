@@ -15,7 +15,7 @@
         "cid_xref": {
             "deps": {
                 "attr_deps": ["deprecatedCID_cid"],
-                "file_deps": []
+                "file_deps": ["chem_xref.tsv"]
             },
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_3.1/",

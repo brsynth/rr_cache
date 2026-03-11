@@ -9,7 +9,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_3.1/",
                 "name": "cid_strc.json.gz",
-                "fingerprint": "ecd2111d08694cc64702991774722ecb110f82cb310969ae5c4844fd8d2a39340084eeca7d6e409b718594ec998d19f63c2129657bb8299a2799d321750dfc91"
+                "fingerprint": "5b44f1d9e5b7e00f460f135e9539272cd8cea302baa7fb08c22e914be642fd4543525c934dec0386562397d0c767a2565eac1f1711a5e838e0aab7aba43b5166"
             }
         },
         "cid_xref": {
@@ -20,7 +20,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_3.1/",
                 "name": "cid_xref.json.gz",
-                "fingerprint": "eb1c9aee49b1fdbe873c7d7f5c6af5f706ff06476c5e69c6c0fa5350c2b516e589881874b8139b091e6cad5dbe363c2a052cbcdfe550e490d3bd87da1b2fabd4"
+                "fingerprint": "ff25b26e13cb100f341962877724e68f7f41c5928d317096149277d0776c493d23cd7eb4b20e3d81f964ac51e79a7f6c8261d4098a12855eaeea3bf76d93c9a2"
             }
         },
         "chebi_cid": {
@@ -42,7 +42,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_3.1/",
                 "name": "rr_reactions.json.gz",
-                "fingerprint": "1ef37066d168307429eff4901cfc4db82795d13879260204f2b32399c9b0621fb0d934322a3fd3bde145b0273b76e4d7c1bb34d641b90165403308bde68fddef"
+                "fingerprint": "4325233ce6373de6aa01e86eb16e78c234a33180f15658213d8fd9d07f0b6f4073139a82bf132482e0a659982d091f38c84bfd66d12b0cf4917acb1177a1a64e"
             }
         },
         "inchikey_cid": {
@@ -108,7 +108,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_3.1/",
                 "name": "template_reactions.json.gz",
-                "fingerprint": "dd626073f06f3cd91352eed111080b9ece4ca67cc954917f7377e537fb99b11d587ccfbc1f9510627fe0a50f5ca5eccbf881af6d152764ed2df498811d7fbcb2"
+                "fingerprint": "0a4c9d10e59132652a0aee07648a1cd436259399168b6f04e0190df9b10fdc44b92a1106f761834c9ee1ba0cdc4902631e384d4bbe93ef5361f6623da68d630e"
             }
         }
     },

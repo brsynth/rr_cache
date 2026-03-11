@@ -45,7 +45,7 @@
     },
     "sources": {
         "mnx": {
-            "url": "https://www.metanetx.org/ftp/4.4/",
+            "url": "https://www.metanetx.org/ftp/4.5/",
             "files": {
                 "chem_xref.tsv":    "c97d54829daafdaa5c021421fcceea9146ff57485bf366401ebb23ba3ebb3af22596ba32efee0c8f4fad08553d0422d9bccedfc431e4643a26b25ad1fb81fac9",
                 "chem_prop.tsv":    "9ed46523f35521831304d7accd13c16e1641a6fb0c3146cece0edeb4cd179a89aa363693ff69572b85023096ea2f63acc1b1a24a63c5cc979e9e8287a1db4876"

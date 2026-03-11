@@ -1,34 +1,29 @@
-from argparse  import ArgumentParser
+from argparse import ArgumentParser
 from typing import Callable
 from os import path as os_path
 
 from brs_utils import add_logger_args
 
-
-HERE = os_path.dirname(os_path.abspath( __file__ ))
-CONFIG_PATH = os_path.join(HERE, 'config')
+HERE = os_path.dirname(os_path.abspath(__file__))
+CONFIG_PATH = os_path.join(HERE, "config")
 # Default values for the arguments
 DEFAULTS = {
-    'cspace': 'mnx3.1',
-    'interactive': False,
-    'do_not_dwnl_cache': False,
+    "cspace": "mnx3.1",
+    "interactive": False,
+    "do_not_dwnl_cache": False,
     # default OS tmpdir, writable by the user who installs the cache, and readable by all users
-    'install_dir': HERE,
+    "install_dir": HERE,
 }
 
 
 def build_args_parser(
     prog: str,
-    description: str = '',
-    epilog: str = '',
+    description: str = "",
+    epilog: str = "",
     m_add_args: Callable = None,
 ) -> ArgumentParser:
 
-    parser = ArgumentParser(
-        prog = prog,
-        description = description,
-        epilog = epilog
-    )
+    parser = ArgumentParser(prog=prog, description=description, epilog=epilog)
 
     # Build Parser with rptools common arguments
     parser = add_arguments(parser)
@@ -45,70 +40,70 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser = add_logger_args(parser)
 
     parser.add_argument(
-        '--chemical-space',
-        dest='cspace',
-        default=DEFAULTS['cspace'],
+        "--chemical-space",
+        dest="cspace",
+        default=DEFAULTS["cspace"],
         type=str,
-        help='chemical space to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
+        help="chemical space to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).",
     )
     parser.add_argument(
-        '--list-chemical-spaces',
+        "--list-chemical-spaces",
         default=None,
-        action='store_true',
-        help='list available chemical spaces and exits'
+        action="store_true",
+        help="list available chemical spaces and exits",
     )
     parser.add_argument(
-        '--build',
+        "--build",
         default=None,
-        action='store_true',
-        help='build the cache and exits. If the cache already exists, it will be overwritten. If other arguments are provided, they will be ignored.'
+        action="store_true",
+        help="build the cache and exits. If the cache already exists, it will be overwritten. If other arguments are provided, they will be ignored.",
     )
     parser.add_argument(
-        '--reaction-rules',
-        default=None,
-        type=str,
-        nargs='*',
-        help='print out specified reaction rule(s), all if nothing specified'
-    )
-    parser.add_argument(
-        '--reactions',
+        "--reaction-rules",
         default=None,
         type=str,
-        nargs='*',
-        help='print out specified reaction(s), all if nothing specified'
+        nargs="*",
+        help="print out specified reaction rule(s), all if nothing specified",
     )
     parser.add_argument(
-        '--compounds',
+        "--reactions",
         default=None,
         type=str,
-        nargs='*',
-        help='print out specified compound(s), all if nothing specified'
+        nargs="*",
+        help="print out specified reaction(s), all if nothing specified",
     )
     parser.add_argument(
-        '--chem-xref',
+        "--compounds",
         default=None,
         type=str,
-        nargs='*',
-        help='print out specified chemical cross-reference(s), all if nothing specified'
+        nargs="*",
+        help="print out specified compound(s), all if nothing specified",
     )
     parser.add_argument(
-        '--interactive',
-        default=DEFAULTS['interactive'],
-        action='store_true',
-        dest='interactive',
-        help='Ask user for confirmation when loading cache (default: %(default)s)'
-    )
-    parser.add_argument(
-        '--do-not-dwnl-cache',
-        default=DEFAULTS['do_not_dwnl_cache'],
-        action='store_true',
-        help='Do not download the cache from the remote repository'
-    )
-    parser.add_argument(
-        '--install-dir',
-        default=DEFAULTS['install_dir'],
+        "--chem-xref",
+        default=None,
         type=str,
-        help='Directory to install the cache (default: %(default)s)'
+        nargs="*",
+        help="print out specified chemical cross-reference(s), all if nothing specified",
+    )
+    parser.add_argument(
+        "--interactive",
+        default=DEFAULTS["interactive"],
+        action="store_true",
+        dest="interactive",
+        help="Ask user for confirmation when loading cache (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--do-not-dwnl-cache",
+        default=DEFAULTS["do_not_dwnl_cache"],
+        action="store_true",
+        help="Do not download the cache from the remote repository",
+    )
+    parser.add_argument(
+        "--install-dir",
+        default=DEFAULTS["install_dir"],
+        type=str,
+        help="Directory to install the cache (default: %(default)s)",
     )
 
     return parser

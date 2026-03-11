@@ -4,7 +4,6 @@ from os import path as os_path
 
 from brs_utils import add_logger_args
 
-
 HERE = os_path.dirname(os_path.abspath(__file__))
 CONFIG_PATH = os_path.join(HERE, "config")
 # Default values for the arguments

@@ -31,7 +31,7 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
                 "name": "cid_xref.json.gz",
-                "fingerprint": "f8a6e6ceb529abcb0223f89a92692a5031e31e2a7b35fa3f5e0b741b822544caa74b7cdc1ea137239fa6d5af81ad1d2794283157996185a20a23eed8a921b66a"
+                "fingerprint": "a81c5217769bb1d83ebe8d1905cfec453f23837ad85c22a30710629d434ffcc878431cc3cc7f48a3cf70f9cf45647361a9e45cd89dca7403d1254663a82de6bc"
             }
         },
         "template_reactions": {

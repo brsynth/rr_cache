@@ -1,0 +1,50 @@
+{
+    "type": "legacy",
+     "cache": {
+        "cid_strc": {
+            "deps": {
+                "file_deps": ["compounds.tsv.gz"]
+            },
+            "file": {
+                "url": "",
+                "name": "cid_strc.json.gz",
+                "fingerprint": "c6f412af50d4dc19ffb6faeef954feaeb945c4e03f99e65f24e46fb3365af0078c11cc4ab862ab0c63c523a56d2b837acba8e2cc3890ffda8dfba9c2c82e3708"
+            }
+        },
+        "rr_reactions": {
+            "deps": {
+                "file_deps": ["rules.tsv.gz"]
+            },
+            "file": {
+                "url": "",
+                "name": "rr_reactions.json.gz",
+                "fingerprint": "46bf2e10dc8f0f587576db3383dc9a938e49dd7b3d59e7baa67295e1c791a0a34cb71a7197e70c136421ba3cff56aa1999ec554f5c4c492d9b83c28e7f7050ed"
+            }
+        },
+        "template_reactions": {
+            "deps": {
+                "file_deps": ["rxn_recipes.tsv.gz"]
+            },
+            "file": {
+                "url": "",
+                "name": "template_reactions.json.gz",
+                "fingerprint": "0c6494ecb14b1eeb59b7cfed386a1190f897066c1418071873a3c84f60116b3c239c29456f5fd29d2b84b8363b31a3397dc9cf5c781dd03697c8857f3b54c628"
+            }
+        }
+    },
+    "sources": {
+        "rr2": {
+            "url": "",
+            "files": {
+                "rules.tsv.gz": "8751452438475e1c67e2e10b48608e7e95ef64e422ff7afc3970fa9c950009919dbe1d01a33a50638fe6207390d57da9901d390467a2442596e6e44f1f5f2aa0"
+            }
+        },
+        "rr2more": {
+            "url": "",
+            "files": {
+                "compounds.tsv.gz":    "3544ab8720986664b69b6d908162a81d715ddd8db6d6c40ca40211d7e4ceeaaeb172f7c0ac838b6a59810b080be8ee2998b722275e03133968af64430396abf1",
+                "rxn_recipes.tsv.gz":  "cbaaca1405d569e34d2a7e394789070c2ae5ebb650b3b5766706b8a072eedd76060dd0ac2e1fbbe53b5ffb6c93848136447ee2907541da725519445d02fa46fa"
+            }
+        }
+    }
+}

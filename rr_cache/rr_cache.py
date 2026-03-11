@@ -634,6 +634,7 @@ class rrCache:
             #     deprecatedCID_cid['attr'] = rrCache._load_json(deprecatedCID_cid['file'])
             logger.debug("   Generating data...")
             dep_files = [os_path.join(input_dir, f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
+            logger.debug(f"   dep_files: {dep_files}")
             cid_xref = rrCache._m_mnxm_xref(dep_files[0])
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_xref, f_cid_xref, logger=logger)
@@ -1126,7 +1127,7 @@ class rrCache:
 
         if chem_prop_path:
             # Parse the chem_prop.tsv file from MetanetX
-            with gzip_open(chem_prop_path, 'rt', encoding='utf-8-sig') as f:
+            with open(chem_prop_path, 'rt', encoding='utf-8-sig') as f:
                 tmp = {}
                 # read CSV with both tab and space as delimiters
                 c = csv_reader(f, delimiter='\t')
@@ -1257,7 +1258,7 @@ class rrCache:
         logger: Logger = getLogger(__name__)
     ) -> Dict:
         cid_xref = {}
-        with gzip_open(chem_xref_path, 'rt', encoding='utf-8-sig') as f:
+        with open(chem_xref_path, 'rt', encoding='utf-8-sig') as f:
             c = csv_reader(f, delimiter='\t')
             for row in c:
                 if not row[0][0] == '#':
@@ -1307,7 +1308,7 @@ class rrCache:
             logger.error('Could not read the file {filename}'.format(filename=comp_xref_path))
             return None
 
-        with gzip_open(comp_xref_path, 'rt', encoding='utf-8-sig') as f:
+        with open(comp_xref_path, 'rt', encoding='utf-8-sig') as f:
             c = csv_reader(f, delimiter='\t')
             # not_recognised = []
             for row in c:

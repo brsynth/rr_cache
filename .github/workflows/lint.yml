@@ -33,5 +33,9 @@ jobs:
         shell: bash -l {0}
         run: conda env update -n ci-env -f environment-dev.yaml
 
-      - run: ruff check .
-      - run: black --check .
+      - name: Run ruff
+        shell: bash -l {0}
+        run: ruff check .
+      - name: Run black
+        shell: bash -l {0}
+        run: black --check .

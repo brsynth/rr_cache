@@ -8,7 +8,7 @@ HERE = os_path.dirname(os_path.abspath(__file__))
 CONFIG_PATH = os_path.join(HERE, "config")
 # Default values for the arguments
 DEFAULTS = {
-    "cspace": "mnx3.1",
+    "cspace": "rr2026",
     "interactive": False,
     "do_not_dwnl_cache": False,
     # default OS tmpdir, writable by the user who installs the cache, and readable by all users

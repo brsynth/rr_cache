@@ -19,7 +19,7 @@ from rr_cache import rrCache
 
 HERE = os_path.dirname(os_path.abspath(__file__))
 DATA_PATH = os_path.join(HERE, "data")
-#CSPACES = ["mnx3.1", "mnx4.4", "rr2026"]
+# CSPACES = ["mnx3.1", "mnx4.4", "rr2026"]
 CSPACES = ["rr2026"]
 DATASETS = ["compounds", "metrics", "retrorules", "reactions"]
 

@@ -1,0 +1,12 @@
+name: rplibs
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - pytest
+  - pytest-cov
+  - pytest-mock
+  - pytest-monitor
+  - black
+  - ruff
+  - mypy

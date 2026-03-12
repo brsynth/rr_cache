@@ -1,0 +1,46 @@
+{
+    "RR-02-f85f00f767901186-16-F": {
+        "MNXR100137": {
+            "rule_id": "RR-02-f85f00f767901186-16-F",
+            "rule_score": 0.7486085128675456,
+            "reac_id": "MNXR100137",
+            "subs_id": "MNXM2210",
+            "rel_direction": 1,
+            "left": {
+                "MNXM2210": 1
+            },
+            "right": {
+                "MNXM139": 1,
+                "MNXM83": 1
+            }
+        },
+        "MNXR112247": {
+            "rule_id": "RR-02-f85f00f767901186-16-F",
+            "rule_score": 0.7486085128675456,
+            "reac_id": "MNXR112247",
+            "subs_id": "MNXM7283",
+            "rel_direction": 1,
+            "left": {
+                "MNXM7283": 1
+            },
+            "right": {
+                "MNXM2473": 1,
+                "MNXM83": 1
+            }
+        },
+        "MNXR116653": {
+            "rule_id": "RR-02-f85f00f767901186-16-F",
+            "rule_score": 0.7486085128675456,
+            "reac_id": "MNXR116653",
+            "subs_id": "MNXM13314",
+            "rel_direction": 1,
+            "left": {
+                "MNXM13314": 1
+            },
+            "right": {
+                "MNXM13541": 1,
+                "MNXM83": 1
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "MNXR94688": {
+        "left": {
+            "MNXM1": 1,
+            "MNXM17": 1,
+            "MNXM91349": 1
+        },
+        "right": {
+            "MNXM52": 1
+        },
+        "direction": 0,
+        "main_left": [
+            "MNXM91349"
+        ],
+        "main_right": [
+            "MNXM52"
+        ]
+    }
+}

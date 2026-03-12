@@ -1,0 +1,88 @@
+{
+    "RR:03-FFFFD8-869728-14F123": {
+        "MNXR112980": {
+            "left": {
+                "MNXM2376": 1
+            },
+            "left_excluded": [
+                "MNXM8",
+                "MNXM2376"
+            ],
+            "reac_id": "MNXR112980",
+            "rel_direction": -1,
+            "right": {
+                "MNXM2526": 1
+            },
+            "right_excluded": [
+                "MNXM1",
+                "MNXM10"
+            ],
+            "rule_id": "RR:03-FFFFD8-869728-14F123",
+            "rule_score": 0.8408964,
+            "subs_id": "MNXM2376"
+        },
+        "MNXR112982": {
+            "left": {
+                "MNXM2376": 1
+            },
+            "left_excluded": [
+                "MNXM2376",
+                "MNXM732620"
+            ],
+            "reac_id": "MNXR112982",
+            "rel_direction": 1,
+            "right": {
+                "MNXM2526": 1
+            },
+            "right_excluded": [
+                "WATER",
+                "WATER"
+            ],
+            "rule_id": "RR:03-FFFFD8-869728-14F123",
+            "rule_score": 0.8408964,
+            "subs_id": "MNXM2376"
+        },
+        "RHEA:27433": {
+            "left": {
+                "CHEBI:59895": 1
+            },
+            "left_excluded": [
+                "CHEBI:57540",
+                "CHEBI:59895"
+            ],
+            "reac_id": "RHEA:27433",
+            "rel_direction": 1,
+            "right": {
+                "CHEBI:59896": 1
+            },
+            "right_excluded": [
+                "CHEBI:15378",
+                "CHEBI:57945"
+            ],
+            "rule_id": "RR:03-FFFFD8-869728-14F123",
+            "rule_score": 0.8408964,
+            "subs_id": "CHEBI:59895"
+        },
+        "RHEA:27437": {
+            "left": {
+                "CHEBI:59895": 1
+            },
+            "left_excluded": [
+                "CHEBI:16240",
+                "CHEBI:59895"
+            ],
+            "reac_id": "RHEA:27437",
+            "rel_direction": 1,
+            "right": {
+                "CHEBI:59896": 1
+            },
+            "right_excluded": [
+                "CHEBI:15377",
+                "CHEBI:15377"
+            ],
+            "rule_id": "RR:03-FFFFD8-869728-14F123",
+            "rule_score": 0.8408964,
+            "subs_id": "CHEBI:59895"
+        }
+    }
+}

@@ -1,0 +1,122 @@
+{
+    "MNXM1": {
+        "cid": "MNXM1",
+        "formula": "mnx:PROTON",
+        "inchi": "InChI=1S/p+1",
+        "inchikey": "InChIKey=GPRLSGONYQIRFK-UHFFFAOYSA-N",
+        "name": "H(+)",
+        "smiles": "[H+]",
+        "xref": {
+            "CHEBI": [
+                "15378",
+                "24636",
+                "29233",
+                "29234"
+            ],
+            "bigg.metabolite": [
+                "h"
+            ],
+            "biggM": [
+                "m_h",
+                "h"
+            ],
+            "chebi": [
+                "10744",
+                "13357",
+                "15378",
+                "24636",
+                "29233",
+                "29234",
+                "5584"
+            ],
+            "hmdb": [
+                "hmdb0059597",
+                "hmdb59597"
+            ],
+            "kegg.compound": [
+                "c00080"
+            ],
+            "keggC": [
+                "c00080",
+                "m_c00080"
+            ],
+            "metacyc.compound": [
+                "proton"
+            ],
+            "metacycM": [
+                "proton"
+            ],
+            "mnx": [
+                "MNXM1",
+                "proton"
+            ],
+            "reactome": [
+                "r-all-1132304",
+                "r-all-113529",
+                "r-all-1470067",
+                "r-all-156540",
+                "r-all-1614597",
+                "r-all-163953",
+                "r-all-193465",
+                "r-all-194688",
+                "r-all-2000349",
+                "r-all-2429673",
+                "r-all-2872447",
+                "r-all-351626",
+                "r-all-372511",
+                "r-all-374900",
+                "r-all-425969",
+                "r-all-425978",
+                "r-all-425999",
+                "r-all-427899",
+                "r-all-428040",
+                "r-all-428548",
+                "r-all-5228597",
+                "r-all-5244410",
+                "r-all-5668577",
+                "r-all-70106",
+                "r-all-74722"
+            ],
+            "reactomeM": [
+                "r-all-1132304",
+                "r-all-113529",
+                "r-all-1470067",
+                "r-all-156540",
+                "r-all-1614597",
+                "r-all-163953",
+                "r-all-193465",
+                "r-all-194688",
+                "r-all-2000349",
+                "r-all-2429673",
+                "r-all-2872447",
+                "r-all-351626",
+                "r-all-372511",
+                "r-all-374900",
+                "r-all-425969",
+                "r-all-425978",
+                "r-all-425999",
+                "r-all-427899",
+                "r-all-428040",
+                "r-all-428548",
+                "r-all-5228597",
+                "r-all-5244410",
+                "r-all-5668577",
+                "r-all-70106",
+                "r-all-74722"
+            ],
+            "sabiork.compound": [
+                "39"
+            ],
+            "sabiorkM": [
+                "39"
+            ],
+            "seed.compound": [
+                "cpd00067"
+            ],
+            "seedM": [
+                "m_cpd00067",
+                "cpd00067"
+            ]
+        }
+    }
+}

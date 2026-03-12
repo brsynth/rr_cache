@@ -1,0 +1,16 @@
+{
+     "RHEA:84375": {
+        "direction": 0,
+        "left": {
+            "CHEBI:48945": 1,
+            "CHEBI:58349": 1
+        },
+        "main_left": "CHEBI:48945",
+        "main_right": "CHEBI:16182",
+        "right": {
+            "CHEBI:15378": 1,
+            "CHEBI:16182": 1,
+            "CHEBI:57783": 1
+        }
+    }
+}

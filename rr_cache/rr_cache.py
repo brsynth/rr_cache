@@ -282,7 +282,7 @@ class rrCache:
 
     def get_compound(self, cid: str):
         return self.__get_object("cid_strc", cid)
-    
+
     def get_compound_xref(self, cid: str):
         return self.__get_object("cid_xref", cid)
 
@@ -350,45 +350,45 @@ class rrCache:
 
     @staticmethod
     def _download_if_not_exists_or_corrupted(
-        url: str, filename: str, outdir: str, fingerprint: str, logger: Logger = getLogger(__name__)
+        url: str,
+        filename: str,
+        outdir: str,
+        fingerprint: str,
+        logger: Logger = getLogger(__name__),
     ) -> None:
-            # Download if not exists or corrupted
-            if not os_path.exists(os_path.join(outdir, filename)):
-                logger.debug(
-                    f"{filename} not found in {outdir}, downloading..."
+        # Download if not exists or corrupted
+        if not os_path.exists(os_path.join(outdir, filename)):
+            logger.debug(f"{filename} not found in {outdir}, downloading...")
+            logger.debug(f"Trying to download from {url}...")
+            try:
+                rrCache._download_input_cache(
+                    url=url,
+                    file=filename,
+                    outdir=outdir,
+                    fingerprint=fingerprint,
+                    logger=logger,
                 )
-                logger.debug(f"Trying to download from {url}...")
-                try:
-                    rrCache._download_input_cache(
-                        url=url,
-                        file=filename,
-                        outdir=outdir,
-                        fingerprint=fingerprint,
-                        logger=logger,
-                    )
-                except r_exceptions.RequestException as e:
-                    logger.warning(
-                        f"Failed to download {filename} from {url}: {e}"
-                    )
+            except r_exceptions.RequestException as e:
+                logger.warning(f"Failed to download {filename} from {url}: {e}")
+        else:
+            if not check_sha(
+                os_path.join(outdir, filename),
+                {"file": {"fingerprint": fingerprint}},
+            ):
+                logger.debug(
+                    f"{filename} found in input cache but corrupted, re-downloading..."
+                )
+                rrCache._download_input_cache(
+                    url=url,
+                    file=filename,
+                    outdir=outdir,
+                    fingerprint=fingerprint,
+                    logger=logger,
+                )
             else:
-                if not check_sha(
-                    os_path.join(outdir, filename),
-                    {"file": {"fingerprint": fingerprint}},
-                ):
-                    logger.debug(
-                        f"{filename} found in input cache but corrupted, re-downloading..."
-                    )
-                    rrCache._download_input_cache(
-                        url=url,
-                        file=filename,
-                        outdir=outdir,
-                        fingerprint=fingerprint,
-                        logger=logger,
-                    )
-                else:
-                    logger.debug(
-                        f"{filename} found in input cache and valid, skipping download"
-                    )
+                logger.debug(
+                    f"{filename} found in input cache and valid, skipping download"
+                )
 
     #    @staticmethod
     def Build(self, interactive: bool = DEFAULTS["interactive"]) -> None:
@@ -429,7 +429,6 @@ class rrCache:
                         url = input["url"] + db + "/"
                         outdir = os_path.join(self.__input__cache_dir, db)
                         if db in fingerprint:
-                            fprint = fingerprint[db]
                             rrCache._download_if_not_exists_or_corrupted(
                                 url=url,
                                 filename=filename,
@@ -442,7 +441,7 @@ class rrCache:
                                 f"Database {db} not found in fingerprint configuration for {input_type}, skipping download of {filename} for {db}"
                             )
 
-                else: # one single database-independent file to download
+                else:  # one single database-independent file to download
                     rrCache._download_if_not_exists_or_corrupted(
                         url=input["url"],
                         filename=filename,
@@ -740,13 +739,9 @@ class rrCache:
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
         reactions = {}
 
-        outfile = os_path.join(
-            outdir, rrCache.__cache[_attribute]['file']['name']
-        )
+        outfile = os_path.join(outdir, rrCache.__cache[_attribute]["file"]["name"])
         # Do not checksum since it is a dictionary
-        if os_path.exists(outfile) and check_sha(
-            outfile, rrCache.__cache[_attribute]
-        ):
+        if os_path.exists(outfile) and check_sha(outfile, rrCache.__cache[_attribute]):
             logger.debug("   Cache file already exists")
         else:
             # Iterate over the file dependencies and find the corresponding files in the input cache sources
@@ -761,25 +756,33 @@ class rrCache:
                             for db in source["files"][dep_file]:
                                 logger.debug("   Generating data...")
                                 _dep_file = os_path.join(input_dir, db, dep_file)
-                                _reactions = getattr(rrCache, "_m_" + attribute + "_reactions")(
-                                    _dep_file, logger=logger
-                                )
+                                _reactions = getattr(
+                                    rrCache, "_m_" + attribute + "_reactions"
+                                )(_dep_file, logger=logger)
                                 # Merge with existing reactions for existing keys (append as nested dict)
                                 # Otherwise, for rules built on reactions from several databases,
                                 # the last database in the loop will overwrite the previous ones instead of merging them
                                 for rkey, rval in _reactions.items():
-                                    if rkey in reactions and isinstance(reactions[rkey], dict) and isinstance(rval, dict):
+                                    if (
+                                        rkey in reactions
+                                        and isinstance(reactions[rkey], dict)
+                                        and isinstance(rval, dict)
+                                    ):
                                         reactions[rkey].update(rval)
                                     else:
                                         reactions[rkey] = rval
                             logger.debug("   Writing data to file...")
-                            rrCache._store_cache_to_file(reactions, outfile, logger=logger)
-                        else:
-                            reactions = getattr(rrCache, "_m_" + attribute + "_reactions_legacy")(
-                                dep_file, logger=logger
+                            rrCache._store_cache_to_file(
+                                reactions, outfile, logger=logger
                             )
+                        else:
+                            reactions = getattr(
+                                rrCache, "_m_" + attribute + "_reactions_legacy"
+                            )(dep_file, logger=logger)
                             logger.debug("   Writing data to file...")
-                            rrCache._store_cache_to_file(reactions, outfile, logger=logger)
+                            rrCache._store_cache_to_file(
+                                reactions, outfile, logger=logger
+                            )
 
         del reactions
 
@@ -1053,9 +1056,13 @@ class rrCache:
         # logger.debug(f'deprecatedCID_cid: {deprecatedCID_cid}')
         logger.debug(f"interactive: {interactive}")
 
-        rr_compounds_paths = paths['rr2more']
-        chem_prop_path = paths['mnx'][0] if 'mnx' in paths and len(paths['mnx']) > 0 else None
-        comp_xref_path = paths['mnx'][1] if 'mnx' in paths and len(paths['mnx']) > 1 else None
+        rr_compounds_paths = paths["rr2more"]
+        chem_prop_path = (
+            paths["mnx"][0] if "mnx" in paths and len(paths["mnx"]) > 0 else None
+        )
+        comp_xref_path = (
+            paths["mnx"][1] if "mnx" in paths and len(paths["mnx"]) > 1 else None
+        )
 
         logger.debug(f"rr_compounds_paths: {rr_compounds_paths}")
         logger.debug(f"chem_prop_path: {chem_prop_path}")
@@ -1073,7 +1080,9 @@ class rrCache:
                 if row.get("VALID", "True").lower() != "true":
                     logger.debug("Skipping invalid compound entry: " + str(row))
                     continue  # skip invalid entries
-                row = {k.lower(): v for k, v in row.items()}  # normalize keys to lowercase
+                row = {
+                    k.lower(): v for k, v in row.items()
+                }  # normalize keys to lowercase
                 if "cid" not in row:
                     # convert into 'id'
                     row["cid"] = row.pop("id")
@@ -1420,7 +1429,11 @@ class rrCache:
                     )
                 rr_reactions[row["# Rule_ID"]][row["Reaction_ID"]] = {
                     "rule_id": row["# Rule_ID"],
-                    "rule_score": None if row["Score_normalized"] == "" else float(row["Score_normalized"]),
+                    "rule_score": (
+                        None
+                        if row["Score_normalized"] == ""
+                        else float(row["Score_normalized"])
+                    ),
                     "reac_id": row["Reaction_ID"],
                     "subs_id": row["Substrate_ID"],
                     "rel_direction": int(row["Rule_relative_direction"]),

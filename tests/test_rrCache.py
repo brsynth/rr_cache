@@ -119,7 +119,7 @@ def test_generate_cache(cspace: str, logger: Logger, reference_data):
 def test_get_compound(caches, reference_data, cspace: str, cmpd_id: str):
     compounds = reference_data[cspace]["compounds"]
     compound = caches[cspace].get_compound(cmpd_id)
-    compound['xref'] = caches[cspace].get_compound_xref(cmpd_id)
+    compound["xref"] = caches[cspace].get_compound_xref(cmpd_id)
     print(compound)
     print()
     print(compounds[cmpd_id])

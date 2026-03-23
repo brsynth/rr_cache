@@ -77,6 +77,7 @@ def entry_point():
 
     cache = rrCache(
         cspace=args.cspace,
+        databases=args.db,
         interactive=args.interactive,
         do_not_dwnl_cache=args.do_not_dwnl_cache,
         load=False,

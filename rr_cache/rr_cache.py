@@ -63,6 +63,7 @@ class rrCache:
     def __init__(
         self,
         cspace: str = DEFAULTS["cspace"],
+        databases: List[str] = DEFAULTS["databases"],
         interactive: bool = DEFAULTS["interactive"],
         do_not_dwnl_cache: bool = DEFAULTS["do_not_dwnl_cache"],
         load: bool = True,
@@ -72,6 +73,7 @@ class rrCache:
         """Constructor for the class
         Args:
             cspace (str): Chemical space to use (e.g. mnx3.1, mnx4.4...).
+            databases (List[str]): List of databases to include in the cache.
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
             do_not_dwnl_cache (bool): Whether to download the cache files from the internet.
             load (bool): Whether to load the cache files into memory.
@@ -82,6 +84,7 @@ class rrCache:
         self.logger = logger
         self.logger.debug("New instance of rrCache")
         self.logger.debug("cspace: " + str(cspace))
+        self.logger.debug("databases: " + str(databases))
         self.logger.debug("interactive: " + str(interactive))
         self.logger.debug("do_not_dwnl_cache: " + str(do_not_dwnl_cache))
         self.logger.debug("load: " + str(load))
@@ -104,6 +107,7 @@ class rrCache:
                 rrCache.__cache_sources = cache_cfg["sources"]
                 rrCache.__cache = cache_cfg["cache"]
                 rrCache.__type = cache_cfg.get("type", "legacy")
+                rrCache.__databases = databases
         except FileNotFoundError:
             logger.error(
                 f"Cache config file {cache_cfg_fln} not found, please check the --chemical-space argument"
@@ -390,7 +394,6 @@ class rrCache:
                     f"{filename} found in input cache and valid, skipping download"
                 )
 
-    #    @staticmethod
     def Build(self, interactive: bool = DEFAULTS["interactive"]) -> None:
         """Generate the cache files and store them to disk.
         Args:
@@ -426,6 +429,11 @@ class rrCache:
                 if isinstance(fingerprint, dict):
                     databases = fingerprint.keys()
                     for db in databases:
+                        if db not in self.__databases:
+                            self.logger.debug(
+                                f"Database {db} is not in the list of databases to include in the cache, skipping download of {filename} for {db}"
+                            )
+                            continue
                         url = input["url"] + db + "/"
                         outdir = os_path.join(self.__input__cache_dir, db)
                         if db in fingerprint:
@@ -457,6 +465,7 @@ class rrCache:
             self.__cache_dir,
             interactive=interactive,
             type=rrCache.__type,
+            databases=self.__databases,
             logger=self.logger,
         )
         print_progress(self.logger)
@@ -470,11 +479,13 @@ class rrCache:
         del cid_strc, cid_name
         try:
             cid_xref = rrCache._gen_cid_xref(
-                self.__input__cache_dir, self.__cache_dir, self.logger
+                self.__input__cache_dir,
+                self.__cache_dir,
+                logger=self.logger
             )
             print_progress(self.logger)
-            rrCache._gen_chebi_cid(self.__input__cache_dir, self.__cache_dir, cid_xref)
-            print_progress(self.logger)
+            # rrCache._gen_chebi_cid(self.__input__cache_dir, self.__cache_dir, cid_xref)
+            # print_progress(self.logger)
             del cid_xref
         except KeyError as e:
             self.logger.debug(f"{e} not found in input cache, skipping generation")
@@ -489,6 +500,7 @@ class rrCache:
                 self.__input__cache_dir,
                 self.__cache_dir,
                 type=rrCache.__type,
+                databases=self.__databases,
                 attribute=attribute,
                 logger=self.logger,
             )  # , deprecatedCID_cid, deprecatedRID_rid, logger)
@@ -551,6 +563,7 @@ class rrCache:
         outdir: str,
         interactive: bool = DEFAULTS["interactive"],
         type: str = "legacy",
+        databases: List[str] = DEFAULTS["databases"],
         logger: Logger = getLogger(__name__),
     ) -> Dict:
 
@@ -558,6 +571,7 @@ class rrCache:
         logger.debug(f"outdir: {outdir}")
         logger.debug(f"interactive: {interactive}")
         logger.debug(f"type: {type}")
+        logger.debug(f"databases: {databases}")
 
         attribute = "cid_strc, cid_name"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
@@ -584,9 +598,10 @@ class rrCache:
                         # i.e. if the value is the fingerprint or a dict
                         if isinstance(source["files"][dep_file], dict):
                             for db in source["files"][dep_file]:
-                                dep_files[scat].append(
-                                    os_path.join(input_dir, db, dep_file)
-                                )
+                                if db in databases:
+                                    dep_files[scat].append(
+                                        os_path.join(input_dir, db, dep_file)
+                                    )
                         else:
                             dep_files[scat].append(os_path.join(input_dir, dep_file))
             cid_strc, cid_name = rrCache._m_mnxm_strc(
@@ -634,9 +649,11 @@ class rrCache:
     def _gen_cid_xref(
         input_dir: str,
         outdir: str,
-        # deprecatedCID_cid: Dict,
         logger: Logger = getLogger(__name__),
     ) -> Dict:
+        logger.debug(f"input_dir: {input_dir}")
+        logger.debug(f"outdir: {outdir}")
+
         attribute = "cid_xref"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
         cid_xref = None
@@ -649,9 +666,6 @@ class rrCache:
             cid_xref = rrCache._load_json(f_cid_xref)
             logger.debug("   Cache file already exists")
         else:
-            # if not deprecatedCID_cid['attr']:
-            #     logger.debug("   Loading input data from file...")
-            #     deprecatedCID_cid['attr'] = rrCache._load_json(deprecatedCID_cid['file'])
             logger.debug("   Generating data...")
             dep_files = [
                 os_path.join(input_dir, f)
@@ -664,31 +678,31 @@ class rrCache:
 
         return {"attr": cid_xref, "file": f_cid_xref}
 
-    @staticmethod
-    def _gen_chebi_cid(
-        input_dir: str,
-        outdir: str,
-        cid_xref: Dict,
-        logger: Logger = getLogger(__name__),
-    ) -> Dict:
-        attribute = "chebi_cid"
-        logger.debug(c_attr("bold") + attribute + c_attr("reset"))
-        chebi_cid = None
-        f_chebi_cid = os_path.join(outdir, rrCache.__cache[attribute]["file"]["name"])
+    # @staticmethod
+    # def _gen_chebi_cid(
+    #     input_dir: str,
+    #     outdir: str,
+    #     cid_xref: Dict,
+    #     logger: Logger = getLogger(__name__),
+    # ) -> Dict:
+    #     attribute = "chebi_cid"
+    #     logger.debug(c_attr("bold") + attribute + c_attr("reset"))
+    #     chebi_cid = None
+    #     f_chebi_cid = os_path.join(outdir, rrCache.__cache[attribute]["file"]["name"])
 
-        # Do not checksum since it is a dictionary
-        if os_path.exists(f_chebi_cid) and check_sha(
-            f_chebi_cid, rrCache.__cache[attribute]
-        ):
-            logger.debug("   Cache file already exists")
-        else:
-            logger.debug("   Generating data...")
-            chebi_cid = rrCache._m_chebi_cid(cid_xref["attr"])
-            # print_OK()
-            logger.debug("   Writing data to file...")
-            rrCache._store_cache_to_file(chebi_cid, f_chebi_cid, logger=logger)
-            del chebi_cid
-            # print_OK()
+    #     # Do not checksum since it is a dictionary
+    #     if os_path.exists(f_chebi_cid) and check_sha(
+    #         f_chebi_cid, rrCache.__cache[attribute]
+    #     ):
+    #         logger.debug("   Cache file already exists")
+    #     else:
+    #         logger.debug("   Generating data...")
+    #         chebi_cid = rrCache._m_chebi_cid(cid_xref["attr"])
+    #         # print_OK()
+    #         logger.debug("   Writing data to file...")
+    #         rrCache._store_cache_to_file(chebi_cid, f_chebi_cid, logger=logger)
+    #         del chebi_cid
+    #         # print_OK()
 
     @staticmethod
     def _gen_deprecatedRID_rid(
@@ -724,12 +738,14 @@ class rrCache:
         input_dir: str,
         outdir: str,
         type: str = "legacy",
+        databases: List[str] = DEFAULTS["databases"],
         attribute: str = None,
         logger: Logger = getLogger(__name__),
     ) -> None:
         logger.debug(f"input_dir: {input_dir}")
         logger.debug(f"outdir: {outdir}")
         logger.debug(f"type: {type}")
+        logger.debug(f"databases: {databases}")
 
         if attribute is None:
             logger.error("Attribute must be specified for reaction generation")
@@ -754,6 +770,11 @@ class rrCache:
                         if isinstance(source["files"][dep_file], dict):
                             _reactions = {}
                             for db in source["files"][dep_file]:
+                                if db not in databases:
+                                    logger.debug(
+                                        f"Database {db} is not in the list of databases to include in the cache, skipping generation of reactions for {db}"
+                                    )
+                                    continue
                                 logger.debug("   Generating data...")
                                 _dep_file = os_path.join(input_dir, db, dep_file)
                                 _reactions = getattr(

@@ -9,6 +9,7 @@ CONFIG_PATH = os_path.join(HERE, "config")
 # Default values for the arguments
 DEFAULTS = {
     "cspace": "rr2026",
+    "databases": ["metanetx", "rhea"],
     "interactive": False,
     "do_not_dwnl_cache": False,
     # default OS tmpdir, writable by the user who installs the cache, and readable by all users
@@ -51,6 +52,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=None,
         action="store_true",
         help="list available chemical spaces and exits",
+    )
+    parser.add_argument(
+        "--db",
+        "--databases",
+        default=DEFAULTS["databases"],
+        nargs="*",
+        help="select databases to include in the cache (default: %(default)s)",
     )
     parser.add_argument(
         "--build",

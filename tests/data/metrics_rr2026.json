@@ -1,6 +1,6 @@
 {
     "cid_strc": {
-        "length": 1338551,
+        "length": 1237578,
         "file_size": 806612376
     },
     "cid_xref": {
@@ -8,11 +8,11 @@
         "file_size": 243759725
     },
     "template_reactions": {
-        "length": 92698,
+        "length": 42700,
         "file_size": 8519350
     },
     "rr_reactions": {
-        "length": 1174216,
+        "length": 361751,
         "file_size": 84656878
     }
 }

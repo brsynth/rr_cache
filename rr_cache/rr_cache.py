@@ -282,6 +282,9 @@ class rrCache:
 
     def get_compound(self, cid: str):
         return self.__get_object("cid_strc", cid)
+    
+    def get_compound_xref(self, cid: str):
+        return self.__get_object("cid_xref", cid)
 
     def get_list_of_compounds(self):
         return self.__get_list_of_objects("cid_strc")
@@ -345,6 +348,48 @@ class rrCache:
             # self.expression = expression
             self.message = message
 
+    @staticmethod
+    def _download_if_not_exists_or_corrupted(
+        url: str, filename: str, outdir: str, fingerprint: str, logger: Logger = getLogger(__name__)
+    ) -> None:
+            # Download if not exists or corrupted
+            if not os_path.exists(os_path.join(outdir, filename)):
+                logger.debug(
+                    f"{filename} not found in {outdir}, downloading..."
+                )
+                logger.debug(f"Trying to download from {url}...")
+                try:
+                    rrCache._download_input_cache(
+                        url=url,
+                        file=filename,
+                        outdir=outdir,
+                        fingerprint=fingerprint,
+                        logger=logger,
+                    )
+                except r_exceptions.RequestException as e:
+                    logger.warning(
+                        f"Failed to download {filename} from {url}: {e}"
+                    )
+            else:
+                if not check_sha(
+                    os_path.join(outdir, filename),
+                    {"file": {"fingerprint": fingerprint}},
+                ):
+                    logger.debug(
+                        f"{filename} found in input cache but corrupted, re-downloading..."
+                    )
+                    rrCache._download_input_cache(
+                        url=url,
+                        file=filename,
+                        outdir=outdir,
+                        fingerprint=fingerprint,
+                        logger=logger,
+                    )
+                else:
+                    logger.debug(
+                        f"{filename} found in input cache and valid, skipping download"
+                    )
+
     #    @staticmethod
     def Build(self, interactive: bool = DEFAULTS["interactive"]) -> None:
         """Generate the cache files and store them to disk.
@@ -373,49 +418,41 @@ class rrCache:
         # FETCH INPUT_CACHE FILES
         print_start(self.logger, "Checking input cache")
         for input_type, input in rrCache.__cache_sources.items():
+
             self.logger.debug(f"Checking {input_type}...")
             for filename, fingerprint in input["files"].items():
-                # filename = 'metanetx' + os_path.sep + filename
-                # Download if not exists or corrupted
-                if not os_path.exists(os_path.join(self.__input__cache_dir, filename)):
-                    self.logger.debug(
-                        f"{filename} not found in {self.__input__cache_dir}, downloading..."
-                    )
-                    rrCache._download_input_cache(
+
+                # If fingerprint is a dict, it means that the file is database-specific and the keys are the databases for which the file should be downloaded, otherwise it is a general file to download for all chemical spaces
+                if isinstance(fingerprint, dict):
+                    databases = fingerprint.keys()
+                    for db in databases:
+                        url = input["url"] + db + "/"
+                        outdir = os_path.join(self.__input__cache_dir, db)
+                        if db in fingerprint:
+                            fprint = fingerprint[db]
+                            rrCache._download_if_not_exists_or_corrupted(
+                                url=url,
+                                filename=filename,
+                                outdir=outdir,
+                                fingerprint=fingerprint[db],
+                                logger=self.logger,
+                            )
+                        else:
+                            self.logger.warning(
+                                f"Database {db} not found in fingerprint configuration for {input_type}, skipping download of {filename} for {db}"
+                            )
+
+                else: # one single database-independent file to download
+                    rrCache._download_if_not_exists_or_corrupted(
                         url=input["url"],
-                        file=filename,
+                        filename=filename,
                         outdir=self.__input__cache_dir,
                         fingerprint=fingerprint,
                         logger=self.logger,
                     )
-                else:
-                    if not check_sha(
-                        os_path.join(self.__input__cache_dir, filename),
-                        {"file": {"fingerprint": fingerprint}},
-                    ):
-                        self.logger.debug(
-                            f"{filename} found in input cache but corrupted, re-downloading..."
-                        )
-                        rrCache._download_input_cache(
-                            url=input["url"],
-                            file=filename,
-                            outdir=self.__input__cache_dir,
-                            fingerprint=fingerprint,
-                            logger=self.logger,
-                        )
-                    else:
-                        self.logger.debug(
-                            f"{filename} found in input cache and valid, skipping download"
-                        )
-        print_end(self.logger)
+
         # BUILD CACHE FILES AND STORE THEM TO DISK
         print_start(self.logger, "Building the cache")
-        # try:
-        #     deprecatedCID_cid = rrCache._gen_deprecatedCID_cid(self.__input__cache_dir, self.__cache_dir, self.logger)
-        # except KeyError as e:
-        #     self.logger.debug(f'{e} not found in input cache, skipping generation')
-        #     deprecatedCID_cid = None
-        # print_progress(self.logger)
         cid_strc, cid_name = rrCache._gen_cid_strc_cid_name(
             self.__input__cache_dir,
             self.__cache_dir,
@@ -448,13 +485,15 @@ class rrCache:
         #     deprecatedRID_rid = None
         #     self.logger.debug(f'{e} not found in input cache, skipping generation')
         # print_progress(self.logger)
-        rrCache._gen_rr_reactions(
-            self.__input__cache_dir,
-            self.__cache_dir,
-            type=rrCache.__type,
-            logger=self.logger,
-        )  # , deprecatedCID_cid, deprecatedRID_rid, logger)
-        print_progress(self.logger)
+        for attribute in ["template", "rr"]:
+            rrCache._gen_reactions(
+                self.__input__cache_dir,
+                self.__cache_dir,
+                type=rrCache.__type,
+                attribute=attribute,
+                logger=self.logger,
+            )  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+            print_progress(self.logger)
         try:
             rrCache._gen_comp_xref_deprecatedCompID_compid(
                 self.__input__cache_dir, self.__cache_dir, self.logger
@@ -462,13 +501,15 @@ class rrCache:
         except KeyError as e:
             self.logger.debug(f"{e} not found in input cache, skipping generation")
         print_progress(self.logger)
-        rrCache._gen_template_reactions(
-            self.__input__cache_dir,
-            self.__cache_dir,
-            type=rrCache.__type,
-            logger=self.logger,
-        )  # , deprecatedCID_cid, deprecatedRID_rid, logger)
-        print_progress(self.logger)
+        # rrCache._gen_reactions(
+        #     self.__input__cache_dir,
+        #     self.__cache_dir,
+        #     type=rrCache.__type,
+        #     databases=self.__databases,
+        #     attribute="template",
+        #     logger=self.logger,
+        # )  # , deprecatedCID_cid, deprecatedRID_rid, logger)
+        # print_progress(self.logger)
         # del deprecatedCID_cid, deprecatedRID_rid
         print_progress(self.logger)
         print_end(self.logger)
@@ -514,65 +555,47 @@ class rrCache:
         logger: Logger = getLogger(__name__),
     ) -> Dict:
 
+        logger.debug(f"input_dir: {input_dir}")
+        logger.debug(f"outdir: {outdir}")
+        logger.debug(f"interactive: {interactive}")
+        logger.debug(f"type: {type}")
+
         attribute = "cid_strc, cid_name"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
         cid_strc = None
-        # cid_name = None
         f_cid_strc = os_path.join(outdir, rrCache.__cache["cid_strc"]["file"]["name"])
-        # try:
-        #     f_cid_name = os_path.join(outdir, rrCache.__cache['cid_name']['file']['name'])
-        # except KeyError:
-        #     f_cid_name = ""
-        #     logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
 
         # Do not checksum since it is a dictionary
         if os_path.exists(f_cid_strc) and check_sha(
             f_cid_strc, rrCache.__cache["cid_strc"]
-        ):  # and os_path.exists(f_cid_name) and check_sha(
-            #     f_cid_name,
-            #     rrCache.__cache['cid_name']
-            # ):
+        ):
             cid_strc = rrCache._load_json(f_cid_strc)
             logger.debug("   Cache file already exists")
         else:
-            # if deprecatedCID_cid:
-            #     if not deprecatedCID_cid['attr']:
-            #         logger.debug("   Loading input data from file...")
-            #         deprecatedCID_cid = rrCache._load_json(deprecatedCID_cid['file'])
-            # else:
-            #     deprecatedCID_cid = {'attr': {}}
             logger.debug("   Generating data...")
-            # dep_files = [os_path.join(input_dir, 'metanetx', f) for f in rrCache.__cache['cid_strc']['deps']['file_deps']]
-            dep_files = [
-                os_path.join(input_dir, f)
-                for f in rrCache.__cache["cid_strc"]["deps"]["file_deps"]
-            ]
-            dep_files += [
-                os_path.join(input_dir, f)
-                for f in rrCache.__cache["cid_xref"]["deps"]["file_deps"]
-            ]
+            dep_files = {}
+            # Iterate over the file dependencies and find the corresponding files in the input cache sources
+            for dep_file in rrCache.__cache["cid_strc"]["deps"]["file_deps"]:
+                # Iterate over sources to look if the dependency file is listed in
+                for scat, source in rrCache.__cache_sources.items():
+                    if scat not in dep_files:
+                        dep_files[scat] = []
+                    if dep_file in source["files"]:
+                        # Look is the file is listed for one of the databases to use,
+                        # i.e. if the value is the fingerprint or a dict
+                        if isinstance(source["files"][dep_file], dict):
+                            for db in source["files"][dep_file]:
+                                dep_files[scat].append(
+                                    os_path.join(input_dir, db, dep_file)
+                                )
+                        else:
+                            dep_files[scat].append(os_path.join(input_dir, dep_file))
             cid_strc, cid_name = rrCache._m_mnxm_strc(
                 dep_files, interactive=interactive, logger=logger
             )
 
-            # if deprecatedCID_cid['attr'] != {}:
-            #     # print(cid_strc['MNXM1106057'])
-            #     # Replace compound IDs that have no structure with one that has.
-            #     # Done from a manually built file
-            #     with open(os_path.join(input_dir, 'MNXM_replacement_20190524.csv')) as csv_file:
-            #         reader = csv_reader(csv_file, delimiter=' ')
-            #         for row in reader:
-            #             if not row[0].startswith('#') and len(row) > 1:
-            #                 if row[1] != 'R_group':
-            #                     # print(row)
-            #                     cid_strc[row[0]] = cid_strc[row[1]]
-
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_strc, f_cid_strc, logger=logger)
-            # if cid_name:
-            #     rrCache._store_cache_to_file(cid_name, f_cid_name, logger=logger)
-            # else:
-            #     logger.debug("   No cid_name file found in cache, skipping generation of cid_name")
 
         return {"attr": cid_strc, "file": f_cid_strc}, {
             # 'attr': cid_name,
@@ -698,43 +721,67 @@ class rrCache:
         return {"attr": deprecatedRID_rid, "file": f_deprecatedRID_rid}
 
     @staticmethod
-    def _gen_rr_reactions(
+    def _gen_reactions(
         input_dir: str,
         outdir: str,
         type: str = "legacy",
+        attribute: str = None,
         logger: Logger = getLogger(__name__),
     ) -> None:
-        attribute = "rr_reactions"
-        logger.debug(c_attr("bold") + attribute + c_attr("reset"))
-        rr_reactions = None
-        f_rr_reactions = os_path.join(
-            outdir, rrCache.__cache[attribute]["file"]["name"]
-        )
+        logger.debug(f"input_dir: {input_dir}")
+        logger.debug(f"outdir: {outdir}")
+        logger.debug(f"type: {type}")
 
+        if attribute is None:
+            logger.error("Attribute must be specified for reaction generation")
+            return
+
+        _attribute = f"{attribute}_reactions"
+        logger.debug(c_attr("bold") + attribute + c_attr("reset"))
+        reactions = {}
+
+        outfile = os_path.join(
+            outdir, rrCache.__cache[_attribute]['file']['name']
+        )
         # Do not checksum since it is a dictionary
-        if os_path.exists(f_rr_reactions) and check_sha(
-            f_rr_reactions, rrCache.__cache[attribute]
+        if os_path.exists(outfile) and check_sha(
+            outfile, rrCache.__cache[_attribute]
         ):
             logger.debug("   Cache file already exists")
         else:
-            logger.debug("   Generating data...")
-            # dep_files = [os_path.join(input_dir, 'metanetx', f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
-            dep_files = [
-                os_path.join(input_dir, f)
-                for f in rrCache.__cache[attribute]["deps"]["file_deps"]
-            ]
-            if type == "legacy":
-                rr_reactions = rrCache._m_rr_reactions_legacy(
-                    dep_files[0], logger=logger
-                )
-            else:
-                rr_reactions = rrCache._m_rr_reactions(dep_files[0], logger=logger)
+            # Iterate over the file dependencies and find the corresponding files in the input cache sources
+            for dep_file in rrCache.__cache[_attribute]["deps"]["file_deps"]:
+                # Iterate over sources to look if the dependency file is listed in
+                for scat, source in rrCache.__cache_sources.items():
+                    if dep_file in source["files"]:
+                        # Look is the file is listed for one of the databases to use,
+                        # i.e. if the value is the fingerprint or a dict
+                        if isinstance(source["files"][dep_file], dict):
+                            _reactions = {}
+                            for db in source["files"][dep_file]:
+                                logger.debug("   Generating data...")
+                                _dep_file = os_path.join(input_dir, db, dep_file)
+                                _reactions = getattr(rrCache, "_m_" + attribute + "_reactions")(
+                                    _dep_file, logger=logger
+                                )
+                                # Merge with existing reactions for existing keys (append as nested dict)
+                                # Otherwise, for rules built on reactions from several databases,
+                                # the last database in the loop will overwrite the previous ones instead of merging them
+                                for rkey, rval in _reactions.items():
+                                    if rkey in reactions and isinstance(reactions[rkey], dict) and isinstance(rval, dict):
+                                        reactions[rkey].update(rval)
+                                    else:
+                                        reactions[rkey] = rval
+                            logger.debug("   Writing data to file...")
+                            rrCache._store_cache_to_file(reactions, outfile, logger=logger)
+                        else:
+                            reactions = getattr(rrCache, "_m_" + attribute + "_reactions_legacy")(
+                                dep_file, logger=logger
+                            )
+                            logger.debug("   Writing data to file...")
+                            rrCache._store_cache_to_file(reactions, outfile, logger=logger)
 
-            logger.debug("   Writing data to file...")
-
-            rrCache._store_cache_to_file(rr_reactions, f_rr_reactions, logger=logger)
-
-            del rr_reactions
+        del reactions
 
     @staticmethod
     def _gen_comp_xref_deprecatedCompID_compid(
@@ -776,68 +823,6 @@ class rrCache:
             # print_OK()
             del deprecatedCompID_compid
 
-    @staticmethod
-    def _gen_template_reactions(
-        input_dir: str,
-        outdir: str,
-        # deprecatedRID_rid: Dict,
-        type: str = "legacy",
-        logger: Logger = getLogger(__name__),
-    ) -> None:
-        logger.debug("Generating template_reactions")
-        logger.debug("input_dir: " + str(input_dir))
-        logger.debug("outdir: " + str(outdir))
-        attribute = "template_reactions"
-        logger.debug(c_attr("bold") + attribute + c_attr("reset"))
-        template_reactions = None
-        f_template_reactions = os_path.join(
-            outdir, rrCache.__cache[attribute]["file"]["name"]
-        )
-
-        # if os_path.exists(f_template_reactions) and check_sha(
-        #     f_template_reactions,
-        #     rrCache.__cache[attribute]
-        # ):
-        #     logger.debug("   Cache file already exists")
-        # else:
-        logger.debug("   Generating data...")
-
-        # dep_files = [os_path.join(input_dir, 'metanetx', f) for f in rrCache.__cache[attribute]['deps']['file_deps']]
-        dep_files = [
-            os_path.join(input_dir, f)
-            for f in rrCache.__cache[attribute]["deps"]["file_deps"]
-        ]
-        if type == "legacy":
-            template_reactions = rrCache._m_template_reactions_legacy(
-                dep_files[0], logger=logger
-            )
-            # if deprecatedRID_rid:
-            #     # Handle deprecated reaction IDs
-            #     for depRID, newRID in deprecatedRID_rid['attr'].items():
-            #         try:
-            #             template_reactions[depRID] = template_reactions[newRID]
-            #         except KeyError as key:
-            #             logger.warning(f'Reaction ID {key} not found in {dep_files[0]}')
-        else:
-            template_reactions = rrCache._m_template_reactions(
-                dep_files[0], logger=logger
-            )
-
-        logger.debug("   Writing data to file...")
-
-        rrCache._store_cache_to_file(
-            template_reactions, f_template_reactions, logger=logger
-        )
-
-        del template_reactions
-
-    # def _load_from_file(self, filename):
-    #     self.logger.debug("Loading "+filename+"...")
-    #     data = self._load_json(
-    #         os_path.join(self.__cache_dir, filename)
-    #     )
-    #     return data
-
     def _check_or_load_cache(self):
         self.logger.debug("Checking cache...")
         print_start(self.logger, "Loading cache in memory")
@@ -874,18 +859,6 @@ class rrCache:
             logger.debug(f"File {filename} not present")
             # start_time = time_time()
             rrCache.__download_input_cache(url, file, outdir)
-            # # if file size exceeds 20MB, compress it (compatible with all OS)
-            # if os_path.getsize(filename) > 20 * 1024 * 1024:
-            #     logger.debug(f'File {file} size exceeds 20MB, compressing...')
-            #     with NamedTemporaryFile(delete=False) as temp_file:
-            #         temp_file.close()
-            #         # Compress the file
-            #         with gzip_open(temp_file.name, 'wb') as f_out:
-            #             with open(filename, 'rb') as f_in:
-            #                 f_out.writelines(f_in)
-            #     # Replace the original file with the compressed one
-            #     os_rename(temp_file.name, filename+'.gz')
-            #     logger.debug(f'File {file} compressed successfully')
             print_progress(logger)
             # end_time = time_time()
 
@@ -1060,14 +1033,14 @@ class rrCache:
     #  @return cid_strc Dictionnary of formula, smiles, inchi and inchikey
     @staticmethod
     def _m_mnxm_strc(
-        paths: List[str],
+        paths: Dict[str, List[str]],
         # deprecatedCID_cid: Dict = None,
         interactive: bool = DEFAULTS["interactive"],
         logger: Logger = getLogger(__name__),
     ) -> Tuple[Dict, Dict]:
         """Parse the compounds.tsv file from RetroRules and the chem_prop.tsv file from MetanetX to generate a dictionary of compounds with their structures.
         Args:
-            paths (List[str]): List of paths to the input files (rr_compounds_path first, then chem_prop_path).
+            paths (Dict[str, List[str]]): Dictionary mapping file types to lists of paths.
             deprecatedCID_cid (Dict): Dictionary of deprecated CID to cid.
             interactive (bool): Whether to ask the user for confirmation before overwriting existing files.
         Returns:
@@ -1080,42 +1053,43 @@ class rrCache:
         # logger.debug(f'deprecatedCID_cid: {deprecatedCID_cid}')
         logger.debug(f"interactive: {interactive}")
 
-        rr_compounds_path = paths[0]
-        chem_prop_path = paths[1] if len(paths) > 1 else ""
-        comp_xref_path = paths[2] if len(paths) > 2 else ""
+        rr_compounds_paths = paths['rr2more']
+        chem_prop_path = paths['mnx'][0] if 'mnx' in paths and len(paths['mnx']) > 0 else None
+        comp_xref_path = paths['mnx'][1] if 'mnx' in paths and len(paths['mnx']) > 1 else None
+
+        logger.debug(f"rr_compounds_paths: {rr_compounds_paths}")
+        logger.debug(f"chem_prop_path: {chem_prop_path}")
+        logger.debug(f"comp_xref_path: {comp_xref_path}")
 
         cid_strc = {}
         cid_name = {}
 
-        # Parse the compounds.tsv file from RetroRules
-        for row in csv_DictReader(
-            gzip_open(rr_compounds_path, "rt", encoding="utf-8-sig"), delimiter="\t"
-        ):
-            if row.get("VALID", "True").lower() != "true":
-                logger.debug("Skipping invalid compound entry: " + str(row))
-                continue  # skip invalid entries
-            row = {k.lower(): v for k, v in row.items()}  # normalize keys to lowercase
-            if "cid" not in row:
-                # convert into 'id'
-                row["cid"] = row.pop("id")
-            tmp = {
-                "formula": row.get("formula", None),
-                "inchi": row.get("inchi", None),
-                "inchikey": row.get("inchikey", None),
-                "cid": row.get("cid", row.get("ID", None)),
-                "name": row.get("name", None),
-                "smiles": row.get("smiles", row.get("SMILES", None)),
-            }
-            logger.debug(
-                f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}'
-            )
-            # for key in tmp.keys():
-            #     try:
-            #         tmp[key] = row[key]
-            #     except KeyError:
-            #         logger.debug(f'No {key} in RetroRules {rr_compounds_path} for '+str(row['cid'])+', setting to None')
+        for rr_compounds_path in rr_compounds_paths:
 
-            cid_strc[tmp["cid"]] = tmp
+            # Parse the compounds.tsv file from RetroRules
+            for row in csv_DictReader(
+                gzip_open(rr_compounds_path, "rt", encoding="utf-8-sig"), delimiter="\t"
+            ):
+                if row.get("VALID", "True").lower() != "true":
+                    logger.debug("Skipping invalid compound entry: " + str(row))
+                    continue  # skip invalid entries
+                row = {k.lower(): v for k, v in row.items()}  # normalize keys to lowercase
+                if "cid" not in row:
+                    # convert into 'id'
+                    row["cid"] = row.pop("id")
+                tmp = {
+                    "formula": row.get("formula", None),
+                    "inchi": row.get("inchi", None),
+                    "inchikey": row.get("inchikey", None),
+                    "cid": row.get("cid", row.get("ID", None)),
+                    "name": row.get("name", None),
+                    "smiles": row.get("smiles", row.get("SMILES", None)),
+                }
+                logger.debug(
+                    f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}'
+                )
+
+                cid_strc[tmp["cid"]] = tmp
 
         if chem_prop_path:
             # Parse the chem_prop.tsv file from MetanetX
@@ -1348,6 +1322,8 @@ class rrCache:
     def _m_rr_reactions(
         rules_rall_path: str, logger: Logger = getLogger(__name__)
     ) -> Dict:
+        logger.debug(f"Parsing rules from {rules_rall_path}")
+
         rr_reactions = {}
 
         if not os_path.exists(rules_rall_path):
@@ -1362,7 +1338,7 @@ class rrCache:
                 products = dict(Counter(row["RIGHT_IDS"].split(".")))
                 rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]] = {
                     "rule_id": row["TEMPLATE_ID"],
-                    "rule_score": float(row["SCORE"]),
+                    "rule_score": None if row["SCORE"] == "" else float(row["SCORE"]),
                     "reac_id": row["REACTION_ID"],
                     "subs_id": row["LEFT_IDS"],
                     "rel_direction": (1 if row["DIRECTION"] == "L2R" else -1),
@@ -1444,7 +1420,7 @@ class rrCache:
                     )
                 rr_reactions[row["# Rule_ID"]][row["Reaction_ID"]] = {
                     "rule_id": row["# Rule_ID"],
-                    "rule_score": float(row["Score_normalized"]),
+                    "rule_score": None if row["Score_normalized"] == "" else float(row["Score_normalized"]),
                     "reac_id": row["Reaction_ID"],
                     "subs_id": row["Substrate_ID"],
                     "rel_direction": int(row["Rule_relative_direction"]),

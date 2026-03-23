@@ -1,18 +1,18 @@
 {
     "cid_strc": {
-        "length": 1237578,
+        "length": 1338551,
         "file_size": 806612376
     },
     "cid_xref": {
-        "length": 1292182,
+        "length": 1495699,
         "file_size": 243759725
     },
     "template_reactions": {
-        "length": 42700,
+        "length": 92698,
         "file_size": 8519350
     },
     "rr_reactions": {
-        "length": 361751,
+        "length": 1174216,
         "file_size": 84656878
     }
 }

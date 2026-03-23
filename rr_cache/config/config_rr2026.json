@@ -3,12 +3,12 @@
      "cache": {
         "cid_strc": {
             "deps": {
-                "file_deps": ["chemicals.tsv.gz", "chem_prop.tsv"]
+                "file_deps": ["chemicals_metadata", "chem_prop.tsv"]
             },
             "file": {
                 "url": "",
                 "name": "cid_strc.json.gz",
-                "fingerprint": "cb330b718fc9dfd17772c16eb01134a811cae1c2fb1d44718bfa18db17abfef698a058ed4d290a5160b39786b9cf9cd1b9794f7de1f1ab05875a02c5a9d7f9d4"
+                "fingerprint": "04d9c2edaf86c3df1ccf74a37838ffdcfdf4b5f87ebc8ca70e797212856bae6a4fb07f549b0bff73fae66df66de0e1637c51039aa5b395ff70ca30d5f67d1a58"
             }
         },
         "cid_xref": {
@@ -19,27 +19,27 @@
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
                 "name": "cid_xref.json.gz",
-                "fingerprint": "f8a6e6ceb529abcb0223f89a92692a5031e31e2a7b35fa3f5e0b741b822544caa74b7cdc1ea137239fa6d5af81ad1d2794283157996185a20a23eed8a921b66a"
+                "fingerprint": "5f2b9dc3c1e5ff90ea907aae712e7f9354828e5d07eed97dce94e348315a72090ce22c53f54bb155dfd23fe8f8f89a20005f8e20cfc5d4cd0b1215e178b6f1b8"
             }
         },
         "rr_reactions": {
             "deps": {
-                "file_deps": ["templates.tsv.gz"]
+                "file_deps": ["templates_metadata"]
             },
             "file": {
                 "url": "",
                 "name": "rr_reactions.json.gz",
-                "fingerprint": "0486138cb224575c0bb1278ad31edc10cd5add44404d355aa7ab15c46fefb7fe4aff45a830c35de44e781c6aa86c762e773828a57a2146cc1ffb9e5ab398f46f"
+                "fingerprint": "395fcc7f3fe6412889e4c622ba0bca582c344d8f1ec9cab94586bf553915ab3e1d54d2ca59d8f08c1d9f65d540a3bdfeaed0eff1819f69d12c8904211fa52863"
             }
         },
         "template_reactions": {
             "deps": {
-                "file_deps": ["templates.tsv.gz"]
+                "file_deps": ["templates_metadata"]
             },
             "file": {
                 "url": "",
                 "name": "template_reactions.json.gz",
-                "fingerprint": "26bd612214d2744ba579ad2a57973bdde94ca847c3cac17c6e912bd65aba32831a7aa6ffbc440a5941221121b3d3af2ceaa1ad7642c2ef2a11a84a192abf1b90"
+                "fingerprint": "a888f9406c0e9b00719e007665a65962bdf24a9701cd6095c8678de2485f57ca14fff4a2ca7e33ccb8d120c7f11027dcce2cfa73abb3168d3aeb1e864b785f05"
             }
         }
     },
@@ -47,20 +47,33 @@
         "mnx": {
             "url": "https://www.metanetx.org/ftp/4.5/",
             "files": {
-                "chem_xref.tsv":    "c97d54829daafdaa5c021421fcceea9146ff57485bf366401ebb23ba3ebb3af22596ba32efee0c8f4fad08553d0422d9bccedfc431e4643a26b25ad1fb81fac9",
-                "chem_prop.tsv":    "9ed46523f35521831304d7accd13c16e1641a6fb0c3146cece0edeb4cd179a89aa363693ff69572b85023096ea2f63acc1b1a24a63c5cc979e9e8287a1db4876"
+                "chem_xref.tsv": "2b88dfe3b990ee85c8d8eb51f6d7079bf042b14e4cd11a4cc6ceb841686f9ea7ef4a04358363561fbbb2187a9870a1930037a030283908788a572e7b96b91ec7",
+                "chem_prop.tsv": "00d8d09d52884961748d032288781c4d47929f12d5052b367116c411194fdfae879b15844e8a15bccd494c26702dae57fd682c3bc03b5fee3c3e92e138c1eac2"
             }
         },
         "rr2": {
-            "url": "",
+            "url": "https://retrorules.org/dl/v3.0/",
             "files": {
-                "templates.tsv.gz": "2974bff42eacb4beeae1c160f2b687ef8ee42b4e4dd762fbd103300636dfa0b8252e2f50a920f4199c5a4ec7e9df1b4a5e4c05167cab90bbefbcb18fde69f3f9"
+                "templates_metadata": {
+                    "metanetx": "a35395aea2fb31ac1dce3f790b47c0d22508bca80f982d56c6f053133d42b322b21b6d910a869f2fe55d749fed8d650eff1f101f8386cfc28dd395baca9f798a",
+                    "rhea": "5b966e1b71abdc7562cdf64a960e9892e5599ed2b6e6e4a70277dfe3af482d9a12246037ff452bcec20436d58234d4a3ab2a11e188acec1f2508875ae7658000",
+                    "uspto": "6aebfd43a3932b11009630a7e5fdc3e10fde9a20d9933f7792d0904c945ea1624c94a0e24a9d56d0d103b9ecfdddd1e2d8f9edb177886ecac23d5775006bc23e"
+                }
             }
         },
         "rr2more": {
-            "url": "",
+            "url": "https://retrorules.org/dl/v3.0/",
             "files": {
-                "chemicals.tsv.gz":  "ed9e91d63c34d963e313b7ca180e9285d2f1814dbf5bcee43f254a8db8ab385671dda20c88e71eaca50f52cd2a28d76adbfdb0bfd880c74293849650900a25e8"
+                "reactions_metadata": {
+                    "metanetx": "5a61ca70e477f23a9300c3bdfb912ebd0df3a0d985a2d4b46b5a002db812ae468b9b736a72f045d022a577eeda03b81e74f6c044df5fa135dfdfc34b7e26d380",
+                    "rhea": "718295f7804b5d343c6b761550c408b9c3a6d5f1537f1f0de5858ceae6248919bd19ccb5cf4600c108e9004d20b0a4bc54f6ae85415d0dd9d964e1a12585dd10",
+                    "uspto": "4f893d0038e205ec06d66f8165000c07e17e0eb099873c252ed654c9c1cad8afa6cfbb236f60983b4d43601a71678eb469a72f53a1582914e87783c8e5ed51b8"
+                },
+                "chemicals_metadata": {
+                    "metanetx": "d0c618364af5961abb7ce99a93d29222faf3371a7270edd4667e197c87f8f2eed13d4be22a9aa03e7c4b160b424250c37c6279fe51cb68b6aae3ae968472d321",
+                    "rhea": "e46cdffb86c5ae46d3338faff720a77ca4651fe37d645b0072e7fbc78cfa19ba550ba6c2e157ceee28d09ff8e0c1fd6f18a59e6c653d1a4bfe958074f39e97c3",
+                    "uspto": "2c4aefd0c0341a2491fd1be4478092c8cfdbaf7784e5cbf982807631c5ad4c129cdbdbe9e1caebf0ae975570a004f2e498a0971c8fded386f965472bee88081b"
+                }
             }
         }
     }

@@ -118,7 +118,12 @@ def test_generate_cache(cspace: str, logger: Logger, reference_data):
 @pytest.mark.parametrize("cspace, cmpd_id", COMPOUND_CASES)
 def test_get_compound(caches, reference_data, cspace: str, cmpd_id: str):
     compounds = reference_data[cspace]["compounds"]
-    assert caches[cspace].get_compound(cmpd_id) == compounds[cmpd_id]
+    compound = caches[cspace].get_compound(cmpd_id)
+    compound['xref'] = caches[cspace].get_compound_xref(cmpd_id)
+    print(compound)
+    print()
+    print(compounds[cmpd_id])
+    assert compound == compounds[cmpd_id]
 
 
 @pytest.mark.parametrize("cspace, cmpd_id", COMPOUND_CASES)

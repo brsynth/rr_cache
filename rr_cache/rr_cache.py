@@ -228,21 +228,21 @@ class rrCache:
             full_filename = os_path.join(cache_dir, filename)
             # try:
             if os_path.exists(full_filename):
-                fingerprint = rrCache.__cache[attr]["file"]["fingerprint"]
-                if check_sha(full_filename, fingerprint):
-                    logger.debug(filename + " already downloaded")
-                else:  # sha not ok
-                    logger.warning(
-                        "\nfilename: "
-                        + filename
-                        + "\nlocation: "
-                        + cache_dir
-                        + "\nsha (computed): "
-                        + sha512(Path(full_filename).read_bytes()).hexdigest()
-                        + "\nsha (expected): "
-                        + fingerprint
-                    )
-                    # raise FileNotFoundError
+                # fingerprint = rrCache.__cache[attr]["file"]["fingerprint"]
+                # if check_sha(full_filename, fingerprint):
+                logger.debug(filename + " already downloaded")
+                # else:  # sha not ok
+                #     logger.warning(
+                #         "\nfilename: "
+                #         + filename
+                #         + "\nlocation: "
+                #         + cache_dir
+                #         + "\nsha (computed): "
+                #         + sha512(Path(full_filename).read_bytes()).hexdigest()
+                #         + "\nsha (expected): "
+                #         + fingerprint
+                #     )
+                #     # raise FileNotFoundError
             else:
                 #         raise FileNotFoundError
 
@@ -479,9 +479,7 @@ class rrCache:
         del cid_strc, cid_name
         try:
             cid_xref = rrCache._gen_cid_xref(
-                self.__input__cache_dir,
-                self.__cache_dir,
-                logger=self.logger
+                self.__input__cache_dir, self.__cache_dir, logger=self.logger
             )
             print_progress(self.logger)
             # rrCache._gen_chebi_cid(self.__input__cache_dir, self.__cache_dir, cid_xref)

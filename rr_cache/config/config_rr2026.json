@@ -7,8 +7,7 @@
             },
             "file": {
                 "url": "",
-                "name": "cid_strc.json.gz",
-                "fingerprint": "04d9c2edaf86c3df1ccf74a37838ffdcfdf4b5f87ebc8ca70e797212856bae6a4fb07f549b0bff73fae66df66de0e1637c51039aa5b395ff70ca30d5f67d1a58"
+                "name": "cid_strc.json.gz"
             }
         },
         "cid_xref": {
@@ -18,8 +17,7 @@
             },
             "file": {
                 "url": "https://gitlab.com/breakthewall/rrCache-data/-/raw/master/cache/mnx_4.4/",
-                "name": "cid_xref.json.gz",
-                "fingerprint": "5f2b9dc3c1e5ff90ea907aae712e7f9354828e5d07eed97dce94e348315a72090ce22c53f54bb155dfd23fe8f8f89a20005f8e20cfc5d4cd0b1215e178b6f1b8"
+                "name": "cid_xref.json.gz"
             }
         },
         "rr_reactions": {
@@ -28,8 +26,7 @@
             },
             "file": {
                 "url": "",
-                "name": "rr_reactions.json.gz",
-                "fingerprint": "395fcc7f3fe6412889e4c622ba0bca582c344d8f1ec9cab94586bf553915ab3e1d54d2ca59d8f08c1d9f65d540a3bdfeaed0eff1819f69d12c8904211fa52863"
+                "name": "rr_reactions.json.gz"
             }
         },
         "template_reactions": {
@@ -38,8 +35,7 @@
             },
             "file": {
                 "url": "",
-                "name": "template_reactions.json.gz",
-                "fingerprint": "a888f9406c0e9b00719e007665a65962bdf24a9701cd6095c8678de2485f57ca14fff4a2ca7e33ccb8d120c7f11027dcce2cfa73abb3168d3aeb1e864b785f05"
+                "name": "template_reactions.json.gz"
             }
         }
     },

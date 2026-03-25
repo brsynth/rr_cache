@@ -104,13 +104,6 @@ def entry_point():
         cache.Load(
             interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache
         )
-    # except Exception as e:
-    #     logger.debug(f"Exception type: {type(e).__name__}")
-    #     logger.error(
-    #         '\n*** An error occurred:\n{error}'.format(error=str(e))
-    #     )
-    #     logger.error('\nExiting...\n')
-    #     exit(1)
 
 
 def print_attr(

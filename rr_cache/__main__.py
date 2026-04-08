@@ -2,10 +2,7 @@ from rr_cache.rr_cache import (
     rrCache,
 )
 from rr_cache.Args import add_arguments
-from brs_utils import (
-    init as init_logger,
-    build_args_parser
-)
+from brs_utils import init as init_logger, build_args_parser
 from logging import Logger, getLogger
 from colored import fg, attr
 from json import dumps
@@ -31,9 +28,9 @@ def disable_rdkit_logging():
 def entry_point():
     parser = build_args_parser(
         prog="rr_cache",
-        version = __version__,
+        version=__version__,
         description="RetroRules Cache",
-        m_add_args=add_arguments
+        m_add_args=add_arguments,
     )
     args = parser.parse_args()
     if args.log.lower() in ["silent", "quiet", "def_info"] or args.silent:

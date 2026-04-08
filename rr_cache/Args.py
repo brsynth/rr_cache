@@ -1,7 +1,5 @@
 from argparse import ArgumentParser
-from typing import Callable
 from os import path as os_path
-
 
 HERE = os_path.dirname(os_path.abspath(__file__))
 CONFIG_PATH = os_path.join(HERE, "config")

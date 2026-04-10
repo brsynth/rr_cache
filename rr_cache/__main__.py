@@ -1,41 +1,16 @@
 from rr_cache.rr_cache import (
     rrCache,
 )
-from rr_cache.Args import build_args_parser
+from rr_cache.Args import add_arguments
+from brs_utils import init as init_logger, build_args_parser
 from logging import Logger, getLogger
 from colored import fg, attr
-from argparse import ArgumentParser, Namespace
 from json import dumps
 from typing import (
     List,
 )
 from .Args import CONFIG_PATH
-
-
-def init(parser: "ArgumentParser", args: "Namespace") -> Logger:
-    from brs_utils import create_logger
-    from rr_cache._version import __version__
-
-    if args.log.lower() in ["silent", "quiet"] or args.silent:
-        args.log = "CRITICAL"
-
-    if args.log.lower() in ["silent", "quiet", "def_info"] or args.silent:
-        disable_rdkit_logging()
-        # # Disable RDKIT logging
-        # from rdkit import RDLogger
-        # RDLogger.DisableLog('rdApp.*')
-
-    # Create logger
-    logger = create_logger(parser.prog, args.log, "rr_cache.log")
-
-    logger.info(
-        "{color}{typo}rr_cache {version}{rst}{color}{rst}\n".format(
-            version=__version__, color=fg("white"), typo=attr("bold"), rst=attr("reset")
-        )
-    )
-    logger.debug(args)
-
-    return logger
+from ._version import __version__
 
 
 def disable_rdkit_logging():
@@ -51,10 +26,17 @@ def disable_rdkit_logging():
 
 
 def entry_point():
-    parser = build_args_parser(prog="rr_cache", description="RetroRules Cache")
+    parser = build_args_parser(
+        prog="rr_cache",
+        version=__version__,
+        description="RetroRules Cache",
+        m_add_args=add_arguments,
+    )
     args = parser.parse_args()
+    if args.log.lower() in ["silent", "quiet", "def_info"] or args.silent:
+        disable_rdkit_logging()
 
-    logger = init(parser, args)
+    logger = init_logger(parser, args, __version__)
 
     if args.list_chemical_spaces:
         # list config_*.json files in CONFIG_PATH

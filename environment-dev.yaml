@@ -1,4 +1,4 @@
-name: rplibs
+name: rr_cache
 channels:
   - conda-forge
   - nodefaults

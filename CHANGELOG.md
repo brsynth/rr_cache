@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.6.2](https://github.com/brsynth/rr_cache/tree/3.6.2) (2026-04-10)
+
+[Full Changelog](https://github.com/brsynth/rr_cache/compare/3.6.1...3.6.2)
+
 ## [3.6.1](https://github.com/brsynth/rr_cache/tree/3.6.1) (2026-04-10)
 
 [Full Changelog](https://github.com/brsynth/rr_cache/compare/3.6.0...3.6.1)

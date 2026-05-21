@@ -44,7 +44,8 @@
             "url": "https://www.metanetx.org/ftp/4.5/",
             "files": {
                 "chem_xref.tsv": "2b88dfe3b990ee85c8d8eb51f6d7079bf042b14e4cd11a4cc6ceb841686f9ea7ef4a04358363561fbbb2187a9870a1930037a030283908788a572e7b96b91ec7",
-                "chem_prop.tsv": "00d8d09d52884961748d032288781c4d47929f12d5052b367116c411194fdfae879b15844e8a15bccd494c26702dae57fd682c3bc03b5fee3c3e92e138c1eac2"
+                "chem_prop.tsv": "00d8d09d52884961748d032288781c4d47929f12d5052b367116c411194fdfae879b15844e8a15bccd494c26702dae57fd682c3bc03b5fee3c3e92e138c1eac2",
+                "reac_prop.tsv": "1796b5d77c707d0cfbfce99cf0466ef6aff0fe61ea5ded043216aa334e5ecd1388364d214162342f470b51eca2dab4309dcec2b9e074abee47dcae974c674bd7"
             }
         },
         "rr2": {

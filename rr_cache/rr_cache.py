@@ -12,6 +12,7 @@ from gzip import open as gzip_open, GzipFile
 from re import findall as re_findall
 
 # from time       import time as time_time
+import requests
 from requests import exceptions as r_exceptions
 from hashlib import sha512
 from pathlib import Path
@@ -296,14 +297,315 @@ class rrCache:
     def get_reaction(self, rxn_id: str):
         return self.__get_object("template_reactions", rxn_id)
 
+    def add_reaction(self, rxn, persist: bool = True):
+        """Add a reaction to `template_reactions` and optionally persist the cache.
+
+        The `rxn` argument may be either:
+          - a dict-like object containing at least `left` and `right` mappings (and
+            optional `direction`, `main_left`, `main_right`), or
+          - a string reaction id (e.g. 'MNXR12345') — in which case this will only
+            work if a local `reac_prop.tsv` exists in the input-cache (no download).
+
+        This function no longer attempts to download `reac_prop.tsv`; download
+        and scanning should be handled by `add_missing_reactions`.
+
+        Args:
+            rxn: Reaction data (dict-like or string id)
+            persist (bool): Whether to persist changes to disk (default: True). Set to False
+                           to keep changes in memory only, useful when adding multiple reactions
+                           to avoid repeated file write operations.
+
+        Returns the reaction dict on success, or None on failure.
+        """
+        # Ensure template_reactions are loaded
+        try:
+            if not self.__hasattr("template_reactions"):
+                self.Load(attrs=["template_reactions"])
+            tr = self.get("template_reactions") or {}
+        except Exception as e:
+            self.logger.error(f"Failed to load template_reactions: {e}")
+            return None
+
+        # If passed a dict-like reaction, insert directly
+        if isinstance(rxn, dict):
+            # try to detect rxn_id inside dict
+            rxn_id = rxn.get("id") or rxn.get("rxn_id")
+            if not rxn_id:
+                self.logger.error("Reaction dict must include an 'id' or 'rxn_id' key")
+                return None
+            if rxn_id in tr:
+                return tr[rxn_id]
+
+            # Minimal validation: require left/right
+            if "left" not in rxn or "right" not in rxn:
+                self.logger.error(
+                    "Reaction dict must contain 'left' and 'right' mappings"
+                )
+                return None
+
+            tr[rxn_id] = {
+                "left": rxn.get("left", {}),
+                "right": rxn.get("right", {}),
+                "direction": rxn.get("direction", 0),
+                "main_left": rxn.get("main_left", []),
+                "main_right": rxn.get("main_right", []),
+            }
+
+            # persist to in-memory cache
+            try:
+                self.set("template_reactions", tr)
+                # persist to disk if requested
+                if persist:
+                    outfile = os_path.join(
+                        self.__cache_dir,
+                        rrCache.__cache["template_reactions"]["file"]["name"],
+                    )
+                    rrCache._store_cache_to_file(tr, outfile, logger=self.logger)
+            except Exception as e:
+                self.logger.warning(f"Failed to persist template_reactions cache: {e}")
+            return tr[rxn_id]
+
+        # If passed a string id, try local lookup only (no download)
+        if isinstance(rxn, str):
+            rxn_id = rxn
+            if rxn_id in tr:
+                return tr[rxn_id]
+
+            reac_prop_file = os_path.join(self.__input__cache_dir, "reac_prop.tsv")
+            if not os_path.exists(reac_prop_file):
+                self.logger.error(
+                    "Local reac_prop.tsv not found — cannot add reaction by id. "
+                    "Use add_missing_reactions to download/scan and add reactions."
+                )
+                return None
+
+            reaction = rrCache._m_mnx_reaction_from_reac_prop(
+                reac_prop_file, rxn_id, logger=self.logger
+            )
+            if reaction is None:
+                self.logger.warning(
+                    f"Reaction {rxn_id} not found in local reac_prop.tsv"
+                )
+                return None
+
+            # reuse dict insertion path
+            return self.add_reaction({"id": rxn_id, **reaction}, persist=persist)
+
+        self.logger.error("add_reaction expects a dict-like or string reaction id")
+        return None
+
+    @staticmethod
+    def _m_mnx_reaction_from_reac_prop(
+        reac_prop_path: str,
+        rxn_id: str,
+        logger: Logger = getLogger(__name__),
+    ) -> Dict:
+        if not os_path.exists(reac_prop_path):
+            logger.error(f"MetaNetX reaction file not found: {reac_prop_path}")
+            return None
+
+        with open(reac_prop_path, "rt", encoding="utf-8-sig") as f:
+            reader = csv_reader(f, delimiter="\t")
+            header = None
+            for row in reader:
+                if not row or len(row) == 0:
+                    continue
+                if row[0].startswith("#ID"):
+                    header = [h.lstrip("#") for h in row]
+                    continue
+                if row[0].startswith("#"):
+                    continue
+                if header is None:
+                    continue
+
+                row_dict = {
+                    header[i]: row[i] if i < len(row) else ""
+                    for i in range(len(header))
+                }
+                if row_dict.get("ID") != rxn_id:
+                    continue
+
+                equation = row_dict.get("mnx_equation") or row_dict.get("equation")
+                if not equation:
+                    logger.warning(
+                        f"No equation found for reaction {rxn_id} in reac_prop.tsv"
+                    )
+                    return None
+
+                parsed = rrCache._read_equation(equation, rxn_id, logger)
+                if parsed is None:
+                    return None
+
+                left = parsed.get("left", {})
+                right = parsed.get("right", {})
+                main_left = [next(iter(left.keys()))] if left else []
+                main_right = [next(iter(right.keys()))] if right else []
+
+                return {
+                    "left": left,
+                    "right": right,
+                    "direction": 0,
+                    "main_left": main_left,
+                    "main_right": main_right,
+                }
+
+        return None
+
     def get_list_of_reactions(self):
         return self.__get_list_of_objects("template_reactions")
+
+    def add_missing_reactions(self, limit: int = None, logger: Logger = None) -> int:
+        """Scan `reac_prop.tsv` (download if missing) for reactions absent from
+        `template_reactions`, build reaction dicts, and add them via
+        `add_reaction` one by one.
+
+        Args:
+            limit (int, optional): Maximum number of reactions to add. None means no limit.
+            logger (Logger, optional): Logger to use. Defaults to self.logger.
+
+        Returns:
+            int: Number of reactions successfully added.
+        """
+        if logger is None:
+            logger = self.logger
+
+        # Ensure template_reactions loaded
+        try:
+            if not self.__hasattr("template_reactions"):
+                self.Load(attrs=["template_reactions"])
+            tr = self.get("template_reactions") or {}
+        except Exception as e:
+            logger.error(f"Failed to load template_reactions: {e}")
+            return 0
+
+        # Ensure reac_prop.tsv exists (try configured download, then fallback)
+        reac_prop_file = os_path.join(self.__input__cache_dir, "reac_prop.tsv")
+        if not os_path.exists(reac_prop_file):
+            try:
+                mnx_source = rrCache.__cache_sources.get("mnx", {})
+                reac_fingerprint = mnx_source.get("files", {}).get("reac_prop.tsv")
+                rrCache._download_if_not_exists_or_corrupted(
+                    mnx_source.get("url", ""),
+                    "reac_prop.tsv",
+                    self.__input__cache_dir,
+                    reac_fingerprint,
+                    logger=logger,
+                )
+            except Exception:
+                # fallback direct download using config URL
+                try:
+                    mnx_source = rrCache.__cache_sources.get("mnx", {})
+                    # base_url = mnx_source.get("url", "https://www.metanetx.org/ftp/4.5/")
+                    base_url = mnx_source.get("url")
+                    fallback_url = f"{base_url}reac_prop.tsv"
+                    logger.debug(
+                        f"Downloading fallback reac_prop.tsv from {fallback_url}"
+                    )
+                    r = requests.get(fallback_url, timeout=30)
+                    r.raise_for_status()
+                    if not os_path.isdir(self.__input__cache_dir):
+                        makedirs(self.__input__cache_dir, exist_ok=True)
+                    with open(reac_prop_file, "w", encoding="utf-8") as f:
+                        f.write(r.text)
+                except Exception as e2:
+                    logger.error(f"Cannot retrieve MetaNetX reac_prop.tsv: {e2}")
+                    return 0
+
+        to_add = []
+        try:
+            with open(reac_prop_file, "rt", encoding="utf-8-sig") as f:
+                reader = csv_reader(f, delimiter="\t")
+                header = None
+                for row in reader:
+                    if not row or len(row) == 0:
+                        continue
+                    if row[0].startswith("#ID"):
+                        header = [h.lstrip("#") for h in row]
+                        continue
+                    if row[0].startswith("#"):
+                        continue
+                    if header is None:
+                        continue
+
+                    rxn_id = row[0]
+                    if rxn_id in tr:
+                        continue
+
+                    # Build row dict and parse equation
+                    row_dict = {
+                        header[i]: row[i] if i < len(row) else ""
+                        for i in range(len(header))
+                    }
+                    equation = row_dict.get("mnx_equation") or row_dict.get("equation")
+                    if not equation:
+                        logger.debug(f"Skipping {rxn_id}: no equation")
+                        continue
+
+                    parsed = rrCache._read_equation(equation, rxn_id, logger)
+                    if parsed is None:
+                        logger.debug(f"Skipping {rxn_id}: failed to parse equation")
+                        continue
+
+                    left = parsed.get("left", {})
+                    right = parsed.get("right", {})
+                    main_left = [next(iter(left.keys()))] if left else []
+                    main_right = [next(iter(right.keys()))] if right else []
+
+                    to_add.append(
+                        {
+                            "id": rxn_id,
+                            "left": left,
+                            "right": right,
+                            "direction": 0,
+                            "main_left": main_left,
+                            "main_right": main_right,
+                        }
+                    )
+                    if limit is not None and len(to_add) >= limit:
+                        break
+        except Exception as e:
+            logger.error(f"Error while scanning reac_prop.tsv: {e}")
+            return 0
+
+        added = 0
+        for rxn_dict in to_add:
+            res = self.add_reaction(rxn_dict, persist=False)
+            if res is not None:
+                added += 1
+
+        # Store cache to file once after all reactions are added
+        if added > 0:
+            try:
+                outfile = os_path.join(
+                    self.__cache_dir,
+                    rrCache.__cache["template_reactions"]["file"]["name"],
+                )
+                tr = self.get("template_reactions") or {}
+                rrCache._store_cache_to_file(tr, outfile, logger=logger)
+            except Exception as e:
+                logger.warning(f"Failed to persist template_reactions cache: {e}")
+
+        return added
 
     def get_reaction_rule(self, rr_id: str):
         return self.__get_object("rr_reactions", rr_id)
 
     def get_list_of_reaction_rules(self):
         return self.__get_list_of_objects("rr_reactions")
+
+    def __contains__(self, id: str) -> bool:
+        if not isinstance(id, str):
+            return False
+
+        for attr in ("cid_strc", "template_reactions", "rr_reactions"):
+            try:
+                if not self.__hasattr(attr):
+                    self.Load(attrs=[attr])
+                if id in self.get(attr):
+                    return True
+            except Exception:
+                continue
+        return False
 
     def __get_object(self, attr: str, id: str):
         try:
@@ -503,6 +805,8 @@ class rrCache:
                 logger=self.logger,
             )  # , deprecatedCID_cid, deprecatedRID_rid, logger)
             print_progress(self.logger)
+        # Add missing reactions from MetaNetX
+        self.add_missing_reactions(logger=self.logger)
         try:
             rrCache._gen_comp_xref_deprecatedCompID_compid(
                 self.__input__cache_dir, self.__cache_dir, self.logger
@@ -797,7 +1101,7 @@ class rrCache:
                         else:
                             reactions = getattr(
                                 rrCache, "_m_" + attribute + "_reactions_legacy"
-                            )(_dep_file, logger=logger)
+                            )(dep_file, logger=logger)
                             logger.debug("   Writing data to file...")
                             rrCache._store_cache_to_file(
                                 reactions, outfile, logger=logger
@@ -1458,7 +1762,6 @@ class rrCache:
                     "rel_direction": int(row["Rule_relative_direction"]),
                     "left": {row["Substrate_ID"]: 1},
                     "right": products,
-                    "ec_numbers": row["EC_number"].split(",") if row["EC_number"] else [],
                 }
 
             except ValueError:
@@ -1470,8 +1773,6 @@ class rrCache:
                     "Problem converting rule_score: " + str(row["Score_normalized"])
                 )
 
-        print(rr_reactions)
-        exit()
         return rr_reactions
 
     ## Generate complete reactions from the rxn_recipes.tsv from RetroRules

@@ -159,6 +159,24 @@ def test_get_reaction_rule(caches, reference_data, cspace: str, rule_id: str):
     assert caches[cspace].get_reaction_rule(rule_id) == retrorules[rule_id]
 
 
+@pytest.mark.parametrize("cspace, cmpd_id", COMPOUND_CASES)
+def test_contains_compound_in_cache(caches, cspace: str, cmpd_id: str):
+    assert cmpd_id in caches[cspace]
+    assert "NOT_A_VALID_ID" not in caches[cspace]
+
+
+@pytest.mark.parametrize("cspace, rxn_id", REACTION_CASES)
+def test_contains_reaction_in_cache(caches, cspace: str, rxn_id: str):
+    assert rxn_id in caches[cspace]
+    assert "NOT_A_VALID_ID" not in caches[cspace]
+
+
+@pytest.mark.parametrize("cspace, rule_id", RULE_CASES)
+def test_contains_rule_in_cache(caches, cspace: str, rule_id: str):
+    assert rule_id in caches[cspace]
+    assert "NOT_A_VALID_ID" not in caches[cspace]
+
+
 @pytest.mark.parametrize("cspace, rule_id", RULE_CASES)
 def test_get_list_of_reaction_rules(caches, reference_data, cspace: str, rule_id: str):
     rule_ids = caches[cspace].get_list_of_reaction_rules()

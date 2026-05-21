@@ -797,7 +797,7 @@ class rrCache:
                         else:
                             reactions = getattr(
                                 rrCache, "_m_" + attribute + "_reactions_legacy"
-                            )(dep_file, logger=logger)
+                            )(_dep_file, logger=logger)
                             logger.debug("   Writing data to file...")
                             rrCache._store_cache_to_file(
                                 reactions, outfile, logger=logger
@@ -1458,6 +1458,7 @@ class rrCache:
                     "rel_direction": int(row["Rule_relative_direction"]),
                     "left": {row["Substrate_ID"]: 1},
                     "right": products,
+                    "ec_numbers": row["EC_number"].split(",") if row["EC_number"] else [],
                 }
 
             except ValueError:
@@ -1469,6 +1470,8 @@ class rrCache:
                     "Problem converting rule_score: " + str(row["Score_normalized"])
                 )
 
+        print(rr_reactions)
+        exit()
         return rr_reactions
 
     ## Generate complete reactions from the rxn_recipes.tsv from RetroRules

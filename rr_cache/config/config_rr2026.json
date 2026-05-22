@@ -31,7 +31,7 @@
         },
         "template_reactions": {
             "deps": {
-                "file_deps": ["templates_metadata"]
+                "file_deps": ["templates_metadata", "reac_prop.tsv"]
             },
             "file": {
                 "url": "",

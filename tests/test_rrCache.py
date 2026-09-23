@@ -20,7 +20,7 @@ from rr_cache import rrCache
 HERE = os_path.dirname(os_path.abspath(__file__))
 DATA_PATH = os_path.join(HERE, "data")
 # CSPACES = ["mnx3.1", "mnx4.4", "rr2026-v3.0","rr2026-v3.1.0"]
-CSPACES = ["rr2026-v3.1.0"]
+CSPACES = ["rr2026-v3.0"]
 DATABASES = ["metanetx", "rhea"]
 DATASETS = ["compounds", "metrics", "retrorules", "reactions"]
 

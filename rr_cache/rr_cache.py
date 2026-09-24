@@ -971,13 +971,11 @@ class rrCache:
         if check_sha(filename, fingerprint):
             logger.debug(f"File {file} present and sha ok")
         else:  # sha not ok
-            logger.debug(
-                f"\n\
+            logger.debug(f"\n\
                 filename: {filename}\n\
                 sha (computed): {sha512(Path(filename).read_bytes()).hexdigest()}\n\
                 sha (expected): {fingerprint}\n\
-            "
-            )
+            ")
             raise FileCorruptedError(
                 f"Unable to download input-cache file {file}. Either the URL is broken or the file content has changed."
             )

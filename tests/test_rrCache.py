@@ -10,11 +10,12 @@ from __future__ import annotations
 
 from json import load as json_load
 from logging import Logger
-from os import path as os_path, remove as os_rm
+from os import path as os_path
+from os import remove as os_rm
 
 import pytest
-
 from brs_utils import check_file_size, create_logger, extract_gz
+
 from rr_cache import rrCache
 
 HERE = os_path.dirname(os_path.abspath(__file__))

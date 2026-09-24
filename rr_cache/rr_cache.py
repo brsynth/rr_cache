@@ -1,32 +1,40 @@
-from os import path as os_path, makedirs
-from rdkit.Chem import (
-    MolFromSmiles,
-    MolFromInchi,
-    MolToSmiles,
-    MolToInchi,
-    MolToInchiKey,
-)
-from csv import DictReader as csv_DictReader, reader as csv_reader
-from pandas import (
-    read_csv as pd_read_csv,
-    DataFrame,
-)
+import sys
+from collections import Counter
+from csv import DictReader as csv_DictReader
+from csv import reader as csv_reader
+from gzip import GzipFile
+from gzip import open as gzip_open
+from hashlib import sha512
 from io import StringIO
-from json import dump as json_dump, dumps as json_dumps, load as json_load
-from gzip import open as gzip_open, GzipFile
+from json import dump as json_dump
+from json import dumps as json_dumps
+from json import load as json_load
+from logging import Logger, StreamHandler, getLogger
+from os import makedirs
+from os import path as os_path
+from pathlib import Path
 from re import findall as re_findall
 
-from requests import exceptions as r_exceptions
-from hashlib import sha512
-from pathlib import Path
+from brs_utils import check_sha, download, print_end, print_progress, print_start
 from colored import (
     attr as c_attr,
 )
-from logging import Logger, getLogger, StreamHandler
-from typing import List, Tuple, Dict
-from collections import Counter
-from brs_utils import print_start, print_progress, print_end, download, check_sha
-from .Args import DEFAULTS, CONFIG_PATH
+from pandas import (
+    DataFrame,
+)
+from pandas import (
+    read_csv as pd_read_csv,
+)
+from rdkit.Chem import (
+    MolFromInchi,
+    MolFromSmiles,
+    MolToInchi,
+    MolToInchiKey,
+    MolToSmiles,
+)
+from requests import exceptions as r_exceptions
+
+from .args import CONFIG_PATH, DEFAULTS
 
 
 def ask_user_input():
@@ -37,7 +45,7 @@ def ask_user_input():
     # Check the user's input
     if user_input.lower() == "s":
         print("Stopping the program.")
-        exit()
+        sys.exit()
     elif user_input.lower() == "c":
         print("Continuing without prompting.")
         return False
@@ -53,7 +61,7 @@ class FileCorruptedError(Exception):
 class FingerprintError(Exception):
     pass
 
-
+LOGGER = getLogger(__name__)
 class rrCache:
     """Class to generate the cache
 
@@ -67,12 +75,12 @@ class rrCache:
     def __init__(
         self,
         cspace: str = DEFAULTS["cspace"],
-        databases: List[str] = DEFAULTS["databases"],
+        databases: list[str] = DEFAULTS["databases"],
         interactive: bool = DEFAULTS["interactive"],
         do_not_dwnl_cache: bool = DEFAULTS["do_not_dwnl_cache"],
         load: bool = True,
         install_dir: str = DEFAULTS["install_dir"],
-        logger: Logger = getLogger(__name__),
+        logger: Logger = LOGGER,
     ) -> "rrCache":
         """Constructor for the class
         Args:
@@ -117,7 +125,7 @@ class rrCache:
                 f"Cache config file {cache_cfg_fln} not found, please check the --chemical-space argument"
             )
             logger.error("Exiting...")
-            exit(1)
+            sys.exit(1)
 
         # Cache elements list
         rrCache.__attributes_list = list(rrCache.__cache.keys())
@@ -160,7 +168,7 @@ class rrCache:
 
     def Load(
         self,
-        attrs: List = [],
+        attrs: list | None = None,
         interactive: bool = DEFAULTS["interactive"],
         do_not_dwnl_cache: bool = DEFAULTS["do_not_dwnl_cache"],
         type: str = "legacy",
@@ -177,7 +185,7 @@ class rrCache:
         self.logger.debug("do_not_dwnl_cache: " + str(do_not_dwnl_cache))
 
         if attrs is None:
-            return
+            attrs = []
 
         if attrs != []:
             if not isinstance(attrs, list):
@@ -220,7 +228,7 @@ class rrCache:
 
     @staticmethod
     def _check_or_download_cache_to_disk(
-        cache_dir: str, attributes_list: Dict, logger: Logger = getLogger(__name__)
+        cache_dir: str, attributes_list: dict, logger: Logger = LOGGER
     ) -> None:
         logger.debug("cache_dir: " + str(cache_dir))
         logger.debug("attributes: " + str(attributes_list))
@@ -281,7 +289,7 @@ class rrCache:
             try:
                 mangled = f"_{self.__class__.__name__}__{attr}"
                 return getattr(self, mangled)
-            except Exception as e:
+            except AttributeError as e:
                 self.logger.error(str(e))
                 return None
 
@@ -304,8 +312,8 @@ class rrCache:
     def _m_mnx_reaction_from_reac_prop(
         reac_prop_path: str,
         rxn_id: str,
-        logger: Logger = getLogger(__name__),
-    ) -> Dict:
+        logger: Logger = LOGGER,
+    ) -> dict:
         if not os_path.exists(reac_prop_path):
             logger.error(f"MetaNetX reaction file not found: {reac_prop_path}")
             return None
@@ -376,7 +384,7 @@ class rrCache:
                     self.Load(attrs=[attr])
                 if id in self.get(attr):
                     return True
-            except Exception:
+            except AttributeError:
                 continue
         return False
 
@@ -385,7 +393,7 @@ class rrCache:
             if not self.__hasattr(attr):
                 self.Load(attrs=[attr])
             return self.get(attr)[id]
-        except Exception as e:
+        except AttributeError as e:
             self.logger.error(str(e))
 
     def __get_list_of_objects(self, attr: str):
@@ -393,13 +401,13 @@ class rrCache:
             if not self.__hasattr(attr):
                 self.Load(attrs=[attr])
             return self.get(attr).keys()
-        except Exception as e:
+        except AttributeError as e:
             self.logger.error(str(e))
 
     def set(self, attr: str, val: object):
         try:
             return setattr(self, "__" + attr, val)
-        except Exception as e:
+        except AttributeError as e:
             self.logger.error(str(e))
 
     #####################################################
@@ -409,7 +417,6 @@ class rrCache:
     class Error(Exception):
         """Error function for the convertion of structures"""
 
-        pass
 
     class DepictionError(Error):
         """Error function for the convertion of structures"""
@@ -433,7 +440,7 @@ class rrCache:
         filename: str,
         outdir: str,
         fingerprint: str,
-        logger: Logger = getLogger(__name__),
+        logger: Logger = LOGGER,
     ) -> None:
         # Download if not exists or corrupted
         if not os_path.exists(os_path.join(outdir, filename)):
@@ -600,8 +607,8 @@ class rrCache:
 
     @staticmethod
     def _gen_deprecatedCID_cid(
-        input_dir: str, outdir: str, logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        input_dir: str, outdir: str, logger: Logger = LOGGER
+    ) -> dict:
         attribute = "deprecatedCID_cid"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
         logger.debug(f"   input_dir: {input_dir}")
@@ -636,9 +643,9 @@ class rrCache:
         outdir: str,
         interactive: bool = DEFAULTS["interactive"],
         type: str = "legacy",
-        databases: List[str] = DEFAULTS["databases"],
-        logger: Logger = getLogger(__name__),
-    ) -> Dict:
+        databases: list[str] = DEFAULTS["databases"],
+        logger: Logger = LOGGER,
+    ) -> dict:
 
         logger.debug(f"input_dir: {input_dir}")
         logger.debug(f"outdir: {outdir}")
@@ -677,7 +684,7 @@ class rrCache:
                                     )
                         else:
                             dep_files[scat].append(os_path.join(input_dir, dep_file))
-            cid_strc, cid_name = rrCache._m_mnxm_strc(
+            cid_strc, _cid_name = rrCache._m_mnxm_strc(
                 dep_files, interactive=interactive, logger=logger
             )
 
@@ -693,8 +700,8 @@ class rrCache:
     def _gen_inchikey_cid(
         input_dir: str,
         outdir: str,
-        cid_strc: Dict,
-        logger: Logger = getLogger(__name__),
+        cid_strc: dict,
+        logger: Logger = LOGGER,
     ) -> None:
         attribute = "inchikey_cid"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
@@ -722,8 +729,8 @@ class rrCache:
     def _gen_cid_xref(
         input_dir: str,
         outdir: str,
-        logger: Logger = getLogger(__name__),
-    ) -> Dict:
+        logger: Logger = LOGGER,
+    ) -> dict:
         logger.debug(f"input_dir: {input_dir}")
         logger.debug(f"outdir: {outdir}")
 
@@ -756,7 +763,7 @@ class rrCache:
     #     input_dir: str,
     #     outdir: str,
     #     cid_xref: Dict,
-    #     logger: Logger = getLogger(__name__),
+    #     logger: Logger = LOGGER,
     # ) -> Dict:
     #     attribute = "chebi_cid"
     #     logger.debug(c_attr("bold") + attribute + c_attr("reset"))
@@ -779,8 +786,8 @@ class rrCache:
 
     @staticmethod
     def _gen_deprecatedRID_rid(
-        input_dir: str, outdir: str, logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        input_dir: str, outdir: str, logger: Logger = LOGGER
+    ) -> dict:
         attribute = "deprecatedRID_rid"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
         deprecatedRID_rid = None
@@ -811,9 +818,9 @@ class rrCache:
         input_dir: str,
         outdir: str,
         type: str = "legacy",
-        databases: List[str] = DEFAULTS["databases"],
-        attribute: str = None,
-        logger: Logger = getLogger(__name__),
+        databases: list[str] = DEFAULTS["databases"],
+        attribute: str | None = None,
+        logger: Logger = LOGGER,
     ) -> None:
         logger.debug(f"input_dir: {input_dir}")
         logger.debug(f"outdir: {outdir}")
@@ -880,7 +887,7 @@ class rrCache:
 
     @staticmethod
     def _gen_comp_xref_deprecatedCompID_compid(
-        input_dir: str, outdir: str, logger: Logger = getLogger(__name__)
+        input_dir: str, outdir: str, logger: Logger = LOGGER
     ) -> None:
         attribute = "comp_xref, deprecatedCompID_compid"
         logger.debug(c_attr("bold") + attribute + c_attr("reset"))
@@ -938,8 +945,8 @@ class rrCache:
         url: str,
         file: str,
         outdir: str,
-        fingerprint: str = None,
-        logger: Logger = getLogger(__name__),
+        fingerprint: str | None = None,
+        logger: Logger = LOGGER,
     ):
 
         if not os_path.isdir(outdir):
@@ -961,18 +968,20 @@ class rrCache:
         if check_sha(filename, fingerprint):
             logger.debug(f"File {file} present and sha ok")
         else:  # sha not ok
-            logger.debug(f"\n\
+            logger.debug(
+                f"\n\
                 filename: {filename}\n\
                 sha (computed): {sha512(Path(filename).read_bytes()).hexdigest()}\n\
                 sha (expected): {fingerprint}\n\
-            ")
+            "
+            )
             raise FileCorruptedError(
                 f"Unable to download input-cache file {file}. Either the URL is broken or the file content has changed."
             )
 
     @staticmethod
     def __download_input_cache(
-        url: str, file: str, outdir: str, logger: Logger = getLogger(__name__)
+        url: str, file: str, outdir: str, logger: Logger = LOGGER
     ):
         """Download the input cache file from the given URL to the specified output directory.
         Args:
@@ -1006,13 +1015,14 @@ class rrCache:
     #  @return file content
 
     @staticmethod
-    def _load_json(filename, logger: Logger = getLogger(__name__)):
+    def _load_json(filename, logger: Logger = LOGGER):
         logger.debug(filename)
-        if filename.endswith(".gz") or filename.endswith(".zip"):
-            fp = gzip_open(filename, "rt", encoding="ascii")
+        if filename.endswith((".gz", ".zip")):
+            with gzip_open(filename, "rt", encoding="ascii") as fp:
+                return json_load(fp)
         else:
-            fp = open(filename, "r")
-        return json_load(fp)
+            with open(filename, "r") as fp:
+                return json_load(fp)
 
     ## Method to store data into file
     #
@@ -1022,9 +1032,9 @@ class rrCache:
     #  @param data Data to write into file
     #  @param filename File to write data into
     @staticmethod
-    def _store_cache_to_file(data, filename, logger: Logger = getLogger(__name__)):
+    def _store_cache_to_file(data, filename, logger: Logger = LOGGER):
         logger.debug(filename)
-        if filename.endswith(".gz") or filename.endswith(".zip"):
+        if filename.endswith((".gz", ".zip")):
             # Create the JSON string with sorted keys and no extra spaces
             # This ensures that the output is consistent for the same input data
             # which is important for reproducibility and caching
@@ -1033,13 +1043,14 @@ class rrCache:
             )
             # fp = gzip_open(filename, 'wt', encoding='ascii', mtime=0)
             # Write JSON into gzip file with reproducible output
-            with open(filename, "wb") as raw:
-                with GzipFile(fileobj=raw, mode="wb", mtime=0) as f:
-                    f.write(json_bytes)
+            with open(filename, "wb") as raw, GzipFile(
+                fileobj=raw, mode="wb", mtime=0
+            ) as f:
+                f.write(json_bytes)
         else:
             try:
-                fp = open(filename, "w")
-                json_dump(data, fp)
+                with open(filename, "w") as fp:
+                    json_dump(data, fp)
             except FileNotFoundError as e:
                 logger.error(str(e))
 
@@ -1086,7 +1097,7 @@ class rrCache:
         with open(xref_path, "rt") as f:
             c = csv_reader(f, delimiter="\t")
             for row in c:
-                if not row[0][0] == "#":
+                if row[0][0] != "#":
                     mnx = row[0].split(":")
                     if mnx[0] == "deprecated":
                         deprecatedMNX_mnx[mnx[1]] = row[1]
@@ -1128,11 +1139,11 @@ class rrCache:
     #  @return cid_strc Dictionnary of formula, smiles, inchi and inchikey
     @staticmethod
     def _m_mnxm_strc(
-        paths: Dict[str, List[str]],
+        paths: dict[str, list[str]],
         # deprecatedCID_cid: Dict = None,
         interactive: bool = DEFAULTS["interactive"],
-        logger: Logger = getLogger(__name__),
-    ) -> Tuple[Dict, Dict]:
+        logger: Logger = LOGGER,
+    ) -> tuple[dict, dict]:
         """Parse the compounds.tsv file from RetroRules and the chem_prop.tsv file from MetanetX to generate a dictionary of compounds with their structures.
         Args:
             paths (Dict[str, List[str]]): Dictionary mapping file types to lists of paths.
@@ -1166,31 +1177,32 @@ class rrCache:
         for rr_compounds_path in rr_compounds_paths:
 
             # Parse the compounds.tsv file from RetroRules
-            for row in csv_DictReader(
-                gzip_open(rr_compounds_path, "rt", encoding="utf-8-sig"), delimiter="\t"
-            ):
-                if row.get("VALID", "True").lower() != "true":
-                    logger.debug("Skipping invalid compound entry: " + str(row))
-                    continue  # skip invalid entries
-                row = {
-                    k.lower(): v for k, v in row.items()
-                }  # normalize keys to lowercase
-                if "cid" not in row:
-                    # convert into 'id'
-                    row["cid"] = row.pop("id")
-                tmp = {
-                    "formula": row.get("formula", None),
-                    "inchi": row.get("inchi", None),
-                    "inchikey": row.get("inchikey", None),
-                    "cid": row.get("cid", row.get("ID", None)),
-                    "name": row.get("name", None),
-                    "smiles": row.get("smiles", row.get("SMILES", None)),
-                }
-                logger.debug(
-                    f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}'
-                )
+            with gzip_open(rr_compounds_path, "rt", encoding="utf-8-sig") as f:
+                for row in csv_DictReader(
+                    f, delimiter="\t"
+                ):
+                    if row.get("VALID", "True").lower() != "true":
+                        logger.debug("Skipping invalid compound entry: " + str(row))
+                        continue  # skip invalid entries
+                    row = {
+                        k.lower(): v for k, v in row.items()
+                    }  # normalize keys to lowercase
+                    if "cid" not in row:
+                        # convert into 'id'
+                        row["cid"] = row.pop("id")
+                    tmp = {
+                        "formula": row.get("formula", None),
+                        "inchi": row.get("inchi", None),
+                        "inchikey": row.get("inchikey", None),
+                        "cid": row.get("cid", row.get("ID", None)),
+                        "name": row.get("name", None),
+                        "smiles": row.get("smiles", row.get("SMILES", None)),
+                    }
+                    logger.debug(
+                        f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}'
+                    )
 
-                cid_strc[tmp["cid"]] = tmp
+                    cid_strc[tmp["cid"]] = tmp
 
         if chem_prop_path:
             # Parse the chem_prop.tsv file from MetanetX
@@ -1325,13 +1337,13 @@ class rrCache:
     def _m_mnxm_xref(
         chem_xref_path: str,
         # deprecatedCID_cid: Dict,
-        logger: Logger = getLogger(__name__),
-    ) -> Dict:
+        logger: Logger = LOGGER,
+    ) -> dict:
         cid_xref = {}
         with open(chem_xref_path, "rt", encoding="utf-8-sig") as f:
             c = csv_reader(f, delimiter="\t")
             for row in c:
-                if not row[0][0] == "#":
+                if row[0][0] != "#":
                     # mnx = rrCache._checkCIDdeprecated(row[1], deprecatedCID_cid)
                     mnx = row[1]
                     if len(row[0].split(":")) == 1:
@@ -1366,14 +1378,14 @@ class rrCache:
 
     @staticmethod
     def _m_mnxc_xref(
-        comp_xref_path, logger: Logger = getLogger(__name__)
-    ) -> Tuple[Dict, Dict]:
+        comp_xref_path, logger: Logger = LOGGER
+    ) -> tuple[dict, dict]:
         comp_xref = {}
         deprecatedCompID_compid = {}
 
         if not os_path.exists(comp_xref_path):
             logger.error(
-                "Could not read the file {filename}".format(filename=comp_xref_path)
+                f"Could not read the file {comp_xref_path}"
             )
             return None
 
@@ -1382,7 +1394,7 @@ class rrCache:
             # not_recognised = []
             for row in c:
                 # cid = row[0].split(':')
-                if not row[0][0] == "#":
+                if row[0][0] != "#":
                     # collect the info
                     mnxc = row[1]
                     if len(row[0].split(":")) == 1:
@@ -1421,8 +1433,8 @@ class rrCache:
 
     @staticmethod
     def _m_rr_reactions(
-        rules_rall_paths: str, logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        rules_rall_paths: str, logger: Logger = LOGGER
+    ) -> dict:
         logger.debug(f"Parsing rules from {rules_rall_paths}")
 
         _rules_rall_paths = rules_rall_paths["rr2"]
@@ -1436,123 +1448,123 @@ class rrCache:
                     "Could not read the rules file (" + str(_rules_rall_path) + ")"
                 )
                 return None
-
-            for row in csv_DictReader(
-                gzip_open(_rules_rall_path, "rt"), delimiter="\t"
-            ):
-                if row["TEMPLATE_ID"] not in rr_reactions:
-                    rr_reactions[row["TEMPLATE_ID"]] = {}
-                if row["REACTION_ID"] not in rr_reactions[row["TEMPLATE_ID"]]:
-                    subtrates = {row["LEFT_IDS"]: 1}
-                    products = dict(Counter(row["RIGHT_IDS"].split(".")))
-                    rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]] = {
-                        "rule_id": row["TEMPLATE_ID"],
-                        "rule_score": (
-                            None if row["SCORE"] == "" else float(row["SCORE"])
-                        ),
-                        "reac_id": row["REACTION_ID"],
-                        "subs_id": row["LEFT_IDS"],
-                        "rel_direction": (1 if row["DIRECTION"] == "L2R" else -1),
-                        "left": subtrates,
-                        "right": products,
-                        "left_excluded": (
-                            row["LEFT_EXCLUDED_IDS"].split(".")
-                            if row["LEFT_EXCLUDED_IDS"]
-                            else []
-                        ),
-                        "right_excluded": (
-                            row["RIGHT_EXCLUDED_IDS"].split(".")
-                            if row["RIGHT_EXCLUDED_IDS"]
-                            else []
-                        ),
-                    }
-                # Handle multiple reactions per rule, update direction if needed
-                else:
-                    if (
-                        rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
-                            "rel_direction"
-                        ]
-                        != 0
-                        and (1 if row["DIRECTION"] == "L2R" else -1)
-                        != rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
-                            "rel_direction"
-                        ]
-                    ):
-                        logger.debug(
-                            "Updating direction for reaction "
-                            + str(row["REACTION_ID"])
-                            + " in rule "
-                            + str(row["TEMPLATE_ID"])
-                            + " from "
-                            + str(
-                                rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
-                                    "rel_direction"
-                                ]
+            with gzip_open(_rules_rall_path, "rt") as f:
+                for row in csv_DictReader(
+                    f, delimiter="\t"
+                ):
+                    if row["TEMPLATE_ID"] not in rr_reactions:
+                        rr_reactions[row["TEMPLATE_ID"]] = {}
+                    if row["REACTION_ID"] not in rr_reactions[row["TEMPLATE_ID"]]:
+                        subtrates = {row["LEFT_IDS"]: 1}
+                        products = dict(Counter(row["RIGHT_IDS"].split(".")))
+                        rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]] = {
+                            "rule_id": row["TEMPLATE_ID"],
+                            "rule_score": (
+                                None if row["SCORE"] == "" else float(row["SCORE"])
+                            ),
+                            "reac_id": row["REACTION_ID"],
+                            "subs_id": row["LEFT_IDS"],
+                            "rel_direction": (1 if row["DIRECTION"] == "L2R" else -1),
+                            "left": subtrates,
+                            "right": products,
+                            "left_excluded": (
+                                row["LEFT_EXCLUDED_IDS"].split(".")
+                                if row["LEFT_EXCLUDED_IDS"]
+                                else []
+                            ),
+                            "right_excluded": (
+                                row["RIGHT_EXCLUDED_IDS"].split(".")
+                                if row["RIGHT_EXCLUDED_IDS"]
+                                else []
+                            ),
+                        }
+                    # Handle multiple reactions per rule, update direction if needed
+                    else:
+                        if (
+                            rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
+                                "rel_direction"
+                            ]
+                            != 0
+                            and (1 if row["DIRECTION"] == "L2R" else -1)
+                            != rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
+                                "rel_direction"
+                            ]
+                        ):
+                            logger.debug(
+                                "Updating direction for reaction "
+                                + str(row["REACTION_ID"])
+                                + " in rule "
+                                + str(row["TEMPLATE_ID"])
+                                + " from "
+                                + str(
+                                    rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
+                                        "rel_direction"
+                                    ]
+                                )
+                                + " to bidirectional (0)"
                             )
-                            + " to bidirectional (0)"
-                        )
-                        rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
-                            "rel_direction"
-                        ] = 0  # bidirectional
+                            rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
+                                "rel_direction"
+                            ] = 0  # bidirectional
 
         return rr_reactions
 
     @staticmethod
     def _m_rr_reactions_legacy(
-        rules_rall_path: str, logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        rules_rall_path: str, logger: Logger = LOGGER
+    ) -> dict:
         rr_reactions = {}
 
         if not os_path.exists(rules_rall_path):
             logger.error("Could not read the rules file (" + str(rules_rall_path) + ")")
             return None
+        with gzip_open(rules_rall_path, "rt") as f:
+            for row in csv_DictReader(f, delimiter="\t"):
+                # NOTE: as of now all the rules are generated using MNX
+                # but it may be that other db are used, we are handling this case
+                # WARNING: can have multiple products so need to seperate them
+                products = {}
 
-        for row in csv_DictReader(gzip_open(rules_rall_path, "rt"), delimiter="\t"):
-            # NOTE: as of now all the rules are generated using MNX
-            # but it may be that other db are used, we are handling this case
-            # WARNING: can have multiple products so need to seperate them
-            products = {}
+                for cid in row["Product_IDs"].split("."):
+                    products[cid] = products.get(cid, 0) + 1
 
-            for cid in row["Product_IDs"].split("."):
-                products[cid] = products.get(cid, 0) + 1
+                try:
+                    # WARNING: one reaction rule can have multiple reactions associated with them
+                    # To change when you can set subpaths from the mutliple numbers of
+                    # we assume that the reaction rule has multiple unique reactions associated
+                    if row["# Rule_ID"] not in rr_reactions:
+                        rr_reactions[row["# Rule_ID"]] = {}
+                    if row["# Rule_ID"] in rr_reactions[row["# Rule_ID"]]:
+                        logger.warning(
+                            "There is already reaction "
+                            + str(row["# Rule_ID"])
+                            + " in reaction rule "
+                            + str(row["# Rule_ID"])
+                        )
+                    rr_reactions[row["# Rule_ID"]][row["Reaction_ID"]] = {
+                        "rule_id": row["# Rule_ID"],
+                        "rule_score": (
+                            None
+                            if row["Score_normalized"] == ""
+                            else float(row["Score_normalized"])
+                        ),
+                        "reac_id": row["Reaction_ID"],
+                        "subs_id": row["Substrate_ID"],
+                        "rel_direction": int(row["Rule_relative_direction"]),
+                        "left": {row["Substrate_ID"]: 1},
+                        "right": products,
+                    }
 
-            try:
-                # WARNING: one reaction rule can have multiple reactions associated with them
-                # To change when you can set subpaths from the mutliple numbers of
-                # we assume that the reaction rule has multiple unique reactions associated
-                if row["# Rule_ID"] not in rr_reactions:
-                    rr_reactions[row["# Rule_ID"]] = {}
-                if row["# Rule_ID"] in rr_reactions[row["# Rule_ID"]]:
-                    logger.warning(
-                        "There is already reaction "
-                        + str(row["# Rule_ID"])
-                        + " in reaction rule "
-                        + str(row["# Rule_ID"])
+                except ValueError:
+                    logger.error(
+                        "Problem converting rel_direction: "
+                        + str(row["Rule_relative_direction"])
                     )
-                rr_reactions[row["# Rule_ID"]][row["Reaction_ID"]] = {
-                    "rule_id": row["# Rule_ID"],
-                    "rule_score": (
-                        None
-                        if row["Score_normalized"] == ""
-                        else float(row["Score_normalized"])
-                    ),
-                    "reac_id": row["Reaction_ID"],
-                    "subs_id": row["Substrate_ID"],
-                    "rel_direction": int(row["Rule_relative_direction"]),
-                    "left": {row["Substrate_ID"]: 1},
-                    "right": products,
-                }
+                    logger.error(
+                        "Problem converting rule_score: " + str(row["Score_normalized"])
+                    )
 
-            except ValueError:
-                logger.error(
-                    "Problem converting rel_direction: "
-                    + str(row["Rule_relative_direction"])
-                )
-                logger.error(
-                    "Problem converting rule_score: " + str(row["Score_normalized"])
-                )
-
-        return rr_reactions
+            return rr_reactions
 
     ## Generate complete reactions from the rxn_recipes.tsv from RetroRules
     #
@@ -1566,8 +1578,8 @@ class rrCache:
 
     @staticmethod
     def _m_template_reactions(
-        paths: Dict[str, List[str]], logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        paths: dict[str, list[str]], logger: Logger = LOGGER
+    ) -> dict:
 
         metadata_paths = paths["rr2"]
         reac_prop_path = (
@@ -1585,48 +1597,48 @@ class rrCache:
             if not os_path.exists(metadata_path):
                 logger.error("Cannot find file: " + str(metadata_path))
                 return None
-
-            for row in csv_DictReader(gzip_open(metadata_path, "rt"), delimiter="\t"):
-                if row["REACTION_ID"] not in reactions:
-                    substrates = dict(
-                        Counter(
-                            [row["LEFT_IDS"]]
-                            + (
-                                row["LEFT_EXCLUDED_IDS"].split(".")
-                                if row["LEFT_EXCLUDED_IDS"]
-                                else []
+            with gzip_open(metadata_path, "rt") as f:
+                for row in csv_DictReader(f, delimiter="\t"):
+                    if row["REACTION_ID"] not in reactions:
+                        substrates = dict(
+                            Counter(
+                                [row["LEFT_IDS"]]
+                                + (
+                                    row["LEFT_EXCLUDED_IDS"].split(".")
+                                    if row["LEFT_EXCLUDED_IDS"]
+                                    else []
+                                )
                             )
                         )
-                    )
-                    products = dict(
-                        Counter(
-                            row["RIGHT_IDS"].split(".")
-                            + (
-                                row["RIGHT_EXCLUDED_IDS"].split(".")
-                                if row["RIGHT_EXCLUDED_IDS"]
-                                else []
+                        products = dict(
+                            Counter(
+                                row["RIGHT_IDS"].split(".")
+                                + (
+                                    row["RIGHT_EXCLUDED_IDS"].split(".")
+                                    if row["RIGHT_EXCLUDED_IDS"]
+                                    else []
+                                )
                             )
                         )
-                    )
-                    main_left = row["LEFT_IDS"]
-                    main_right = row["RIGHT_IDS"].split(".")[0]
-                    if row["DIRECTION"] == "R2L":
-                        # Swap left and right if direction is R2L
-                        substrates, products = products, substrates
-                        main_left, main_right = main_right, main_left
-                        direction = -1
-                    else:
-                        direction = 1
-                    reactions[row["REACTION_ID"]] = {
-                        "left": substrates,
-                        "right": products,
-                        "direction": direction,
-                        "main_left": main_left,
-                        "main_right": main_right,
-                    }
-                # Handle multiple reactions per rule, update direction if needed
-                elif row["DIRECTION"] != reactions[row["REACTION_ID"]]["direction"]:
-                    reactions[row["REACTION_ID"]]["direction"] = 0  # bidirectional
+                        main_left = row["LEFT_IDS"]
+                        main_right = row["RIGHT_IDS"].split(".")[0]
+                        if row["DIRECTION"] == "R2L":
+                            # Swap left and right if direction is R2L
+                            substrates, products = products, substrates
+                            main_left, main_right = main_right, main_left
+                            direction = -1
+                        else:
+                            direction = 1
+                        reactions[row["REACTION_ID"]] = {
+                            "left": substrates,
+                            "right": products,
+                            "direction": direction,
+                            "main_left": main_left,
+                            "main_right": main_right,
+                        }
+                    # Handle multiple reactions per rule, update direction if needed
+                    elif row["DIRECTION"] != reactions[row["REACTION_ID"]]["direction"]:
+                        reactions[row["REACTION_ID"]]["direction"] = 0  # bidirectional
 
         # Complete missing reactions from the reaction properties file (TSV)
         # Ignore all lines starting with '#', the last one contains the header '#ID'	and 'mnx_equation'
@@ -1655,7 +1667,7 @@ class rrCache:
 
     @staticmethod
     def __load_reactions_tsv(
-        path: str, logger: Logger = getLogger(__name__)
+        path: str, logger: Logger = LOGGER
     ) -> "DataFrame":
         """
         Load a TSV file while:
@@ -1689,47 +1701,47 @@ class rrCache:
 
     @staticmethod
     def _m_template_reactions_legacy(
-        rxn_recipes_path: str, logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        rxn_recipes_path: str, logger: Logger = LOGGER
+    ) -> dict:
 
         if not os_path.exists(rxn_recipes_path):
             logger.error("Cannot find file: " + str(rxn_recipes_path))
             return None
 
         reactions = {}
+        with gzip_open(rxn_recipes_path, "rt") as f:
+            for row in csv_DictReader(f, delimiter="\t"):
 
-        for row in csv_DictReader(gzip_open(rxn_recipes_path, "rt"), delimiter="\t"):
+                # Read equation
+                rxn = rrCache._read_equation(row["Equation"], row["#Reaction_ID"], logger)
+                if rxn is None:
+                    # Pass to the next equation
+                    continue
 
-            # Read equation
-            rxn = rrCache._read_equation(row["Equation"], row["#Reaction_ID"], logger)
-            if rxn is None:
-                # Pass to the next equation
-                continue
+                # Direction
+                dir = rrCache._read_direction(row["Direction"], logger)
+                if dir is None:
+                    # Pass to the next equation
+                    continue
+                else:
+                    rxn["direction"] = dir
 
-            # Direction
-            dir = rrCache._read_direction(row["Direction"], logger)
-            if dir is None:
-                # Pass to the next equation
-                continue
-            else:
-                rxn["direction"] = dir
+                # Others
+                rxn["main_left"] = row["Main_left"].split(",")
+                rxn["main_right"] = row["Main_right"].split(",")
 
-            # Others
-            rxn["main_left"] = row["Main_left"].split(",")
-            rxn["main_right"] = row["Main_right"].split(",")
+                reactions[row["#Reaction_ID"]] = rxn
 
-            reactions[row["#Reaction_ID"]] = rxn
+            return reactions
 
-        return reactions
-
-    def _read_direction(dir: str, logger: Logger = getLogger(__name__)) -> Dict:
+    def _read_direction(dir: str, logger: Logger = LOGGER) -> dict:
         try:
             _dir = int(dir)
         except ValueError:
             ter = StreamHandler.terminator
             StreamHandler.terminator = "\n"
             logger.warning(
-                "Cannot convert direction value {dir} to int".format(dir=dir)
+                f"Cannot convert direction value {dir} to int"
             )
             StreamHandler.terminator = ter
             # Pass to the next equation
@@ -1737,14 +1749,14 @@ class rrCache:
         return _dir
 
     def _read_equation(
-        eq: str, rxn_id: str, logger: Logger = getLogger(__name__)
-    ) -> Dict:
+        eq: str, rxn_id: str, logger: Logger = LOGGER
+    ) -> dict:
 
-        if not len(eq.split("=")) == 2:
+        if len(eq.split("=")) != 2:
             logger.warning(
                 "There should never be more or less than a left and right of an equation"
             )
-            logger.warning("Ignoring {eq}".format(eq=eq))
+            logger.warning(f"Ignoring {eq}")
             return None
 
         #### for character matching that are returned
@@ -1821,8 +1833,10 @@ class rrCache:
     #  @return odepic generated depictions, {"otype1": "odepic1", ..}
     @staticmethod
     def _convert_depiction(
-        idepic, itype="smiles", otype={"inchikey"}, logger=getLogger(__name__)
+        idepic, itype="smiles", otype=None, logger: Logger = LOGGER
     ):
+        if otype is None:
+            otype = {"inchikey"}
         def MolFrom(idepic, itype, sanitize=True):
             if itype == "smiles":
                 return MolFromSmiles(idepic, sanitize=sanitize)
@@ -1845,7 +1859,7 @@ class rrCache:
                 f'Import error from depiction "{idepic}" of type "{itype}"'
             )
         # Export
-        odepic = dict()
+        odepic = {}
         for item in otype:
             if item == "smiles":
                 # MolToSmiles is tricky, one mays want to check the possible options..

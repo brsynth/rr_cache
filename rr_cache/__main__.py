@@ -1,16 +1,18 @@
+import sys
+from json import dumps
+from logging import Logger, getLogger
+
+from brs_utils import build_args_parser
+from brs_utils import init as init_logger
+from colored import attr, fg
+
+from rr_cache.args import add_arguments
 from rr_cache.rr_cache import (
     rrCache,
 )
-from rr_cache.Args import add_arguments
-from brs_utils import init as init_logger, build_args_parser
-from logging import Logger, getLogger
-from colored import fg, attr
-from json import dumps
-from typing import (
-    List,
-)
-from .Args import CONFIG_PATH
+
 from ._version import __version__
+from .args import CONFIG_PATH
 
 
 def disable_rdkit_logging():
@@ -55,7 +57,7 @@ def entry_point():
         for dt in cspaces:
             print(f"- {dt}")
         print()
-        exit(0)
+        sys.exit(0)
 
     cache = rrCache(
         cspace=args.cspace,
@@ -87,13 +89,13 @@ def entry_point():
             interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache
         )
 
-
+LOGGER = getLogger(__name__)
 def print_attr(
     cache: "rrCache",
     attr: str,
-    attr_lst: List,
+    attr_lst: list,
     do_not_dwnl_cache: bool,
-    logger: Logger = getLogger(__file__),
+    logger: Logger = LOGGER,
 ) -> None:
     cache.Load(attrs=[attr], do_not_dwnl_cache=do_not_dwnl_cache)
     if attr_lst == []:
@@ -103,9 +105,7 @@ def print_attr(
             try:
                 print(id + ":", dumps(cache.get(attr)[id], indent=4))
             except KeyError:
-                logger.error(
-                    "ID not found in rrCache('{attr}'): {id}".format(attr=attr, id=id)
-                )
+                logger.error(f"ID not found in rrCache('{attr}'): {id}")
 
 
 if __name__ == "__main__":

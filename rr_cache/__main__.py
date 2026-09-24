@@ -89,7 +89,10 @@ def entry_point():
             interactive=args.interactive, do_not_dwnl_cache=args.do_not_dwnl_cache
         )
 
+
 LOGGER = getLogger(__name__)
+
+
 def print_attr(
     cache: "rrCache",
     attr: str,

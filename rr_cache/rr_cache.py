@@ -61,7 +61,10 @@ class FileCorruptedError(Exception):
 class FingerprintError(Exception):
     pass
 
+
 LOGGER = getLogger(__name__)
+
+
 class rrCache:
     """Class to generate the cache
 
@@ -417,7 +420,6 @@ class rrCache:
     class Error(Exception):
         """Error function for the convertion of structures"""
 
-
     class DepictionError(Error):
         """Error function for the convertion of structures"""
 
@@ -503,10 +505,8 @@ class rrCache:
         # FETCH INPUT_CACHE FILES
         print_start(self.logger, "Checking input cache")
         for input_type, input in rrCache.__cache_sources.items():
-
             self.logger.debug(f"Checking {input_type}...")
             for filename, fingerprint in input["files"].items():
-
                 # If fingerprint is a dict, it means that the file is database-specific and the keys are the databases for which the file should be downloaded, otherwise it is a general file to download for all chemical spaces
                 if isinstance(fingerprint, dict):
                     databases = fingerprint.keys()
@@ -691,10 +691,13 @@ class rrCache:
             logger.debug("   Writing data to file...")
             rrCache._store_cache_to_file(cid_strc, f_cid_strc, logger=logger)
 
-        return {"attr": cid_strc, "file": f_cid_strc}, {
-            # 'attr': cid_name,
-            # 'file': f_cid_name
-        }
+        return (
+            {"attr": cid_strc, "file": f_cid_strc},
+            {
+                # 'attr': cid_name,
+                # 'file': f_cid_name
+            },
+        )
 
     @staticmethod
     def _gen_inchikey_cid(
@@ -1043,9 +1046,10 @@ class rrCache:
             )
             # fp = gzip_open(filename, 'wt', encoding='ascii', mtime=0)
             # Write JSON into gzip file with reproducible output
-            with open(filename, "wb") as raw, GzipFile(
-                fileobj=raw, mode="wb", mtime=0
-            ) as f:
+            with (
+                open(filename, "wb") as raw,
+                GzipFile(fileobj=raw, mode="wb", mtime=0) as f,
+            ):
                 f.write(json_bytes)
         else:
             try:
@@ -1175,12 +1179,9 @@ class rrCache:
         cid_name = {}
 
         for rr_compounds_path in rr_compounds_paths:
-
             # Parse the compounds.tsv file from RetroRules
             with gzip_open(rr_compounds_path, "rt", encoding="utf-8-sig") as f:
-                for row in csv_DictReader(
-                    f, delimiter="\t"
-                ):
+                for row in csv_DictReader(f, delimiter="\t"):
                     if row.get("VALID", "True").lower() != "true":
                         logger.debug("Skipping invalid compound entry: " + str(row))
                         continue  # skip invalid entries
@@ -1199,7 +1200,7 @@ class rrCache:
                         "smiles": row.get("smiles", row.get("SMILES", None)),
                     }
                     logger.debug(
-                        f'Processing compound {tmp["cid"]} with InChI: {tmp["inchi"]} and InChIKey: {tmp["inchikey"]}'
+                        f"Processing compound {tmp['cid']} with InChI: {tmp['inchi']} and InChIKey: {tmp['inchikey']}"
                     )
 
                     cid_strc[tmp["cid"]] = tmp
@@ -1377,16 +1378,12 @@ class rrCache:
     # TODO: save the self.deprecatedCID_cid to be used in case there rp_paths uses an old version of MNX
 
     @staticmethod
-    def _m_mnxc_xref(
-        comp_xref_path, logger: Logger = LOGGER
-    ) -> tuple[dict, dict]:
+    def _m_mnxc_xref(comp_xref_path, logger: Logger = LOGGER) -> tuple[dict, dict]:
         comp_xref = {}
         deprecatedCompID_compid = {}
 
         if not os_path.exists(comp_xref_path):
-            logger.error(
-                f"Could not read the file {comp_xref_path}"
-            )
+            logger.error(f"Could not read the file {comp_xref_path}")
             return None
 
         with open(comp_xref_path, "rt", encoding="utf-8-sig") as f:
@@ -1432,9 +1429,7 @@ class rrCache:
     #  @return Dictionnary describing each reaction rule
 
     @staticmethod
-    def _m_rr_reactions(
-        rules_rall_paths: str, logger: Logger = LOGGER
-    ) -> dict:
+    def _m_rr_reactions(rules_rall_paths: str, logger: Logger = LOGGER) -> dict:
         logger.debug(f"Parsing rules from {rules_rall_paths}")
 
         _rules_rall_paths = rules_rall_paths["rr2"]
@@ -1442,16 +1437,13 @@ class rrCache:
         rr_reactions = {}
 
         for _rules_rall_path in _rules_rall_paths:
-
             if not os_path.exists(_rules_rall_path):
                 logger.error(
                     "Could not read the rules file (" + str(_rules_rall_path) + ")"
                 )
                 return None
             with gzip_open(_rules_rall_path, "rt") as f:
-                for row in csv_DictReader(
-                    f, delimiter="\t"
-                ):
+                for row in csv_DictReader(f, delimiter="\t"):
                     if row["TEMPLATE_ID"] not in rr_reactions:
                         rr_reactions[row["TEMPLATE_ID"]] = {}
                     if row["REACTION_ID"] not in rr_reactions[row["TEMPLATE_ID"]]:
@@ -1497,9 +1489,9 @@ class rrCache:
                                 + str(row["TEMPLATE_ID"])
                                 + " from "
                                 + str(
-                                    rr_reactions[row["TEMPLATE_ID"]][row["REACTION_ID"]][
-                                        "rel_direction"
-                                    ]
+                                    rr_reactions[row["TEMPLATE_ID"]][
+                                        row["REACTION_ID"]
+                                    ]["rel_direction"]
                                 )
                                 + " to bidirectional (0)"
                             )
@@ -1510,9 +1502,7 @@ class rrCache:
         return rr_reactions
 
     @staticmethod
-    def _m_rr_reactions_legacy(
-        rules_rall_path: str, logger: Logger = LOGGER
-    ) -> dict:
+    def _m_rr_reactions_legacy(rules_rall_path: str, logger: Logger = LOGGER) -> dict:
         rr_reactions = {}
 
         if not os_path.exists(rules_rall_path):
@@ -1593,7 +1583,6 @@ class rrCache:
 
         # Extract reaction data from rules metadata files
         for metadata_path in metadata_paths:
-
             if not os_path.exists(metadata_path):
                 logger.error("Cannot find file: " + str(metadata_path))
                 return None
@@ -1666,9 +1655,7 @@ class rrCache:
         return reactions
 
     @staticmethod
-    def __load_reactions_tsv(
-        path: str, logger: Logger = LOGGER
-    ) -> "DataFrame":
+    def __load_reactions_tsv(path: str, logger: Logger = LOGGER) -> "DataFrame":
         """
         Load a TSV file while:
         - ignoring comment lines starting with '#'
@@ -1711,9 +1698,10 @@ class rrCache:
         reactions = {}
         with gzip_open(rxn_recipes_path, "rt") as f:
             for row in csv_DictReader(f, delimiter="\t"):
-
                 # Read equation
-                rxn = rrCache._read_equation(row["Equation"], row["#Reaction_ID"], logger)
+                rxn = rrCache._read_equation(
+                    row["Equation"], row["#Reaction_ID"], logger
+                )
                 if rxn is None:
                     # Pass to the next equation
                     continue
@@ -1740,17 +1728,13 @@ class rrCache:
         except ValueError:
             ter = StreamHandler.terminator
             StreamHandler.terminator = "\n"
-            logger.warning(
-                f"Cannot convert direction value {dir} to int"
-            )
+            logger.warning(f"Cannot convert direction value {dir} to int")
             StreamHandler.terminator = ter
             # Pass to the next equation
             return None
         return _dir
 
-    def _read_equation(
-        eq: str, rxn_id: str, logger: Logger = LOGGER
-    ) -> dict:
+    def _read_equation(eq: str, rxn_id: str, logger: Logger = LOGGER) -> dict:
 
         if len(eq.split("=")) != 2:
             logger.warning(
@@ -1832,11 +1816,10 @@ class rrCache:
     #  @param otype types of depiction to be generated, {"", "", ..}
     #  @return odepic generated depictions, {"otype1": "odepic1", ..}
     @staticmethod
-    def _convert_depiction(
-        idepic, itype="smiles", otype=None, logger: Logger = LOGGER
-    ):
+    def _convert_depiction(idepic, itype="smiles", otype=None, logger: Logger = LOGGER):
         if otype is None:
             otype = {"inchikey"}
+
         def MolFrom(idepic, itype, sanitize=True):
             if itype == "smiles":
                 return MolFromSmiles(idepic, sanitize=sanitize)

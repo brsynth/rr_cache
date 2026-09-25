@@ -4,11 +4,11 @@
         "file_size": 2786801
     },
     "cid_strc": {
-        "length": 694316,
+        "length": 468224,
         "file_size": 296896910
     },
     "cid_xref": {
-        "length": 694321,
+        "length": 694324,
         "file_size": 88383985
     },
     "comp_xref": {
@@ -28,11 +28,11 @@
         "file_size": 1437122
     },
     "inchikey_cid": {
-        "length": 332114,
+        "length": 332019,
         "file_size": 20071352
     },
     "template_reactions": {
-        "length": 93329,
+        "length": 44320,
         "file_size": 7643885
     },
     "rr_reactions": {

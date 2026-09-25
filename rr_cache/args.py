@@ -1,0 +1,93 @@
+from argparse import ArgumentParser
+from os import path as os_path
+
+HERE = os_path.dirname(os_path.abspath(__file__))
+CONFIG_PATH = os_path.join(HERE, "config")
+# Default values for the arguments
+DEFAULTS = {
+    "cspace": "rr2026-v3.1.0",
+    "databases": ["metanetx", "rhea"],
+    "interactive": False,
+    "do_not_dwnl_cache": False,
+    # default OS tmpdir, writable by the user who installs the cache, and readable by all users
+    "install_dir": HERE,
+}
+
+
+def add_arguments(parser: ArgumentParser) -> ArgumentParser:
+
+    parser.add_argument(
+        "--chemical-space",
+        dest="cspace",
+        default=DEFAULTS["cspace"],
+        type=str,
+        help="chemical space to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--list-chemical-spaces",
+        default=None,
+        action="store_true",
+        help="list available chemical spaces and exits",
+    )
+    parser.add_argument(
+        "--db",
+        "--databases",
+        default=DEFAULTS["databases"],
+        nargs="*",
+        help="select databases to include in the cache (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--build",
+        default=None,
+        action="store_true",
+        help="build the cache and exits. If the cache already exists, it will be overwritten. If other arguments are provided, they will be ignored.",
+    )
+    parser.add_argument(
+        "--reaction-rules",
+        default=None,
+        type=str,
+        nargs="*",
+        help="print out specified reaction rule(s), all if nothing specified",
+    )
+    parser.add_argument(
+        "--reactions",
+        default=None,
+        type=str,
+        nargs="*",
+        help="print out specified reaction(s), all if nothing specified",
+    )
+    parser.add_argument(
+        "--compounds",
+        default=None,
+        type=str,
+        nargs="*",
+        help="print out specified compound(s), all if nothing specified",
+    )
+    parser.add_argument(
+        "--chem-xref",
+        default=None,
+        type=str,
+        nargs="*",
+        help="print out specified chemical cross-reference(s), all if nothing specified",
+    )
+    parser.add_argument(
+        "--interactive",
+        default=DEFAULTS["interactive"],
+        action="store_true",
+        dest="interactive",
+        help="Ask user for confirmation when loading cache (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--do-not-dwnl-cache",
+        default=DEFAULTS["do_not_dwnl_cache"],
+        action="store_true",
+        help="Do not download the cache from the remote repository",
+    )
+    parser.add_argument(
+        "--install-dir",
+        default=DEFAULTS["install_dir"],
+        type=str,
+        help="Directory to install the cache (default: %(default)s)",
+    )
+
+    return parser

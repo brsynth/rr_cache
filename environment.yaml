@@ -3,7 +3,8 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - brs_utils>=1.22.1
+  - brs_utils>=1.26.0
   - requests
   - rdkit
   - colored
+  - pandas

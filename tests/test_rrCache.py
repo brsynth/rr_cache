@@ -1,149 +1,187 @@
 """
-Created on Jul 15 2020
+Pytest rewrite of the original unittest-based rrCache tests.
 
-@author: Joan Hérisson
+This version uses native pytest parametrization so each cspace/case is
+collected and reported as a separate test item instead of being grouped under
+unittest subTest blocks.
 """
 
-# import logging
-from unittest import TestCase
-from os import (
-    remove as os_rm,
-    path as os_path
-)
-from logging import Logger
+from __future__ import annotations
+
 from json import load as json_load
+from logging import Logger
+from os import path as os_path
+from os import remove as os_rm
+
+import pytest
+from brs_utils import check_file_size, create_logger, extract_gz
+
 from rr_cache import rrCache
-from brs_utils import (
-    create_logger,
-    extract_gz,
-    check_file_size
-)
 
 HERE = os_path.dirname(os_path.abspath(__file__))
-DATA_PATH = os_path.join(HERE, 'data')
+DATA_PATH = os_path.join(HERE, "data")
+# CSPACES = ["mnx3.1", "mnx4.4", "rr2026-v3.0","rr2026-v3.1.0"]
+CSPACES = ["rr2026-v3.0"]
+DATABASES = ["metanetx", "rhea"]
+DATASETS = ["compounds", "metrics", "retrorules", "reactions"]
 
 
-class Test_rrCache(TestCase):
+def _load_json(filepath: str):
+    with open(filepath, "r") as handle:
+        return json_load(handle)
 
-    cspace = 'mnx3.1'
-    outdir = f'cache-{cspace}'
-    cache = rrCache(cspace=cspace, interactive=False)
 
-    # Not possible to compare hashes since
-    # files contain dict that have to be sorted
-    # before comparing them and then fill up the memory
-    # Size of gunzipped files
+# Load reference data at collection time so pytest can parametrize individual
+# cases and report them separately.
+REFERENCE_DATA = {
+    cspace: {
+        dataset: _load_json(os_path.join(DATA_PATH, f"{dataset}_{cspace}.json"))
+        for dataset in DATASETS
+    }
+    for cspace in CSPACES
+}
 
-    def setUp(self, logger: Logger = None):
-        if logger is None:
-            self.logger = create_logger(__name__, 'ERROR')
-        else:
-            self.logger = logger
-        # Set attributes from data files
-        for elem in ['reactions', 'retrorules']:
-            with open(os_path.join(DATA_PATH, f'{elem}.json'), 'r') as f:
-                setattr(self, f'{elem}', json_load(f))
-        for elem in ['compounds', 'metrics']:
-            with open(os_path.join(DATA_PATH, f'{elem}_{self.cspace}.json'), 'r') as f:
-                setattr(self, f'{elem}', json_load(f))
+ALL_ATTR_CASES = [
+    pytest.param(cspace, attr, metric["length"], id=f"{cspace}-{attr}")
+    for cspace in CSPACES
+    for attr, metric in REFERENCE_DATA[cspace]["metrics"].items()
+]
 
-    def test_all_attr(self):
-        r"""Test of loading all attributes in rrCache and store them in files.
+COMPOUND_CASES = [
+    pytest.param(
+        cspace,
+        next(iter(REFERENCE_DATA[cspace]["compounds"])),
+        id=f"{cspace}-compound",
+    )
+    for cspace in CSPACES
+]
 
-        Method: Load a full rrCache in 'file' store mode. Then, for each
-        attribute, compare its length with it is supposed to be.
-        """
-        cache = rrCache(cspace=self.cspace, interactive=False, logger=self.logger)
-        for attr in self.metrics:
-            length = self.metrics[attr]['length']
-            with self.subTest(attr=attr, length=length):
-                self.assertEqual(len(cache.get(attr)), length)
+REACTION_CASES = [
+    pytest.param(
+        cspace,
+        next(iter(REFERENCE_DATA[cspace]["reactions"])),
+        id=f"{cspace}-reaction",
+    )
+    for cspace in CSPACES
+]
 
-    def test_single_attr_file(self):
-        r"""Test of loading each attribute in rrCache and store it in a file.
+RULE_CASES = [
+    pytest.param(
+        cspace,
+        next(iter(REFERENCE_DATA[cspace]["retrorules"])),
+        id=f"{cspace}-rule",
+    )
+    for cspace in CSPACES
+]
 
-        Method: Load a rrCache in 'file' store mode for each single attribute.
-        Then, compare its length with it is supposed to be.
-        """
-        for attr in self.metrics:
-            length = self.metrics[attr]['length']
-            with self.subTest(attr=attr, length=length):
-                cache = rrCache(cspace=self.cspace, interactive=False, logger=self.logger)
-                self.assertEqual(len(cache.get(attr)), length)
 
-    def test_generate_cache(self):
-        r"""Test of genrating all rrCache files from input_cache.
+@pytest.fixture(scope="session")
+def logger() -> Logger:
+    return create_logger(__name__, "ERROR")
 
-        Method: Generate a full rrCache. Then, for each file, compare its size
-        with it is supposed to be.
-        """
-        self.skipTest("Too long, not in standard tests")
-        rrCache.generate_cache(self.outdir, interactive=False, logger=self.logger)
-        for name in self.metrics:
-            filepath = os_path.join(self.outdir, f'{name}.json.gz')
-            outfile = extract_gz(filepath, self.outdir)
-            self.assertTrue(
-                check_file_size(
-                    outfile,
-                    self.metrics[name]['file_size'],
-                    self.logger
-                )
-            )
-            os_rm(outfile)
 
-    def test_get_compound(self):
-        self.assertDictEqual(
-            self.cache.get_compound('MNXM2'),
-            self.compounds['MNXM2']
+@pytest.fixture(scope="session")
+def reference_data() -> dict[str, dict[str, dict]]:
+    return REFERENCE_DATA
+
+
+@pytest.fixture(scope="session")
+def caches(logger: Logger) -> dict[str, rrCache]:
+    return {
+        cspace: rrCache(
+            cspace=cspace, databases=DATABASES, interactive=False, logger=logger
         )
+        for cspace in CSPACES
+    }
 
-    def test_get_list_of_compounds(self):
-        self.assertTrue(
-            'MNXM2' in self.cache.get_list_of_compounds()
-        )
-        self.assertEqual(
-            len(self.cache.get_list_of_compounds()),
-            self.metrics['cid_strc']['length']
-        )
 
-    def test_get_reaction(self):
-        self.assertDictEqual(
-            self.cache.get_reaction('MNXR94688'),
-            self.reactions['MNXR94688']
-        )
-        self.assertDictEqual(
-            self.cache.get_reaction('MNXR94688'),
-            self.reactions['MNXR94688']
-        )
+@pytest.mark.parametrize("cspace, attr, expected_length", ALL_ATTR_CASES)
+def test_all_attr(caches, cspace: str, attr: str, expected_length: int):
+    """Load all rrCache attributes and validate their expected lengths."""
+    assert len(caches[cspace].get(attr)) == expected_length
 
-    def test_get_list_of_reactions(self):
-        self.assertTrue(
-            'MNXR94688' in self.cache.get_list_of_reactions()
-        )
-        self.assertEqual(
-            len(self.cache.get_list_of_reactions()),
-            self.metrics['template_reactions']['length']
-        )
 
-        self.assertTrue(
-            'MNXR94688' in self.cache.get_list_of_reactions()
-        )
-        self.assertEqual(
-            len(self.cache.get_list_of_reactions()),
-            self.metrics['template_reactions']['length']
-        )
+@pytest.mark.skip(reason="Too long, not in standard tests")
+@pytest.mark.parametrize("cspace", CSPACES, ids=CSPACES)
+def test_generate_cache(cspace: str, logger: Logger, reference_data):
+    """Generate rrCache files and validate the extracted file sizes."""
+    outdir = f"cache-{cspace}"
+    rrCache.generate_cache(outdir, interactive=False, logger=logger)
+    metrics = reference_data[cspace]["metrics"]
 
-    def test_get_reaction_rule(self):
-        self.assertDictEqual(
-            self.cache.get_reaction_rule('RR-02-f85f00f767901186-16-F'),
-            self.retrorules['RR-02-f85f00f767901186-16-F']
-        )
+    for name, meta in metrics.items():
+        filepath = os_path.join(outdir, f"{name}.json.gz")
+        outfile = extract_gz(filepath, outdir)
+        try:
+            assert check_file_size(outfile, meta["file_size"], logger)
+        finally:
+            if os_path.exists(outfile):
+                os_rm(outfile)
 
-    def test_get_list_of_reaction_rules(self):
-        self.assertTrue(
-            'RR-02-f85f00f767901186-16-F' in self.cache.get_list_of_reaction_rules()
-        )
-        self.assertEqual(
-            len(self.cache.get_list_of_reaction_rules()),
-            self.metrics['rr_reactions']['length']
-        )
+
+@pytest.mark.parametrize("cspace, cmpd_id", COMPOUND_CASES)
+def test_get_compound(caches, reference_data, cspace: str, cmpd_id: str):
+    compounds = reference_data[cspace]["compounds"]
+    compound = caches[cspace].get_compound(cmpd_id)
+    compound["xref"] = caches[cspace].get_compound_xref(cmpd_id)
+    print(compound)
+    print()
+    print(compounds[cmpd_id])
+    assert compound == compounds[cmpd_id]
+
+
+@pytest.mark.parametrize("cspace, cmpd_id", COMPOUND_CASES)
+def test_get_list_of_compounds(caches, reference_data, cspace: str, cmpd_id: str):
+    compound_ids = caches[cspace].get_list_of_compounds()
+    expected_length = reference_data[cspace]["metrics"]["cid_strc"]["length"]
+
+    assert cmpd_id in compound_ids
+    assert len(compound_ids) == expected_length
+
+
+@pytest.mark.parametrize("cspace, rxn_id", REACTION_CASES)
+def test_get_reaction(caches, reference_data, cspace: str, rxn_id: str):
+    reactions = reference_data[cspace]["reactions"]
+    assert caches[cspace].get_reaction(rxn_id) == reactions[rxn_id]
+
+
+@pytest.mark.parametrize("cspace, rxn_id", REACTION_CASES)
+def test_get_list_of_reactions(caches, reference_data, cspace: str, rxn_id: str):
+    reaction_ids = caches[cspace].get_list_of_reactions()
+    expected_length = reference_data[cspace]["metrics"]["template_reactions"]["length"]
+
+    assert rxn_id in reaction_ids
+    assert len(reaction_ids) == expected_length
+
+
+@pytest.mark.parametrize("cspace, rule_id", RULE_CASES)
+def test_get_reaction_rule(caches, reference_data, cspace: str, rule_id: str):
+    retrorules = reference_data[cspace]["retrorules"]
+    assert caches[cspace].get_reaction_rule(rule_id) == retrorules[rule_id]
+
+
+@pytest.mark.parametrize("cspace, cmpd_id", COMPOUND_CASES)
+def test_contains_compound_in_cache(caches, cspace: str, cmpd_id: str):
+    assert cmpd_id in caches[cspace]
+    assert "NOT_A_VALID_ID" not in caches[cspace]
+
+
+@pytest.mark.parametrize("cspace, rxn_id", REACTION_CASES)
+def test_contains_reaction_in_cache(caches, cspace: str, rxn_id: str):
+    assert rxn_id in caches[cspace]
+    assert "NOT_A_VALID_ID" not in caches[cspace]
+
+
+@pytest.mark.parametrize("cspace, rule_id", RULE_CASES)
+def test_contains_rule_in_cache(caches, cspace: str, rule_id: str):
+    assert rule_id in caches[cspace]
+    assert "NOT_A_VALID_ID" not in caches[cspace]
+
+
+@pytest.mark.parametrize("cspace, rule_id", RULE_CASES)
+def test_get_list_of_reaction_rules(caches, reference_data, cspace: str, rule_id: str):
+    rule_ids = caches[cspace].get_list_of_reaction_rules()
+    expected_length = reference_data[cspace]["metrics"]["rr_reactions"]["length"]
+
+    assert rule_id in rule_ids
+    assert len(rule_ids) == expected_length

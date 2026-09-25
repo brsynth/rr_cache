@@ -48,8 +48,8 @@ For less loading time and memory footprint, a part of the cache can be loaded:
 ```python
 from rr_cache import rrCache
 
-cache = rrCache(['cid_strc'])
-cache.get_compound('MNXM2')
+cache = rrCache(["cid_strc"])
+cache.get_compound("MNXM2")
 ```
 ***From CLI***
 ```sh

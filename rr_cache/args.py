@@ -5,7 +5,7 @@ HERE = os_path.dirname(os_path.abspath(__file__))
 CONFIG_PATH = os_path.join(HERE, "config")
 # Default values for the arguments
 DEFAULTS = {
-    "cspace": "rr2026",
+    "cspace": "rr2026-v3.1.0",
     "databases": ["metanetx", "rhea"],
     "interactive": False,
     "do_not_dwnl_cache": False,
@@ -21,7 +21,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         dest="cspace",
         default=DEFAULTS["cspace"],
         type=str,
-        help="chemical space to use (e.g. mnx3.1, mnx4.0...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).",
+        help="chemical space to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).",
     )
     parser.add_argument(
         "--list-chemical-spaces",

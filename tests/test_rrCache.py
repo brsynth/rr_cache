@@ -10,17 +10,18 @@ from __future__ import annotations
 
 from json import load as json_load
 from logging import Logger
-from os import path as os_path, remove as os_rm
+from os import path as os_path
+from os import remove as os_rm
 
 import pytest
-
 from brs_utils import check_file_size, create_logger, extract_gz
+
 from rr_cache import rrCache
 
 HERE = os_path.dirname(os_path.abspath(__file__))
 DATA_PATH = os_path.join(HERE, "data")
-# CSPACES = ["mnx3.1", "mnx4.4", "rr2026"]
-CSPACES = ["rr2026"]
+# CSPACES = ["mnx3.1", "mnx4.4", "rr2026-v3.0","rr2026-v3.1.0"]
+CSPACES = ["rr2026-v3.0"]
 DATABASES = ["metanetx", "rhea"]
 DATASETS = ["compounds", "metrics", "retrorules", "reactions"]
 

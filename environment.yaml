@@ -7,3 +7,4 @@ dependencies:
   - requests
   - rdkit
   - colored
+  - pandas

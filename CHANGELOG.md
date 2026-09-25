@@ -1,24 +1,49 @@
 # Changelog
 
+## [3.7.1](https://github.com/brsynth/rr_cache/tree/3.7.1) (2026-09-25)
+
+[Full Changelog](https://github.com/brsynth/rr_cache/compare/3.7.0...3.7.1)
+
 ## [3.7.0](https://github.com/brsynth/rr_cache/tree/3.7.0) (2026-05-22)
 
 [Full Changelog](https://github.com/brsynth/rr_cache/compare/3.6.3...3.7.0)
+
+**Merged pull requests:**
+
+- Main [\#6](https://github.com/brsynth/rr_cache/pull/6) ([breakthewall](https://github.com/breakthewall))
+- Update [\#5](https://github.com/brsynth/rr_cache/pull/5) ([breakthewall](https://github.com/breakthewall))
 
 ## [3.6.3](https://github.com/brsynth/rr_cache/tree/3.6.3) (2026-04-10)
 
 [Full Changelog](https://github.com/brsynth/rr_cache/compare/3.6.2...3.6.3)
 
+**Merged pull requests:**
+
+- build\(environment.yaml\): fix min dep ver [\#4](https://github.com/brsynth/rr_cache/pull/4) ([breakthewall](https://github.com/breakthewall))
+
 ## [3.6.2](https://github.com/brsynth/rr_cache/tree/3.6.2) (2026-04-10)
 
 [Full Changelog](https://github.com/brsynth/rr_cache/compare/3.6.1...3.6.2)
+
+**Merged pull requests:**
+
+- build\(environment.yaml\): update min dep version [\#3](https://github.com/brsynth/rr_cache/pull/3) ([breakthewall](https://github.com/breakthewall))
 
 ## [3.6.1](https://github.com/brsynth/rr_cache/tree/3.6.1) (2026-04-10)
 
 [Full Changelog](https://github.com/brsynth/rr_cache/compare/3.6.0...3.6.1)
 
+**Merged pull requests:**
+
+- Main [\#2](https://github.com/brsynth/rr_cache/pull/2) ([breakthewall](https://github.com/breakthewall))
+
 ## [3.6.0](https://github.com/brsynth/rr_cache/tree/3.6.0) (2026-03-25)
 
 [Full Changelog](https://github.com/brsynth/rr_cache/compare/3.5.0...3.6.0)
+
+**Merged pull requests:**
+
+- Master [\#1](https://github.com/brsynth/rr_cache/pull/1) ([breakthewall](https://github.com/breakthewall))
 
 ## [3.5.0](https://github.com/brsynth/rr_cache/tree/3.5.0) (2026-02-18)
 

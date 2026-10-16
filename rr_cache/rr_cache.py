@@ -10,9 +10,12 @@ from json import dump as json_dump
 from json import dumps as json_dumps
 from json import load as json_load
 from logging import Logger, StreamHandler, getLogger
+from os import listdir as os_listdir
 from os import makedirs
 from os import path as os_path
 from pathlib import Path
+from re import compile as re_compile
+from re import escape as re_escape
 from re import findall as re_findall
 
 from brs_utils import check_sha, download, print_end, print_progress, print_start
@@ -52,6 +55,36 @@ def ask_user_input():
     else:
         print("Continuing...")
     return True
+
+
+def _resolve_latest_cspace(base: str, config_dirs: list[str]) -> "str | None":
+    """Find the highest-versioned config_{base}-v<version>.json in config_dirs.
+
+    Lets a bare alias (e.g. "rr2026") resolve to whichever versioned
+    cspace (e.g. "rr2026-v3.1.0") is newest, without hardcoding a version.
+
+    Args:
+        base (str): Chemical space base name (e.g. "rr2026").
+        config_dirs (list[str]): Directories to search for config files, in order.
+
+    Returns:
+        str | None: Resolved cspace name, or None if no versioned config was found.
+    """
+    pattern = re_compile(rf"^config_{re_escape(base)}-v(\d+(?:\.\d+)*)\.json$")
+    best_name = None
+    best_version = None
+    for config_dir in config_dirs:
+        if not os_path.isdir(config_dir):
+            continue
+        for fname in os_listdir(config_dir):
+            m = pattern.match(fname)
+            if not m:
+                continue
+            version = tuple(int(part) for part in m.group(1).split("."))
+            if best_version is None or version > best_version:
+                best_version = version
+                best_name = f"{base}-v{m.group(1)}"
+    return best_name
 
 
 class FileCorruptedError(Exception):
@@ -110,11 +143,31 @@ class rrCache:
         # Config file
         # Search first in install_dir,
         # then in default config path
+        install_config_dir = os_path.join(install_dir, "config")
         cache_cfg_fln = os_path.join(
-            install_dir, "config", f"config_{self.__cspace}.json"
+            install_config_dir, f"config_{self.__cspace}.json"
         )
         if not os_path.exists(cache_cfg_fln):
             cache_cfg_fln = os_path.join(CONFIG_PATH, f"config_{self.__cspace}.json")
+
+        # No exact match: treat cspace as a bare alias (e.g. "rr2026") and
+        # resolve it to its latest versioned config (e.g. "rr2026-v3.1.0")
+        if not os_path.exists(cache_cfg_fln):
+            resolved_cspace = _resolve_latest_cspace(
+                self.__cspace, [install_config_dir, CONFIG_PATH]
+            )
+            if resolved_cspace is not None:
+                self.logger.info(
+                    f"Resolved chemical space alias '{self.__cspace}' to latest version '{resolved_cspace}'"
+                )
+                self.__cspace = resolved_cspace
+                cache_cfg_fln = os_path.join(
+                    install_config_dir, f"config_{self.__cspace}.json"
+                )
+                if not os_path.exists(cache_cfg_fln):
+                    cache_cfg_fln = os_path.join(
+                        CONFIG_PATH, f"config_{self.__cspace}.json"
+                    )
 
         try:
             with open(cache_cfg_fln, "r") as f:

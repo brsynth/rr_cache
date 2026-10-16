@@ -144,9 +144,7 @@ class rrCache:
         # Search first in install_dir,
         # then in default config path
         install_config_dir = os_path.join(install_dir, "config")
-        cache_cfg_fln = os_path.join(
-            install_config_dir, f"config_{self.__cspace}.json"
-        )
+        cache_cfg_fln = os_path.join(install_config_dir, f"config_{self.__cspace}.json")
         if not os_path.exists(cache_cfg_fln):
             cache_cfg_fln = os_path.join(CONFIG_PATH, f"config_{self.__cspace}.json")
 
